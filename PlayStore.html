@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Store - CodeFoxSoft</title>
+    <link rel="icon" type="image/png" sizes="48x48" href="logo.png">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a202c; /* Dark background */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568; /* Gray thumb */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; /* Lighter gray on hover */
+        }
+
+        /* Mobile Menu Animation */
+        .mobile-menu-enter-active, .mobile-menu-leave-active {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .mobile-menu-enter, .mobile-menu-leave-to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+
+    <!-- AdMob Left Sidebar (Visible on large screens and up) -->
+    <div class="fixed top-0 left-0 h-full w-24 bg-gray-800 bg-opacity-70 z-40 hidden lg:flex items-center justify-center text-center text-gray-400 text-sm p-2">
+        <!-- AdMob Left Ad Unit -->
+        <p>Ad Space (Left)</p>
+    </div>
+
+    <!-- AdMob Right Sidebar (Visible on large screens and up) -->
+    <div class="fixed top-0 right-0 h-full w-24 bg-gray-800 bg-opacity-70 z-40 hidden lg:flex items-center justify-center text-center text-gray-400 text-sm p-2">
+        <!-- AdMob Right Ad Unit -->
+        <p>Ad Space (Right)</p>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4 lg:pl-24 lg:pr-24">
+        <nav class="container mx-auto flex justify-between items-center px-6">
+            <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
+                <!-- Logo Placeholder: Recommended size 48x48px -->
+                <img src="codefox-logo.png" onerror="this.onerror=null;this.src='https://placehold.co/48x48/0d9488/ffffff?text=CFS';" alt="CodeFox Soft Designs and Technologies Logo" class="h-12 w-12 rounded-full mr-3">
+                <span class="hidden md:block">CodeFoxSoft™</span>
+                <span class="block md:hidden">CodeFox Soft</span>
+            </a>
+
+            <!-- Desktop Navigation Links (visible on md screens and up) -->
+            <ul class="hidden md:flex space-x-6 text-lg">
+                <li><a href="index.html#about" class="hover:text-green-400 transition-colors duration-300">About</a></li>
+                <li><a href="index.html#projects" class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
+                <li><a href="downloads.html" class="hover:text-green-400 transition-colors duration-300">Downloads</a></li>
+                <li><a href="blog.html" class="hover:text-green-400 transition-colors duration-300">Blog</a></li>
+                <li><a href="index.html#contact" class="hover:text-green-400 transition-colors duration-300">Contact</a></li>
+            </ul>
+
+            <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
+            <button id="menu-button" class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
+    <div id="mobile-menu" class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
+        <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
+            <li><a href="index.html#about" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a></li>
+            <li><a href="index.html#projects" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a></li>
+            <li><a href="downloads.html" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a></li>
+            <li><a href="blog.html" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Blog</a></li>
+            <li><a href="index.html#contact" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Contact</a></li>
+        </ul>
+    </div>
+
+    <!-- Blog Post Content Section -->
+    <section class="py-20 pt-32 bg-gray-900 min-h-screen lg:pl-24 lg:pr-24">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <!-- Back to Blog Link -->
+            <div class="mb-8">
+                <a href="blog.html" class="text-green-400 hover:text-green-500 font-semibold flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to All Blog Posts
+                </a>
+            </div>
+
+            <article class="bg-gray-800 p-8 rounded-xl shadow-lg">
+                <h1 class="text-5xl font-extrabold text-white mb-4 leading-tight">Join The Beta Team!</h1>
+                <p class="text-gray-400 text-lg mb-6">
+                    By <span class="text-green-400">Nicholas Larkin Buchanan</span> on <span class="text-green-400">July 29, 2025</span>
+                </p>
+<div class="prose prose-invert max-w-none text-gray-300 leading-relaxed">
+    <p class="mb-4">
+        <h2 class="text-3xl font-bold text-white mb-4 mt-8">Thanks For Joining CodeFoxSoft Official Launch!</h2>
+        Hello! Nicholas Larkin Buchanan Checking in here!
+    </p>
+    <p class="mb-4">
+        Help Us Launch: Why We Need 14 Brave Testers Before Going Live on Google Play
+    </p>
+    <p class="mb-4">
+        Building an app is like crafting a spaceship—you can design it, code it, and polish every pixel, but you still need a crew to test the launch sequence. That’s where you come in.
+    </p>
+    <h2 class="text-3xl font-bold text-white mb-4 mt-8">I NEED YOU!</h2>
+    <p class="mb-4">
+        Google Play has a simple rule: before we can officially launch our app to the public, we need 14 real users to install and test it. Not bots. Not simulations. Actual humans who can poke around, explore features, and give honest feedback. It’s part of Google’s effort to ensure apps are stable, useful, and not just vaporware. And frankly, we love it—because it means our launch will be powered by community.
+    </p>
+    <h2 class="text-3xl font-bold text-white mb-4 mt-8">What You’ll Be Testing</h2>
+    <p class="mb-4">
+        This isn’t a bug hunt (though if you find one, we’ll salute you). It’s about trying out core features, spotting any rough edges, and sharing your thoughts—what works, what doesn’t, what could be better. No coding required. Just curiosity and a few minutes of your time.
+    </p>
+    <h2 class="text-3xl font-bold text-white mb-4 mt-8">What You Get</h2>
+    <p class="mb-4">
+        Besides our eternal gratitude? You’ll be part of the founding circle. That means early access to new features, a shoutout in our launch credits (if you want it), and influence over the future of the app.
+    </p>
+    <h2 class="text-3xl font-bold text-white mb-4 mt-8">Why It Matters</h2>
+    <p class="mb-4">
+        We’re not just launching an app—we’re building a community. And that starts with trust, transparency, and collaboration. These 14 testers aren’t just a checkbox for Google—they’re the heartbeat of our development process.
+    </p>
+    <p class="mb-4">
+        So if you’re reading this and thinking, “Yeah, I’d love to be part of something cool before it hits the mainstream,” then we’d love to have you aboard.
+    </p>
+    <p class="mb-4">
+        Ready to test? Drop us a message, and we’ll send you the invite link. Let’s build something great—together.
+    </p>
+
+    <h2 class="text-3xl font-bold text-white mb-4 mt-8">Join the Tester Group</h2>
+    <p class="mb-4">
+        To get started, join our official Google Group for testers: <br>
+        <a href="https://groups.google.com/g/codefoxsoftapptest" class="text-blue-400 underline">CodeFoxSoft App Testers Group</a>
+    </p>
+
+    <h2 class="text-3xl font-bold text-white mb-4 mt-8">Test Our Games</h2>
+    <p class="mb-4 font-semibold text-white">Game ONE: Brick Breaker in SPACE!</p>
+    <ul class="mb-4 list-disc list-inside">
+        <li>Web Access: <a href="https://play.google.com/apps/testing/com.codefoxsoft.brickbreaker" class="text-blue-400 underline">Testing Link</a></li>
+        <li>Android Install: <a href="https://play.google.com/store/apps/details?id=com.codefoxsoft.brickbreaker" class="text-blue-400 underline">Google Play Store</a></li>
+    </ul>
+
+    <p class="mb-4 font-semibold text-white">Game TWO: Fox Run</p>
+    <ul class="mb-4 list-disc list-inside">
+        <li>Web Access: <a href="https://play.google.com/apps/testing/com.codefoxsoft.foxrunbycodefox" class="text-blue-400 underline">Testing Link</a></li>
+        <li>Android Install: <a href="https://play.google.com/store/apps/details?id=com.codefoxsoft.foxrunbycodefox" class="text-blue-400 underline">Google Play Store</a></li>
+    </ul>
+</div>
+            </article>
+
+            <!-- Removed Comments Section Placeholder -->
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-10 text-center text-gray-400 text-sm lg:pl-24 lg:pr-24">
+        <div class="container mx-auto px-6">
+            <p>&copy; 2025 CodeFoxSoft™ All rights reserved.</p>
+            <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
+            <a href="https://codefoxsoft.com/privacy.html">Privacy Policy</a>
+
+            <div class="flex justify-center space-x-6 mt-4">
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for the mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+
+                // Close the menu when a link is clicked
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                    });
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
