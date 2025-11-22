@@ -469,10 +469,10 @@
     // Mobile detection for performance optimization
     const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
-    // Adjust particle counts based on device type
-    let starCount = isMobile ? 18000 : 50000;
-    let backgroundGalaxyCount = isMobile ? 4 : 10;
-    let starFieldCount = isMobile ? 2000 : 5000;
+    // Adjust particle counts based on device type - further reduced for mobile performance
+    let starCount = isMobile ? 9000 : 50000;
+    let backgroundGalaxyCount = isMobile ? 2 : 10;
+    let starFieldCount = isMobile ? 1000 : 5000;
     const spiralSpeed = 0.0005;
 
     // --- Helper Functions for Galaxy Creation (from the galaxy code) ---
@@ -601,8 +601,8 @@
             colors[i * 3 + 1] = 1.0;
             colors[i * 3 + 2] = 1.0;
 
-            // Randomize star size
-            sizes[i] = Math.random() * 0.1 + 0.05;
+            // Randomize star size - larger on mobile for better visibility
+            sizes[i] = isMobile ? (Math.random() * 0.2 + 0.1) : (Math.random() * 0.1 + 0.05);
         }
 
         const geometry = new THREE.BufferGeometry();
@@ -610,8 +610,10 @@
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
+        // Make star field material larger on mobile for better visibility
+        const starMaterialSize = isMobile ? 0.25 : 0.1;
         const material = new THREE.PointsMaterial({
-            size: 0.1,
+            size: starMaterialSize,
             vertexColors: true,
             transparent: true,
             opacity: 1.0, // Increased opacity for brighter stars
@@ -639,10 +641,12 @@
         const width = canvasContainer.clientWidth;
         const height = canvasContainer.clientHeight;
 
-        camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 8000);
+        // Adjust camera FOV for mobile - reduce from 120 to 85 for better performance and visibility
+        const cameraFOV = isMobile ? 85 : 120;
+        camera = new THREE.PerspectiveCamera(cameraFOV, width / height, 0.1, 8000);
         renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true }); // Disable antialiasing on mobile for performance
-        // Limit pixel ratio on mobile to improve performance
-        const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.75) : window.devicePixelRatio;
+        // Limit pixel ratio on mobile to improve performance - further reduced to 1.0-1.25
+        const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.25) : window.devicePixelRatio;
         renderer.setPixelRatio(pixelRatio);
         renderer.setSize(width, height);
 
@@ -650,9 +654,16 @@
         canvasContainer.appendChild(renderer.domElement);
 
         // Set the camera to a close, angled viewpoint to see the 3D shape
-        camera.position.z = 8;
-        camera.position.y = 5;
-        camera.position.x = 0;
+        // Adjust camera position for mobile to better see the galaxy
+        if (isMobile) {
+            camera.position.z = 10;
+            camera.position.y = 3;
+            camera.position.x = 0;
+        } else {
+            camera.position.z = 8;
+            camera.position.y = 5;
+            camera.position.x = 0;
+        }
 
         // --- Main Galaxy ---
         galaxyGroup = new THREE.Group();
@@ -663,14 +674,14 @@
 
         // --- Background Galaxies ---
         backgroundGalaxyGroup = new THREE.Group();
-        const bgGalaxyStarCount = isMobile ? 2000 : 5000; // Reduce stars per background galaxy on mobile
+        const bgGalaxyStarCount = isMobile ? 1000 : 5000; // Further reduced stars per background galaxy on mobile
         for (let i = 0; i < backgroundGalaxyCount; i++) {
             // Randomize opacity for each background galaxy
             const opacity = 0.4 + Math.random() * 0.6; // Increased base opacity
             const bgGalaxy = createGalaxy(bgGalaxyStarCount, 20, 2, opacity);
 
-            // Randomly position the background galaxies far away
-            const bgDistance = 5000 + Math.random() * 2000;
+            // Randomly position the background galaxies - closer on mobile for visibility
+            const bgDistance = isMobile ? (2000 + Math.random() * 1500) : (5000 + Math.random() * 2000);
             const bgAngle = Math.random() * Math.PI * 2;
             bgGalaxy.position.x = Math.cos(bgAngle) * bgDistance;
             bgGalaxy.position.y = (Math.random() - 0.5) * bgDistance;
@@ -721,33 +732,60 @@
     /**
      * Main animation loop. Updates the scene and renders it.
      */
-    function animate() {
+    // Frame rate limiting for mobile (target 30fps instead of 60fps)
+    let lastFrameTime = 0;
+    const targetFPS = isMobile ? 30 : 60;
+    const frameInterval = 1000 / targetFPS;
+    
+    function animate(currentTime) {
         requestAnimationFrame(animate);
 
-        // Update rotation targets based on mouse position
-        targetX = mouseX * 0.001;
-        targetY = mouseY * 0.001;
+        // Frame rate limiting for mobile
+        if (isMobile) {
+            const elapsed = currentTime - lastFrameTime;
+            if (elapsed < frameInterval) {
+                return; // Skip this frame to maintain target FPS
+            }
+            lastFrameTime = currentTime - (elapsed % frameInterval);
+        }
+
+        // Update rotation targets based on mouse position - reduced influence on mobile
+        const mouseInfluence = isMobile ? 0.0003 : 0.001;
+        targetX = mouseX * mouseInfluence;
+        targetY = mouseY * mouseInfluence;
 
         // Apply mouse influence and continuous rotation to the galaxy group
-        galaxyGroup.rotation.y += 0.0005 * (targetX - galaxyGroup.rotation.y) + 0.0002;
-        galaxyGroup.rotation.x += 0.0005 * (targetY - galaxyGroup.rotation.x) - 0.00005;
-        galaxyGroup.rotation.z += 0.0001;
+        // Reduced rotation speed on mobile for better performance
+        const rotationSpeed = isMobile ? 0.0003 : 0.0005;
+        const baseRotation = isMobile ? 0.0001 : 0.0002;
+        galaxyGroup.rotation.y += rotationSpeed * (targetX - galaxyGroup.rotation.y) + baseRotation;
+        galaxyGroup.rotation.x += rotationSpeed * (targetY - galaxyGroup.rotation.x) - (isMobile ? 0.00003 : 0.00005);
+        galaxyGroup.rotation.z += isMobile ? 0.00005 : 0.0001;
 
-        // Pulsing scale effect from the provided code
-        const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
-        galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+        // Pulsing scale effect - skip on mobile for performance
+        if (!isMobile) {
+            const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
+            galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+        }
 
-        // Subtle camera movement based on mouse position
-        camera.position.x += (targetX * 0.5 - camera.position.x) * 0.05;
-        camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.05;
+        // Simplified camera movement on mobile
+        if (isMobile) {
+            // Less camera movement on mobile
+            camera.position.x += (targetX * 0.3 - camera.position.x) * 0.03;
+            camera.position.y += (-targetY * 0.3 - camera.position.y) * 0.03;
+        } else {
+            camera.position.x += (targetX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.05;
+        }
         camera.lookAt(scene.position);
 
-        // Slow, continuous rotation for the background galaxies
-        backgroundGalaxyGroup.rotation.x += 0.00001;
-        backgroundGalaxyGroup.rotation.y += 0.00001;
+        // Slow, continuous rotation for the background galaxies - reduced on mobile
+        const bgRotationSpeed = isMobile ? 0.000005 : 0.00001;
+        backgroundGalaxyGroup.rotation.x += bgRotationSpeed;
+        backgroundGalaxyGroup.rotation.y += bgRotationSpeed;
 
-        // Rotate the entire star field
-        starField.rotation.y += 0.00005;
+        // Rotate the entire star field - reduced speed on mobile
+        starField.rotation.y += isMobile ? 0.000025 : 0.00005;
 
         renderer.render(scene, camera);
     }
@@ -756,8 +794,8 @@
     window.onload = function() {
         // Initialize the galaxy scene
         init();
-        // Start the animation loop
-        animate();
+        // Start the animation loop - pass timestamp for frame rate limiting
+        animate(performance.now());
 
         // Intersection Observer for fade-in effect on scroll (from your original code)
         const faders = document.querySelectorAll('.fade-in');
