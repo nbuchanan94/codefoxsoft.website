@@ -44,12 +44,19 @@
         }
 
         /* Mobile Menu Animation */
-        .mobile-menu-enter-active, .mobile-menu-leave-active {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        #mobile-menu {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            display: block !important;
         }
-        .mobile-menu-enter, .mobile-menu-leave-to {
+        #mobile-menu.hidden {
             opacity: 0;
             transform: translateY(-20px);
+            pointer-events: none;
+        }
+        #mobile-menu:not(.hidden) {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -96,7 +103,7 @@
     </header>
 
     <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
-    <div id="mobile-menu" class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg mobile-menu-leave-to">
+    <div id="mobile-menu" class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
         <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
             <li><a href="index.html#about" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a></li>
             <li><a href="index.html#projects" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a></li>

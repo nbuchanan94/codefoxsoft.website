@@ -47,12 +47,19 @@
         }
 
         /* Mobile Menu Animation */
-        .mobile-menu-enter-active, .mobile-menu-leave-active {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        #mobile-menu {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            display: block !important;
         }
-        .mobile-menu-enter, .mobile-menu-leave-to {
+        #mobile-menu.hidden {
             opacity: 0;
             transform: translateY(-20px);
+            pointer-events: none;
+        }
+        #mobile-menu:not(.hidden) {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
         }
     </style>
 </head>

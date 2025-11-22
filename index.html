@@ -88,6 +88,35 @@
         .project-card:hover .project-image {
             transform: scale(1.05);
         }
+
+        /* Hero Box Mobile Optimization - More transparent with backdrop blur */
+        @media (max-width: 768px) {
+            .hero-content-box {
+                background-color: rgba(17, 24, 39, 0.35) !important; /* Reduced from 70% to 35% opacity */
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+            .hero-content-box h1,
+            .hero-content-box p {
+                text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 0, 0, 0.6);
+            }
+        }
+
+        /* Mobile Menu Animation */
+        #mobile-menu {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            display: block !important;
+        }
+        #mobile-menu.hidden {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+        #mobile-menu:not(.hidden) {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100">
@@ -153,7 +182,7 @@
         <section class="relative h-screen flex items-center justify-center text-center overflow-hidden">
             <!-- This div is the container for the Three.js animation -->
             <div id="hero-background"></div>
-            <div class="relative z-10 p-8 bg-gray-900 bg-opacity-70 rounded-xl shadow-2xl max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
+            <div class="hero-content-box relative z-10 p-8 bg-gray-900 bg-opacity-70 rounded-xl shadow-2xl max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
                 <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
                     Innovating the Future of <span class="text-green-500">Applications & Games through AI Expansions</span>
                 </h1>
@@ -436,8 +465,14 @@
     let targetY = 0;
     let windowHalfX = window.innerWidth / 2;
     let windowHalfY = window.innerHeight / 2;
-    let starCount = 50000;
-    let backgroundGalaxyCount = 10;
+    
+    // Mobile detection for performance optimization
+    const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Adjust particle counts based on device type
+    let starCount = isMobile ? 18000 : 50000;
+    let backgroundGalaxyCount = isMobile ? 4 : 10;
+    let starFieldCount = isMobile ? 2000 : 5000;
     const spiralSpeed = 0.0005;
 
     // --- Helper Functions for Galaxy Creation (from the galaxy code) ---
@@ -605,8 +640,10 @@
         const height = canvasContainer.clientHeight;
 
         camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 8000);
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // Enable alpha for a transparent background
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true }); // Disable antialiasing on mobile for performance
+        // Limit pixel ratio on mobile to improve performance
+        const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.75) : window.devicePixelRatio;
+        renderer.setPixelRatio(pixelRatio);
         renderer.setSize(width, height);
 
         // Append the renderer's DOM element to the div container
@@ -626,10 +663,11 @@
 
         // --- Background Galaxies ---
         backgroundGalaxyGroup = new THREE.Group();
+        const bgGalaxyStarCount = isMobile ? 2000 : 5000; // Reduce stars per background galaxy on mobile
         for (let i = 0; i < backgroundGalaxyCount; i++) {
             // Randomize opacity for each background galaxy
             const opacity = 0.4 + Math.random() * 0.6; // Increased base opacity
-            const bgGalaxy = createGalaxy(5000, 20, 2, opacity);
+            const bgGalaxy = createGalaxy(bgGalaxyStarCount, 20, 2, opacity);
 
             // Randomly position the background galaxies far away
             const bgDistance = 5000 + Math.random() * 2000;
@@ -652,7 +690,7 @@
         scene.add(backgroundGalaxyGroup);
 
         // --- Distant Star Field ---
-        starField = createStarField(5000, 1000);
+        starField = createStarField(starFieldCount, 1000);
         scene.add(starField);
     }
 
