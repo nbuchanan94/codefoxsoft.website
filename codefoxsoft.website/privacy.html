@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - CodeFoxSoft</title>
+    <link rel="icon" type="image/png" sizes="48x48" href="logo.png">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* General body styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background-color: #0c0d11; /* A very dark, almost black, background */
+        }
+
+        /* The container for the Three.js canvas */
+        #hero-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Puts it behind all other content */
+        }
+
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a202c; /* Dark background */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568; /* Gray thumb */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; /* Lighter gray on hover */
+        }
+
+        /* Mobile Menu Animation */
+        .mobile-menu-enter-active, .mobile-menu-leave-active {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .mobile-menu-enter, .mobile-menu-leave-to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+
+    <!-- The container for the Three.js animated background -->
+    <div id="hero-background"></div>
+
+    <!-- AdMob Left Sidebar (Visible on large screens and up) -->
+    <div class="fixed top-0 left-0 h-full w-24 bg-gray-800 bg-opacity-50 z-40 hidden lg:flex items-center justify-center text-center text-gray-400 text-sm p-2">
+        <!-- AdMob Left Ad Unit -->
+        <p>Ad Space (Left)</p>
+    </div>
+
+    <!-- AdMob Right Sidebar (Visible on large screens and up) -->
+    <div class="fixed top-0 right-0 h-full w-24 bg-gray-800 bg-opacity-70 z-40 hidden lg:flex items-center justify-center text-center text-gray-400 text-sm p-2">
+        <!-- AdMob Right Ad Unit -->
+        <p>Ad Space (Right)</p>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4 lg:pl-24 lg:pr-24">
+        <nav class="container mx-auto flex justify-between items-center px-6">
+            <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
+                <!-- Logo -->
+                <img src="logo.png" onerror="this.onerror=null;this.src='https://placehold.co/48x48/0d9488/ffffff?text=CFS';" alt="CodeFox Soft Designs and Technologies Logo" class="h-12 w-12 rounded-full mr-3">
+                <span class="hidden md:block">CodeFoxSoft™</span>
+                <span class="block md:hidden">CodeFox Soft</span>
+            </a>
+
+            <!-- Desktop Navigation Links (visible on md screens and up) -->
+            <ul class="hidden md:flex space-x-6 text-lg">
+                <li><a href="index.html#about" class="hover:text-green-400 transition-colors duration-300">About</a></li>
+                <li><a href="index.html#projects" class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
+                <li><a href="downloads.html" class="hover:text-green-400 transition-colors duration-300">Downloads</a></li>
+                <li><a href="blog.html" class="hover:text-green-400 transition-colors duration-300">Blog</a></li>
+                <li><a href="index.html#contact" class="hover:text-green-400 transition-colors duration-300">Contact</a></li>
+            </ul>
+
+            <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
+            <button id="menu-button" class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
+    <div id="mobile-menu" class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
+        <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
+            <li><a href="index.html#about" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a></li>
+            <li><a href="index.html#projects" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a></li>
+            <li><a href="downloads.html" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a></li>
+            <li><a href="blog.html" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Blog</a></li>
+            <li><a href="index.html#contact" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Contact</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content Area -->
+    <section class="py-20 pt-32 lg:pl-24 lg:pr-24 z-10 relative">
+        <div class="container mx-auto px-6">
+            <div class="bg-gray-800 bg-opacity-90 backdrop-blur-sm p-8 md:p-12 rounded-xl shadow-lg max-w-4xl mx-auto text-left">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-green-400 mb-6 text-center">Privacy Policy</h1>
+                <p class="text-gray-400 mb-8 text-center">Last Updated: September 21, 2025</p>
+
+                <div class="space-y-8 text-gray-300">
+                    <section>
+                        <h2 class="text-2xl font-bold text-green-300 mb-3">1. Introduction</h2>
+                        <p>Welcome to CodeFoxSoft™ ("we," "our," or "us"), a private entity owned and operated by Nicholas Larkin Buchanan. We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website codefoxsoft.com (the "Site") and use our applications. Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site or our applications.</p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-2xl font-bold text-green-300 mb-3">2. Our Stance on User Data</h2>
+                        <p class="mb-4">Our philosophy is simple: we believe your data is your own. We do not collect or store your personal data for our use. Our applications are designed to function without needing to send your information to our servers.</p>
+                        <ul class="list-disc list-inside space-y-2 pl-4">
+                            <li><strong>Application Data:</strong> Any data generated or used by our applications (e.g., game saves, settings, user-created content) is stored locally on your own device. We do not have access to this information.</li>
+                            <li><strong>Online Experiences:</strong> For interactive online or multiplayer applications, it is necessary to transmit some data (such as a username or gameplay information) between users. This data is used solely to enable the gameplay experience and is not saved or used by us for any other purpose.</li>
+                            <li><strong>Contact Form:</strong> The only personal data we collect is the information you voluntarily provide to us, such as your name and email address, when you use the contact form on our website. This is used exclusively to respond to your inquiry.</li>
+                             <li><strong>Cookies:</strong> Our website does not use cookies for tracking or advertising. Any cookies used are strictly for essential site functionality.</li>
+                        </ul>
+                    </section>
+                    
+                    <section>
+                        <h2 class="text-2xl font-bold text-green-300 mb-3">3. How We Use Your Information</h2>
+                        <p>Given that we collect minimal information, our use is limited. Information collected from the contact form is used solely to respond to your comments, questions, and provide customer service.</p>
+                    </section>
+                    
+                    <section>
+                        <h2 class="text-2xl font-bold text-green-300 mb-3">4. Disclosure of Your Information</h2>
+                        <p>We do not sell, trade, rent, or otherwise share your Personal Information. The information you provide via the contact form is confidential. We may only disclose this information if required by law to respond to a legal process.</p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-2xl font-bold text-green-300 mb-3">5. Data Security</h2>
+                        <p>We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable, and no method of data transmission can be guaranteed against any interception or other type of misuse.</p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-2xl font-bold text-green-300 mb-3">6. Limitation of Liability</h2>
+                        <p>By using our website or any of our applications, you agree that CodeFoxSoft™ and Nicholas Larkin Buchanan are not liable for any damages of any kind arising from their use. All services and software are provided "as is" and your use of them is at your own risk.</p>
+                    </section>
+                    
+                    <section>
+                        <h2 class="text-2xl font-bold text-green-300 mb-3">7. Your Rights and Choices</h2>
+                        <p>You have the right to request access to the personal data we hold about you (such as from a contact form submission), to have any inaccuracies corrected, and to request deletion of your personal data. To make such a request, please use the contact information provided below.</p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-2xl font-bold text-green-300 mb-3">8. Children's Privacy</h2>
+                        <p>Our Site is not intended for children under the age of 13. We do not knowingly collect personal information from children under 13. If we learn that we have collected personal information from a child under 13, we will take steps to delete such information from our files as soon as possible.</p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-2xl font-bold text-green-300 mb-3">9. Changes to This Privacy Policy</h2>
+                        <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date. You are advised to review this Privacy Policy periodically for any changes.</p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-2xl font-bold text-green-300 mb-3">10. Contact Us</h2>
+                        <p>If you have questions or comments about this Privacy Policy, please contact us through our <a href="https://codefoxsoft.com#contact" class="text-green-400 underline hover:text-green-300">contact form</a>.</p>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 bg-opacity-80 py-10 text-center text-gray-400 text-sm lg:pl-24 lg:pr-24 z-10 relative">
+        <div class="container mx-auto px-6">
+            <p>&copy; 2025 CodeFoxSoft. All rights reserved.</p>
+            <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
+            <a href="privacy.html" class="underline hover:text-green-300">Privacy Policy</a>
+
+            <div class="flex justify-center space-x-6 mt-4">
+            </div>
+        </div>
+    </footer>
+
+    <!-- Three.js library is required for the galaxy animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // JavaScript for the mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+
+                // Close the menu when a link is clicked
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                    });
+                });
+            }
+        });
+
+        // --- Global Variables for Three.js (from the galaxy code) ---
+        let scene, camera, renderer, galaxyGroup, backgroundGalaxyGroup, starField;
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+        let windowHalfX = window.innerWidth / 2;
+        let windowHalfY = window.innerHeight / 2;
+        let starCount = 50000;
+        let backgroundGalaxyCount = 10;
+        const spiralSpeed = 0.0005;
+
+        // --- Helper Functions for Galaxy Creation (from the galaxy code) ---
+        function hsvToRgb(h, s, v) {
+            let r, g, b;
+            let i = Math.floor(h * 6);
+            let f = h * 6 - i;
+            let p = v * (1 - s);
+            let q = v * (1 - f * s);
+            let t = v * (1 - (1 - f) * s);
+
+            switch (i % 6) {
+                case 0: r = v, g = t, b = p; break;
+                case 1: r = q, g = v, b = p; break;
+                case 2: r = p, g = v, b = t; break;
+                case 3: r = p, g = q, b = v; break;
+                case 4: r = t, g = p, b = v; break;
+                case 5: r = v, g = p, b = q; break;
+            }
+            return { r: r, g: g, b: b };
+        }
+
+        function createGalaxy(starCount, maxRadius, armCount, opacity = 1.0) {
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+            const sizes = new Float32Array(starCount);
+            const armOffset = 1.0;
+
+            for (let i = 0; i < starCount; i++) {
+                const armIndex = i % armCount;
+                const angle = (i / starCount) * Math.PI * 40 + (armIndex * Math.PI * armOffset);
+
+                const distance = Math.pow(Math.random(), 3.0) * maxRadius;
+
+                const crazyFactor = (1 - distance / maxRadius) * 2.0;
+                const randomX = (Math.random() - 0.5) * crazyFactor;
+                const verticalPuffiness = 0.5 + (distance / maxRadius) * 0.5;
+                const randomY = (Math.random() - 0.5) * crazyFactor * verticalPuffiness;
+                const randomZ = (Math.random() - 0.5) * crazyFactor;
+
+                const x = Math.cos(angle) * distance + randomX;
+                const y = randomY;
+                const z = Math.sin(angle) * distance + randomZ;
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                const hue = (distance / maxRadius) * 0.7;
+                const saturation = 0.9 + Math.random() * 0.1;
+                const value = 0.9 + Math.random() * 0.1;
+                let rgb = hsvToRgb(hue, saturation, value);
+
+                if (distance < 1.0) {
+                    rgb.r = 0;
+                    rgb.g = 0;
+                    rgb.b = 0;
+                }
+
+                colors[i * 3] = rgb.r;
+                colors[i * 3 + 1] = rgb.g;
+                colors[i * 3 + 2] = rgb.b;
+
+                sizes[i] = (1 - distance / maxRadius) * 0.05 + 0.005;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.01,
+                vertexColors: true,
+                transparent: true,
+                opacity: opacity,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true
+            });
+
+            return new THREE.Points(geometry, material);
+        }
+
+        function createStarField(starCount, maxDistance) {
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+            const sizes = new Float32Array(starCount);
+
+            for (let i = 0; i < starCount; i++) {
+                const x = (Math.random() - 0.5) * maxDistance * 2;
+                const y = (Math.random() - 0.5) * maxDistance * 2;
+                const z = (Math.random() - 0.5) * maxDistance * 2;
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                colors[i * 3] = 1.0;
+                colors[i * 3 + 1] = 1.0;
+                colors[i * 3 + 2] = 1.0;
+
+                sizes[i] = Math.random() * 0.1 + 0.05;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 1.0,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true
+            });
+
+            return new THREE.Points(geometry, material);
+        }
+        
+        function init() {
+            scene = new THREE.Scene();
+            const canvasContainer = document.getElementById('hero-background');
+            if (!canvasContainer) {
+                console.error('Canvas container element with ID "hero-background" not found.');
+                return;
+            }
+
+            const width = canvasContainer.clientWidth;
+            const height = canvasContainer.clientHeight;
+
+            camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 8000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(width, height);
+
+            canvasContainer.appendChild(renderer.domElement);
+
+            camera.position.z = 8;
+            camera.position.y = 5;
+            camera.position.x = 0;
+
+            galaxyGroup = new THREE.Group();
+            const mainGalaxy = createGalaxy(starCount, 55, 2, 1.0);
+            galaxyGroup.add(mainGalaxy);
+            galaxyGroup.rotation.x = 0.5;
+            scene.add(galaxyGroup);
+
+            backgroundGalaxyGroup = new THREE.Group();
+            for (let i = 0; i < backgroundGalaxyCount; i++) {
+                const opacity = 0.4 + Math.random() * 0.6;
+                const bgGalaxy = createGalaxy(5000, 20, 2, opacity);
+
+                const bgDistance = 5000 + Math.random() * 2000;
+                const bgAngle = Math.random() * Math.PI * 2;
+                bgGalaxy.position.x = Math.cos(bgAngle) * bgDistance;
+                bgGalaxy.position.y = (Math.random() - 0.5) * bgDistance;
+                bgGalaxy.position.z = Math.sin(bgAngle) * bgDistance;
+
+                bgGalaxy.rotation.x = Math.random() * Math.PI * 2;
+                bgGalaxy.rotation.y = Math.random() * Math.PI * 2;
+                bgGalaxy.rotation.z = Math.random() * Math.PI * 2;
+
+                const scale = 0.5 + Math.random() * 0.5;
+                bgGalaxy.scale.set(scale, scale, scale);
+
+                backgroundGalaxyGroup.add(bgGalaxy);
+            }
+            scene.add(backgroundGalaxyGroup);
+
+            starField = createStarField(5000, 1000);
+            scene.add(starField);
+        }
+
+        function onWindowResize() {
+            const canvasContainer = document.getElementById('hero-background');
+            if (canvasContainer) {
+                windowHalfX = canvasContainer.clientWidth / 2;
+                windowHalfY = canvasContainer.clientHeight / 2;
+                camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+            }
+        }
+
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX - windowHalfX);
+            mouseY = (event.clientY - windowHalfY);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            targetX = mouseX * 0.001;
+            targetY = mouseY * 0.001;
+
+            galaxyGroup.rotation.y += 0.0005 * (targetX - galaxyGroup.rotation.y) + 0.0002;
+            galaxyGroup.rotation.x += 0.0005 * (targetY - galaxyGroup.rotation.x) - 0.00005;
+            galaxyGroup.rotation.z += 0.0001;
+
+            const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
+            galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+            camera.position.x += (targetX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            backgroundGalaxyGroup.rotation.x += 0.00001;
+            backgroundGalaxyGroup.rotation.y += 0.00001;
+
+            starField.rotation.y += 0.00005;
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function() {
+            init();
+            animate();
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+        };
+    </script>
+</body>
+</html>
+
