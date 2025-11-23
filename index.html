@@ -89,12 +89,19 @@
             transform: scale(1.05);
         }
 
+        /* Hero Content Box - Base styles for desktop */
+        .hero-content-box {
+            background-color: rgba(17, 24, 39, 0.7); /* 70% opacity for desktop */
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
         /* Hero Box Mobile Optimization - More transparent with backdrop blur */
         @media (max-width: 768px) {
             .hero-content-box {
                 background-color: rgba(17, 24, 39, 0.35) !important; /* Reduced from 70% to 35% opacity */
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
+                backdrop-filter: blur(8px) !important;
+                -webkit-backdrop-filter: blur(8px) !important;
             }
             .hero-content-box h1,
             .hero-content-box p {
@@ -182,7 +189,7 @@
         <section class="relative h-screen flex items-center justify-center text-center overflow-hidden">
             <!-- This div is the container for the Three.js animation -->
             <div id="hero-background"></div>
-            <div class="hero-content-box relative z-10 p-8 bg-gray-900 bg-opacity-70 rounded-xl shadow-2xl max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
+            <div class="hero-content-box relative z-10 p-8 rounded-xl shadow-2xl max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
                 <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
                     Innovating the Future of <span class="text-green-500">Applications & Games through AI Expansions</span>
                 </h1>
