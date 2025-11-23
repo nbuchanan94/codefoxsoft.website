@@ -42,6 +42,22 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Mobile Menu Animation */
+        #mobile-menu {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            display: block !important;
+        }
+        #mobile-menu.hidden {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+        #mobile-menu:not(.hidden) {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100">
@@ -59,22 +75,43 @@
     </div>
 
     <!-- Header -->
-    <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
+    <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4 lg:pl-24 lg:pr-24">
         <nav class="container mx-auto flex justify-between items-center px-6">
             <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
                 <!-- Logo -->
                 <img src="logo.png" alt="CodeFoxSoft™" class="h-12 w-12 rounded-full mr-3">
-                CodeFox Soft Designs and Technologies
+                <span class="hidden md:block">CodeFox Soft Designs and Technologies</span>
+                <span class="block md:hidden">CodeFox Soft</span>
             </a>
-            <ul class="flex space-x-6 text-lg">
+
+            <!-- Desktop Navigation Links (visible on md screens and up) -->
+            <ul class="hidden md:flex space-x-6 text-lg">
                 <li><a href="index.html#about" class="hover:text-green-400 transition-colors duration-300">About</a></li>
                 <li><a href="index.html#projects" class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
                 <li><a href="index.html#downloads" class="hover:text-green-400 transition-colors duration-300">Downloads</a></li>
                 <li><a href="index.html#blog" class="hover:text-green-400 transition-colors duration-300">Blog</a></li>
                 <li><a href="index.html#contact" class="hover:text-green-400 transition-colors duration-300">Contact</a></li>
             </ul>
+
+            <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
+            <button id="menu-button" class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
         </nav>
     </header>
+
+    <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
+    <div id="mobile-menu" class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
+        <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
+            <li><a href="index.html#about" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a></li>
+            <li><a href="index.html#projects" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a></li>
+            <li><a href="index.html#downloads" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a></li>
+            <li><a href="index.html#blog" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Blog</a></li>
+            <li><a href="index.html#contact" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Contact</a></li>
+        </ul>
+    </div>
 
     <!-- Project Download Section -->
     <section class="py-20 pt-32 bg-gray-900 min-h-screen fade-in lg:pl-24 lg:pr-24">
@@ -129,7 +166,7 @@
     <!-- Footer -->
     <footer class="bg-gray-900 py-10 text-center text-gray-400 text-sm">
         <div class="container mx-auto px-6">
-            <p>&copy; 2025 CodeFoxSoft™ Designs and Technologies. All rights reserved.</p>
+            <p>&copy; 2026 CodeFoxSoft™ Designs and Technologies. All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
             <a href="https://codefoxsoft.com/privacy.html">Privacy Policy</a>
 
@@ -139,6 +176,26 @@
     </footer>
 
     <script>
+        // JavaScript for the mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+
+                // Close the menu when a link is clicked
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                    });
+                });
+            }
+        });
+
         // Intersection Observer for fade-in effect
         window.onload = function() {
             const faders = document.querySelectorAll('.fade-in');
