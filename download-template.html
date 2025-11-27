@@ -55,20 +55,8 @@
 </head>
 <body class="bg-gray-900 text-gray-100">
 
-    <!-- This is the main grid container for the entire page. -->
-    <!-- It defines three columns on large screens: Left Ad | Main Content | Right Ad -->
-    <div class="grid grid-cols-1 lg:grid-cols-[200px_1fr_200px] min-h-screen">
-
-        <!-- AdMob Left Sidebar (Visible on large screens and up) -->
-        <!-- This div now occupies the first column of the grid. -->
-        <div class="hidden lg:flex flex-col items-center justify-center bg-gray-800 bg-opacity-70 p-4 text-center text-gray-400 text-sm">
-            <!-- AdMob Left Ad Unit -->
-            <p>Ad Space (Left)</p>
-        </div>
-
-        <!-- Main Content Area -->
-        <!-- This div occupies the second, flexible column of the grid. -->
-        <div class="col-span-1">
+    <!-- Main Content Area -->
+    <div class="min-h-screen">
 
             <!-- Header -->
             <!-- The header is no longer fixed, as it's part of the main flow. -->
@@ -174,14 +162,6 @@
                     </div>
                 </div>
             </footer>
-        </div>
-
-        <!-- AdMob Right Sidebar (Visible on large screens and up) -->
-        <!-- This div now occupies the third column of the grid. -->
-        <div class="hidden lg:flex flex-col items-center justify-center bg-gray-800 bg-opacity-70 p-4 text-center text-gray-400 text-sm">
-            <!-- AdMob Right Ad Unit -->
-            <p>Ad Space (Right)</p>
-        </div>
     </div>
 
     <script>
