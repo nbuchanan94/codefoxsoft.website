@@ -543,6 +543,8 @@
     let backgroundGalaxyCount = isMobile ? 2 : 10;
     let starFieldCount = isMobile ? 1000 : 5000;
     const spiralSpeed = 0.0005;
+    
+    let softParticleTexture = null;
 
     // --- Helper Functions for Galaxy Creation (from the galaxy code) ---
     /**
@@ -638,11 +640,13 @@
 
         const material = new THREE.PointsMaterial({
             size: isMobile ? 0.15 : 0.01,  // 15x larger on mobile for better visibility
+            map: softParticleTexture,  // Use soft texture for galaxy-like blur effect
             vertexColors: true,
             transparent: true,
-            opacity: opacity,
+            opacity: opacity * 0.9,  // Slightly reduce for better blending
             blending: THREE.AdditiveBlending,
-            sizeAttenuation: true
+            sizeAttenuation: true,
+            alphaTest: 0.001  // Helps with transparency rendering
         });
 
         return new THREE.Points(geometry, material);
@@ -700,6 +704,26 @@
      * Initializes the 3D scene, camera, renderer, and particle systems.
      */
     function init() {
+        // Create soft particle texture once for reuse
+        if (!softParticleTexture) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const context = canvas.getContext('2d');
+            
+            const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.9)');
+            gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.5)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 64, 64);
+            
+            softParticleTexture = new THREE.CanvasTexture(canvas);
+            softParticleTexture.needsUpdate = true;
+        }
+        
         // --- Scene Setup ---
         scene = new THREE.Scene();
         // Get the canvas container by its ID
