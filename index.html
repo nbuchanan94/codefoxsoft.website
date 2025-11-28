@@ -86,10 +86,19 @@
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            will-change: opacity, transform;
         }
         .fade-in.visible {
             opacity: 1;
             transform: translateY(0);
+        }
+        
+        /* Mobile-specific optimizations for smoother animations */
+        @media (max-width: 768px) {
+            .fade-in {
+                transform: translateY(15px);
+                transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            }
         }
 
         /* Unique section shapes using clip-path - adjusted for better mobile viewing */
@@ -128,13 +137,15 @@
         /* Hero Box Mobile Optimization - More transparent with backdrop blur */
         @media (max-width: 768px) {
             .hero-content-box {
-                background-color: rgba(17, 24, 39, 0.2) !important; /* 20% opacity - very transparent */
-                backdrop-filter: blur(3px) !important;
-                -webkit-backdrop-filter: blur(3px) !important;
+                /* Remove backdrop-filter on mobile for better compatibility */
+                background-color: rgba(17, 24, 39, 0.1) !important; /* Even more transparent - 10% opacity */
+                backdrop-filter: none !important; /* Disable backdrop-filter on mobile */
+                -webkit-backdrop-filter: none !important;
             }
             .hero-content-box h1,
             .hero-content-box p {
-                text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 0, 0, 0.6);
+                /* Reduce text-shadow intensity for better transparency visibility */
+                text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.3);
             }
         }
 
@@ -153,6 +164,11 @@
             transform: translateY(0);
             pointer-events: auto;
         }
+
+        /* Fix scroll offset for anchor links with fixed header */
+        #projects {
+            scroll-margin-top: 80px;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100">
@@ -165,7 +181,7 @@
                 <!-- Using a placeholder image for the logo -->
                 <img src="logo.png" alt="CodeFoxSoft Logo" class="h-12 w-12 rounded-full mr-3">
                 <span class="hidden md:block">CodeFoxSoft™</span>
-                <span class="block md:hidden"><i class="fas fa-fox mr-2"></i> CodeFoxSoft</span>
+                <span class="block md:hidden"><i class="fas fa-fox mr-2"></i> CodeFoxSoft™</span>
             </a>
 
             <!-- Desktop Navigation Links (visible on md screens and up) -->
@@ -234,22 +250,22 @@
                 </div>
                 <!-- Feature cards -->
                 <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300">
+                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300 fade-in">
                         <i class="fas fa-code text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Nearly 2 Decades Exp.</h3>
                         <p class="text-gray-300">Extensive programming across diverse industries and technologies since 2006.</p>
                     </div>
-                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300">
+                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300 fade-in">
                         <i class="fas fa-brain text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">AI Innovation</h3>
                         <p class="text-gray-300">Pioneering research and application of Artificial Intelligence in real-world scenarios.</p>
                     </div>
-                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300">
+                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300 fade-in">
                         <i class="fas fa-gamepad text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Game Development</h3>
                         <p class="text-gray-300">Creating immersive and engaging interactive entertainment experiences.</p>
                     </div>
-                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300">
+                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300 fade-in">
                         <i class="fas fa-desktop text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Websites and Applications</h3>
                         <p class="text-gray-300">Commission me for robust and intuitive applications and websites for various platforms!</p>
@@ -264,7 +280,7 @@
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">Our Projects</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     <!-- Project Card 1 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 project-card">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 project-card fade-in">
                         <!-- Using a placeholder image for the project -->
                         <img src="foxrun2.jpg" alt="Fox Run!" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -278,7 +294,7 @@
                         </div>
                     </div>
                     <!-- Project Card 2 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 project-card">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 project-card fade-in">
                         <!-- Using a placeholder image for the project -->
                         <img src="pongplay.png" alt="pongplay" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -292,7 +308,7 @@
                         </div>
                     </div>
                     <!-- Project Card 3 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 project-card">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 project-card fade-in">
                         <!-- More Projects image -->
                         <img src="moreprojects.jpg" alt="More Projects" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -315,7 +331,7 @@
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">Downloads</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     <!-- Download Card 1 -->
-                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300">
+                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300 fade-in">
                         <i class="fas fa-download text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Fox Run!</h3>
                         <p class="text-gray-300 mb-4">
@@ -326,7 +342,7 @@
                         </a>
                     </div>
                     <!-- Download Card 2 -->
-                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300">
+                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300 fade-in">
                         <i class="fas fa-download text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Space Pong!</h3>
                         <p class="text-gray-300 mb-4">
@@ -337,7 +353,7 @@
                         </a>
                     </div>
                     <!-- Download Card 3 (Placeholder) -->
-                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300">
+                    <div class="bg-gray-700 p-8 rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300 fade-in">
                         <i class="fas fa-download text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">All Downloads</h3>
                         <p class="text-gray-300 mb-4">
@@ -357,7 +373,7 @@
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">Latest from Our Blog</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     <!-- Blog Post 1 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 fade-in">
                         <img src="beta2.png" alt="communitylaunch" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">Play Store - Commumunity Help!</h3>
@@ -370,7 +386,7 @@
                         </div>
                     </div>
                     <!-- Blog Post 2 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 fade-in">
                         <img src="launchr.png" alt="blog" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">Company Launch!</h3>
@@ -383,7 +399,7 @@
                             </div>
                     </div>
                     <!-- Blog Post 3 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 fade-in">
                         <img src="moreblogs.png" alt="More Blogs" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">More Blogs</h3>
@@ -409,7 +425,7 @@
         <p class="text-base sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
             Whether you're a business looking to launch a powerful website, develop a Windows or mobile application, or explore custom game and AI solutions, CodeFoxSoft is here to help. Fill out the form below and let's turn your vision into reality.
         </p>
-        <div class="max-w-xl mx-auto bg-gray-700 p-8 sm:p-10 rounded-xl shadow-lg">
+        <div class="max-w-xl mx-auto bg-gray-700 p-8 sm:p-10 rounded-xl shadow-lg fade-in">
             <form action="https://formsubmit.co/nbuchanan94@gmail.com" method="POST" class="space-y-6">
                 <!-- Hidden settings -->
                 <input type="hidden" name="_captcha" value="false">
@@ -449,7 +465,7 @@
     <!-- Footer -->
     <footer class="bg-gray-900 py-10 text-center text-gray-400 text-sm">
         <div class="container mx-auto px-6">
-            <p>&copy; 2026 CodeFoxSoft™ Design and Technologies. All rights reserved.</p>
+            <p>&copy; 2026 CodeFoxSoft™. All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
             <a href="https://codefoxsoft.com/privacy.html">Privacy Policy</a>
 
@@ -819,20 +835,23 @@
         // Start the animation loop - pass timestamp for frame rate limiting
         animate(performance.now());
 
-        // Intersection Observer for fade-in effect on scroll (from your original code)
+        // Intersection Observer for fade-in effect on scroll - optimized for mobile and replay
         const faders = document.querySelectorAll('.fade-in');
+        
+        // Mobile-optimized thresholds and margins for earlier triggers
+        const isMobileDevice = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const appearOptions = {
-            threshold: 0.2,
-            rootMargin: "0px 0px -100px 0px"
+            threshold: isMobileDevice ? 0.1 : 0.2,
+            rootMargin: isMobileDevice ? "0px 0px -50px 0px" : "0px 0px -100px 0px"
         };
 
-        const appearOnScroll = new IntersectionObserver(function(entries, appearOnScroll) {
+        const appearOnScroll = new IntersectionObserver(function(entries) {
             entries.forEach(entry => {
-                if (!entry.isIntersecting) {
-                    return;
-                } else {
+                if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
-                    appearOnScroll.unobserve(entry.target);
+                } else {
+                    // Remove visible class when element leaves viewport to allow replay
+                    entry.target.classList.remove('visible');
                 }
             });
         }, appearOptions);
