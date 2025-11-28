@@ -685,8 +685,8 @@
             colors[i * 3 + 1] = 1.0;
             colors[i * 3 + 2] = 1.0;
 
-            // Randomize star size - smaller, more stable stars on mobile to prevent flashing
-            sizes[i] = isMobile ? (Math.random() * 0.15 + 0.1) : (Math.random() * 0.1 + 0.05);
+            // Randomize star size - larger on mobile for visibility
+            sizes[i] = isMobile ? (Math.random() * 0.3 + 0.25) : (Math.random() * 0.1 + 0.05);
         }
 
         const geometry = new THREE.BufferGeometry();
@@ -694,14 +694,14 @@
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-        // Make star field material smaller on mobile to prevent flashing
-        const starMaterialSize = isMobile ? 0.2 : 0.1;
+        // Make star field material much larger on mobile for visibility
+        const starMaterialSize = isMobile ? 0.6 : 0.1;
         const material = new THREE.PointsMaterial({
             size: starMaterialSize,
             vertexColors: true,
             transparent: true,
-            opacity: isMobile ? 0.8 : 1.0, // Slightly reduce opacity on mobile
-            blending: isMobile ? THREE.NormalBlending : THREE.AdditiveBlending, // Different blending on mobile to reduce flashing
+            opacity: 1.0, // Full opacity for visibility
+            blending: THREE.AdditiveBlending, // Use AdditiveBlending for visibility on dark background
             sizeAttenuation: true
         });
 
@@ -778,14 +778,14 @@
 
         // --- Background Galaxies ---
         backgroundGalaxyGroup = new THREE.Group();
-        const bgGalaxyStarCount = isMobile ? 4000 : 5000; // Increased from 2800 to 4000 for better visibility
+        const bgGalaxyStarCount = isMobile ? 5000 : 5000; // Increased to 5000 for maximum visibility
         for (let i = 0; i < backgroundGalaxyCount; i++) {
-            // Randomize opacity for each background galaxy - much higher on mobile for visibility
-            const opacity = isMobile ? (0.8 + Math.random() * 0.2) : (0.4 + Math.random() * 0.6);
+            // Randomize opacity for each background galaxy - full opacity on mobile for visibility
+            const opacity = isMobile ? 1.0 : (0.4 + Math.random() * 0.6);
             const bgGalaxy = createGalaxy(bgGalaxyStarCount, 20, 2, opacity);
 
-            // Randomly position the background galaxies - much closer on mobile for visibility
-            const bgDistance = isMobile ? (500 + Math.random() * 500) : (5000 + Math.random() * 2000);
+            // Randomly position the background galaxies - very close on mobile for visibility
+            const bgDistance = isMobile ? (300 + Math.random() * 300) : (5000 + Math.random() * 2000);
             const bgAngle = Math.random() * Math.PI * 2;
             bgGalaxy.position.x = Math.cos(bgAngle) * bgDistance;
             bgGalaxy.position.y = (Math.random() - 0.5) * bgDistance;
@@ -796,8 +796,8 @@
             bgGalaxy.rotation.y = Math.random() * Math.PI * 2;
             bgGalaxy.rotation.z = Math.random() * Math.PI * 2;
 
-            // Randomize scale - much larger on mobile for better visibility
-            const scale = isMobile ? (1.2 + Math.random() * 0.5) : (0.5 + Math.random() * 0.5);
+            // Randomize scale - very large on mobile for maximum visibility
+            const scale = isMobile ? (1.8 + Math.random() * 0.4) : (0.5 + Math.random() * 0.5);
             bgGalaxy.scale.set(scale, scale, scale);
 
             backgroundGalaxyGroup.add(bgGalaxy);
