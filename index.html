@@ -17,12 +17,14 @@
     <meta property="og:description" content="Indie Game/App & Web Dev sculpting AI — Custom LLMs engineered for innovation. Creator of Fox Run and Space Pong. Commission custom games, mobile apps, and web applications.">
     
     <meta property="og:image" content="https://codefoxsoft.com/appsgamessites.png">
+    <meta property="og:image:secure_url" content="https://codefoxsoft.com/appsgamessites.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:type" content="image/png">
     <meta property="og:url" content="https://codefoxsoft.com">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="CodeFoxSoft">
+    <meta property="og:locale" content="en_US">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
@@ -118,17 +120,17 @@
 
         /* Hero Content Box - Base styles for desktop */
         .hero-content-box {
-            background-color: rgba(17, 24, 39, 0.7); /* 70% opacity for desktop */
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            background-color: rgba(17, 24, 39, 0.2); /* 20% opacity for desktop - matches mobile transparency */
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
         }
 
         /* Hero Box Mobile Optimization - More transparent with backdrop blur */
         @media (max-width: 768px) {
             .hero-content-box {
-                background-color: rgba(17, 24, 39, 0.35) !important; /* Reduced from 70% to 35% opacity */
-                backdrop-filter: blur(8px) !important;
-                -webkit-backdrop-filter: blur(8px) !important;
+                background-color: rgba(17, 24, 39, 0.2) !important; /* 20% opacity - very transparent */
+                backdrop-filter: blur(3px) !important;
+                -webkit-backdrop-filter: blur(3px) !important;
             }
             .hero-content-box h1,
             .hero-content-box p {
@@ -163,7 +165,7 @@
                 <!-- Using a placeholder image for the logo -->
                 <img src="logo.png" alt="CodeFoxSoft Logo" class="h-12 w-12 rounded-full mr-3">
                 <span class="hidden md:block">CodeFoxSoft™</span>
-                <span class="block md:hidden"><i class="fas fa-fox mr-2"></i> CodeFox Soft</span>
+                <span class="block md:hidden"><i class="fas fa-fox mr-2"></i> CodeFoxSoft</span>
             </a>
 
             <!-- Desktop Navigation Links (visible on md screens and up) -->
@@ -201,15 +203,17 @@
         <section class="relative h-screen flex items-center justify-center text-center overflow-hidden">
             <!-- This div is the container for the Three.js animation -->
             <div id="hero-background"></div>
-            <div class="hero-content-box relative z-10 p-8 rounded-xl shadow-2xl max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
+            <div class="hero-content-box relative z-10 p-8 rounded-xl shadow-lg max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
                 <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
-                    Innovating the Future of <span class="text-green-500">Apps, Games, and Websites</span>
-                </h1>
+                    <span class="text-green-500">CodeFoxSoft™</span><br />
+                    Indie Game/App & Web Dev
+                  </h1>
+                
                 <p class="text-base sm:text-xl text-gray-300 mb-8">
-                    With nearly two decades of programming mastery and cutting-edge AI research, CodeFox Soft Design and Technologies crafts immersive games and intelligent software solutions.
+                    Accepting commissions for websites, mobile and Windows applications, immersive games, and custom LLMs!
                 </p>
-                <a href="#projects" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 sm:py-4 sm:px-10 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
-                    Explore My Work <i class="fas fa-arrow-right ml-2"></i>
+                <a href="#about" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 sm:py-4 sm:px-10 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
+                    Who we are? <i class="fas fa-arrow-right ml-2"></i>
                 </a>
             </div>
         </section>
@@ -219,18 +223,14 @@
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">About CodeFoxSoft</h2>
                 <div class="max-w-3xl mx-auto text-base sm:text-lg leading-relaxed">
-                    <p class="mb-6">
-                        Founded by <span class="font-semibold text-white">Nicholas Larkin Buchanan</span>, CodeFox Soft Design and Technologies represents the culmination of nearly two decades of dedicated software development and a fervent passion for advancing the boundaries of technology. Buchanan's expertise spans a wide array of programming languages and frameworks, with a particular focus on creating engaging interactive experiences and intelligent systems.
-                    </p>
-                    <p class="mb-6">
-                        During a distinguished two‑year internship with the <span class="font-semibold text-white">Charles County Board of Education</span>, Buchanan honed foundational programming skills, completing both Honors Java and AP Computer Science with distinction. His linguistic command of code extends across <span class="font-semibold text-white">Java, C#, C++, and multiple Basic variants</span>, enabling versatile and robust development across diverse platforms.
-                    </p>
-                    <p class="mb-6">
-                        Beyond software development, Buchanan's experience encompasses the meticulous operation and maintenance of large‑scale online communities, including <span class="font-semibold text-white">extensive forums and high‑traffic game servers</span>, ensuring seamless experiences for numerous clients. From years of delivering extraordinary retail customer service to contributing within the security framework of FDIC Bank Fraud Investigations, Buchanan has cultivated exceptional project management and interpersonal skills. This blend of technical expertise and people‑focused leadership enables him to address complex challenges with both precision and empathy.
-                    </p>
                     <p>
-                        Buchanan's entrepreneurial spirit is exemplified through <span class="font-semibold text-white">FauxC</span>, a successful venture dedicated to the acquisition, resale, and expert repair of computer systems. This diverse background ensures that CodeFox LLC delivers not only code, but complete, meticulously crafted, and secure solutions.
+                        Founded by <span class="font-semibold text-white">Nicholas Buchanan</span>, CodeFoxSoft is the culmination of a self‑taught programmer's journey from mastering QBasic in the 6th grade to building resilient apps, games, and intelligent systems. With nearly two decades of experience across <span class="font-semibold text-white">Java, C#, C++, and design disciplines</span>, Nicholas blends technical precision with bold vision. CodeFoxSoft delivers commissioned websites, mobile and Windows applications, immersive games, and custom LLMs — proving that in the age of AI, programmers aren't obsolete, they are the leaders shaping its future.
                     </p>
+                </div>
+                <div class="mt-8">
+                    <a href="about.html" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 sm:py-4 sm:px-10 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
+                        See How We're Shaping the Future <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
                 </div>
                 <!-- Feature cards -->
                 <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
@@ -404,9 +404,10 @@
     <div class="container mx-auto px-6 text-center">
         <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">Get in Touch</h2>
         <p class="text-base sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Have a project in mind, a question about our work, or just want to say hello? 
-            We'd love to hear from you!<br>
-            If you're a business, I can help you get your website up and running, or we can help you with your application needs, please fill out the form below!
+            Have a project in mind, a question about our work, or just want to connect? We'd love to hear from you.
+        </p>
+        <p class="text-base sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+            Whether you're a business looking to launch a powerful website, develop a Windows or mobile application, or explore custom game and AI solutions, CodeFoxSoft is here to help. Fill out the form below and let's turn your vision into reality.
         </p>
         <div class="max-w-xl mx-auto bg-gray-700 p-8 sm:p-10 rounded-xl shadow-lg">
             <form action="https://formsubmit.co/nbuchanan94@gmail.com" method="POST" class="space-y-6">
