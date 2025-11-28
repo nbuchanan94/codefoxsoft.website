@@ -538,6 +538,14 @@
     // Mobile detection for performance optimization
     const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
+    // Performance detection variables
+    let isLowPerformance = false;
+    let performanceTestComplete = false;
+    let frameCount = 0;
+    let lastPerformanceCheck = 0;
+    let animationStartTime = 0;
+    const PERFORMANCE_TEST_DURATION = 2000; // Test for 2 seconds
+    
     // Adjust particle counts based on device type - further reduced for mobile performance
     let starCount = isMobile ? 9000 : 50000;
     let backgroundGalaxyCount = isMobile ? 2 : 10;
@@ -829,44 +837,75 @@
      * Main animation loop. Updates the scene and renders it.
      */
     // Frame rate limiting for mobile (target 30fps instead of 60fps)
-    let lastFrameTime = 0;
+    let lastFrameTime = performance.now();
     const targetFPS = isMobile ? 30 : 60;
     const frameInterval = 1000 / targetFPS;
     
     function animate(currentTime) {
         requestAnimationFrame(animate);
 
-        // Frame rate limiting for mobile
-        if (isMobile) {
+        // Initialize animation start time on first frame
+        if (animationStartTime === 0) {
+            animationStartTime = currentTime;
+            lastPerformanceCheck = currentTime;
+        }
+
+        // Performance testing during first 2 seconds
+        const elapsedTime = currentTime - animationStartTime;
+        if (!performanceTestComplete && elapsedTime < PERFORMANCE_TEST_DURATION) {
+            frameCount++;
+            if (currentTime - lastPerformanceCheck >= 1000) { // Check every second
+                const fps = frameCount;
+                // If FPS is below 25 on mobile, consider it low performance
+                if (isMobile && fps < 25) {
+                    isLowPerformance = true;
+                }
+                frameCount = 0;
+                lastPerformanceCheck = currentTime;
+            }
+        } else if (!performanceTestComplete) {
+            performanceTestComplete = true;
+            // Final check: if average FPS was low, mark as low performance
+            const avgFPS = (frameCount / (elapsedTime / 1000));
+            if (isMobile && avgFPS < 25) {
+                isLowPerformance = true;
+            }
+        }
+
+        // Frame rate limiting - only for low performance devices
+        if (isMobile && isLowPerformance) {
             const elapsed = currentTime - lastFrameTime;
             if (elapsed < frameInterval) {
                 return; // Skip this frame to maintain target FPS
             }
             lastFrameTime = currentTime - (elapsed % frameInterval);
+        } else if (isMobile) {
+            lastFrameTime = currentTime; // Track time but don't skip frames
         }
 
-        // Update rotation targets based on mouse position - reduced influence on mobile
-        const mouseInfluence = isMobile ? 0.0003 : 0.001;
+        // Update rotation targets based on mouse position
+        // Use full speed on capable devices, reduced on low performance
+        const mouseInfluence = (isMobile && isLowPerformance) ? 0.0003 : 0.001;
         targetX = mouseX * mouseInfluence;
         targetY = mouseY * mouseInfluence;
 
         // Apply mouse influence and continuous rotation to the galaxy group
-        // Reduced rotation speed on mobile for better performance
-        const rotationSpeed = isMobile ? 0.0003 : 0.0005;
-        const baseRotation = isMobile ? 0.0001 : 0.0002;
+        // Full speed on capable devices, reduced only on low performance mobile
+        const rotationSpeed = (isMobile && isLowPerformance) ? 0.0003 : 0.0005;
+        const baseRotation = (isMobile && isLowPerformance) ? 0.0001 : 0.0002;
         galaxyGroup.rotation.y += rotationSpeed * (targetX - galaxyGroup.rotation.y) + baseRotation;
-        galaxyGroup.rotation.x += rotationSpeed * (targetY - galaxyGroup.rotation.x) - (isMobile ? 0.00003 : 0.00005);
-        galaxyGroup.rotation.z += isMobile ? 0.00005 : 0.0001;
+        galaxyGroup.rotation.x += rotationSpeed * (targetY - galaxyGroup.rotation.x) - ((isMobile && isLowPerformance) ? 0.00003 : 0.00005);
+        galaxyGroup.rotation.z += (isMobile && isLowPerformance) ? 0.00005 : 0.0001;
 
-        // Pulsing scale effect - skip on mobile for performance
-        if (!isMobile) {
+        // Pulsing scale effect - enable on capable devices
+        if (!isMobile || !isLowPerformance) {
             const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
             galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
         }
 
-        // Simplified camera movement on mobile
-        if (isMobile) {
-            // Less camera movement on mobile
+        // Camera movement - full on capable devices
+        if (isMobile && isLowPerformance) {
+            // Less camera movement on low performance mobile
             camera.position.x += (targetX * 0.3 - camera.position.x) * 0.03;
             camera.position.y += (-targetY * 0.3 - camera.position.y) * 0.03;
         } else {
@@ -875,13 +914,13 @@
         }
         camera.lookAt(scene.position);
 
-        // Slow, continuous rotation for the background galaxies - reduced on mobile
-        const bgRotationSpeed = isMobile ? 0.000005 : 0.00001;
+        // Background galaxies rotation
+        const bgRotationSpeed = (isMobile && isLowPerformance) ? 0.000005 : 0.00001;
         backgroundGalaxyGroup.rotation.x += bgRotationSpeed;
         backgroundGalaxyGroup.rotation.y += bgRotationSpeed;
 
-        // Rotate the entire star field - reduced speed on mobile
-        starField.rotation.y += isMobile ? 0.000025 : 0.00005;
+        // Star field rotation
+        starField.rotation.y += (isMobile && isLowPerformance) ? 0.000025 : 0.00005;
 
         renderer.render(scene, camera);
     }
@@ -899,11 +938,11 @@
         // Mobile-optimized thresholds and margins for earlier triggers
         const isMobileDevice = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Use positive top margin on mobile to trigger earlier (extends viewport upward)
-        // This helps the About section trigger sooner after the hero
+        // Balanced rootMargin: small positive top margin for early entry, but allows proper exit detection
+        // This ensures animations replay when scrolling upward by allowing elements to exit intersection zone
         const appearOptions = {
-            threshold: isMobileDevice ? 0.15 : 0.2,
-            rootMargin: isMobileDevice ? "150px 0px -80px 0px" : "0px 0px -100px 0px"
+            threshold: isMobileDevice ? 0.1 : 0.15,
+            rootMargin: isMobileDevice ? "50px 0px -50px 0px" : "0px 0px -100px 0px"
         };
 
         const appearOnScroll = new IntersectionObserver(function(entries) {
