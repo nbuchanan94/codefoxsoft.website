@@ -547,8 +547,8 @@
     const PERFORMANCE_TEST_DURATION = 2000; // Test for 2 seconds
     
     // Adjust particle counts based on device type - further reduced for mobile performance
-    let starCount = isMobile ? 9000 : 50000;
-    let backgroundGalaxyCount = isMobile ? 2 : 10;
+    let starCount = isMobile ? 9000 : 75000; // Increased desktop count for denser galaxy
+    let backgroundGalaxyCount = isMobile ? 5 : 10; // Increased from 2 to 5 for better visibility
     let starFieldCount = isMobile ? 1000 : 5000;
     const spiralSpeed = 0.0005;
     
@@ -617,11 +617,11 @@
             positions[i * 3 + 1] = y;
             positions[i * 3 + 2] = z;
 
-            // Adjusted color logic for brighter, more vibrant colors
-            // Increasing the base saturation and value to make colors pop
-            const hue = (distance / maxRadius) * 0.7;
-            const saturation = 0.9 + Math.random() * 0.1;
-            const value = 0.9 + Math.random() * 0.1;
+            // Enhanced color logic for brighter, more vibrant rainbow colors
+            // Full rainbow spectrum for more colorful galaxy
+            const hue = (distance / maxRadius) * 1.0; // Full spectrum (0 to 1.0)
+            const saturation = 0.95 + Math.random() * 0.05; // More saturated
+            const value = 0.95 + Math.random() * 0.05; // Brighter
             let rgb = hsvToRgb(hue, saturation, value);
 
             // Keep the center dark
@@ -635,10 +635,10 @@
             colors[i * 3 + 1] = rgb.g;
             colors[i * 3 + 2] = rgb.b;
 
-            // Increase size calculation for mobile to make particles more visible
+            // Increase size calculation for better visibility
             sizes[i] = isMobile 
                 ? (1 - distance / maxRadius) * 0.3 + 0.02  // Much larger for mobile
-                : (1 - distance / maxRadius) * 0.05 + 0.005; // Keep desktop size
+                : (1 - distance / maxRadius) * 0.12 + 0.01; // Larger on desktop for denser look
         }
 
         const geometry = new THREE.BufferGeometry();
@@ -647,11 +647,11 @@
         geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
         const material = new THREE.PointsMaterial({
-            size: isMobile ? 0.15 : 0.01,  // 15x larger on mobile for better visibility
+            size: isMobile ? 0.15 : 0.025,  // Larger on desktop for denser, more visible galaxy
             map: softParticleTexture,  // Use soft texture for galaxy-like blur effect
             vertexColors: true,
             transparent: true,
-            opacity: opacity * 0.9,  // Slightly reduce for better blending
+            opacity: opacity * 0.95,  // Slightly more opaque for better visibility
             blending: THREE.AdditiveBlending,
             sizeAttenuation: true,
             alphaTest: 0.001  // Helps with transparency rendering
@@ -685,8 +685,8 @@
             colors[i * 3 + 1] = 1.0;
             colors[i * 3 + 2] = 1.0;
 
-            // Randomize star size - larger on mobile for better visibility
-            sizes[i] = isMobile ? (Math.random() * 0.2 + 0.1) : (Math.random() * 0.1 + 0.05);
+            // Randomize star size - much larger on mobile for better visibility
+            sizes[i] = isMobile ? (Math.random() * 0.3 + 0.2) : (Math.random() * 0.1 + 0.05);
         }
 
         const geometry = new THREE.BufferGeometry();
@@ -694,8 +694,8 @@
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-        // Make star field material larger on mobile for better visibility
-        const starMaterialSize = isMobile ? 0.25 : 0.1;
+        // Make star field material much larger on mobile for better visibility
+        const starMaterialSize = isMobile ? 0.45 : 0.1;
         const material = new THREE.PointsMaterial({
             size: starMaterialSize,
             vertexColors: true,
@@ -778,14 +778,14 @@
 
         // --- Background Galaxies ---
         backgroundGalaxyGroup = new THREE.Group();
-        const bgGalaxyStarCount = isMobile ? 1000 : 5000; // Further reduced stars per background galaxy on mobile
+        const bgGalaxyStarCount = isMobile ? 2800 : 5000; // Increased from 1000 to 2800 for better visibility
         for (let i = 0; i < backgroundGalaxyCount; i++) {
-            // Randomize opacity for each background galaxy
-            const opacity = 0.4 + Math.random() * 0.6; // Increased base opacity
+            // Randomize opacity for each background galaxy - higher on mobile for visibility
+            const opacity = isMobile ? (0.6 + Math.random() * 0.4) : (0.4 + Math.random() * 0.6);
             const bgGalaxy = createGalaxy(bgGalaxyStarCount, 20, 2, opacity);
 
-            // Randomly position the background galaxies - closer on mobile for visibility
-            const bgDistance = isMobile ? (2000 + Math.random() * 1500) : (5000 + Math.random() * 2000);
+            // Randomly position the background galaxies - much closer on mobile for visibility
+            const bgDistance = isMobile ? (1000 + Math.random() * 1000) : (5000 + Math.random() * 2000);
             const bgAngle = Math.random() * Math.PI * 2;
             bgGalaxy.position.x = Math.cos(bgAngle) * bgDistance;
             bgGalaxy.position.y = (Math.random() - 0.5) * bgDistance;
@@ -796,8 +796,8 @@
             bgGalaxy.rotation.y = Math.random() * Math.PI * 2;
             bgGalaxy.rotation.z = Math.random() * Math.PI * 2;
 
-            // Randomize scale
-            const scale = 0.5 + Math.random() * 0.5;
+            // Randomize scale - larger on mobile for better visibility
+            const scale = isMobile ? (0.8 + Math.random() * 0.4) : (0.5 + Math.random() * 0.5);
             bgGalaxy.scale.set(scale, scale, scale);
 
             backgroundGalaxyGroup.add(bgGalaxy);
@@ -897,9 +897,14 @@
         galaxyGroup.rotation.x += rotationSpeed * (targetY - galaxyGroup.rotation.x) - ((isMobile && isLowPerformance) ? 0.00003 : 0.00005);
         galaxyGroup.rotation.z += (isMobile && isLowPerformance) ? 0.00005 : 0.0001;
 
-        // Pulsing scale effect - enable on capable devices
-        if (!isMobile || !isLowPerformance) {
+        // Pulsing scale effect - always on desktop, also on capable mobile devices
+        if (!isMobile) {
+            // Desktop always gets pulsing
             const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
+            galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+        } else if (!isLowPerformance) {
+            // Capable mobile devices get pulsing - slightly faster to match desktop feel
+            const scaleFactor = 1 + Math.sin(Date.now() * 0.00065) * 0.02;
             galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
         }
 
