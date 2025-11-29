@@ -1,0 +1,6 @@
+# Spiders.txt - Crawler directives for CodeFoxSoft website
+# This file follows the same policy as robots.txt: allow all crawlers
+
+User-agent: *
+Allow: /
+
