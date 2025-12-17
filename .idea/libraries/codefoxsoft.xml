@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="codefoxsoft">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/codefoxsoft.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

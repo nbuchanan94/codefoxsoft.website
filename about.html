@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- SEO Meta Tags -->
     <meta name="description" content="About CodeFoxSoft - Learn more about our company, mission, and values.">
-    <meta name="keywords" content="about, CodeFoxSoft, company information, Nicholas Larkin Buchanan, software development, technology">
+    <meta name="keywords"
+        content="about, CodeFoxSoft, company information, Nicholas Larkin Buchanan, software development, technology">
     <meta name="author" content="Nicholas Thorne Larkin Buchanan">
     <meta name="robots" content="index, follow">
     <meta name="language" content="English">
     <meta name="revisit-after" content="7 days">
     <link rel="canonical" href="https://codefoxsoft.com/about.html">
-    
+
     <!-- Open Graph Meta Tags (Facebook, Nextdoor, LinkedIn, etc.) -->
     <meta property="og:title" content="About - CodeFoxSoft">
     <meta property="og:description" content="About CodeFoxSoft - Learn more about our company, mission, and values.">
@@ -20,13 +22,13 @@
     <meta property="og:url" content="https://codefoxsoft.com/about.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="CodeFoxSoft">
-    
+
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="About - CodeFoxSoft">
     <meta name="twitter:description" content="About CodeFoxSoft - Learn more about our company, mission, and values.">
     <meta name="twitter:image" content="https://codefoxsoft.com/appsgamessites.png">
-    
+
     <title>About - CodeFoxSoft</title>
     <link rel="icon" type="image/png" sizes="48x48" href="logo.png">
 
@@ -38,19 +40,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* General body styles */
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
             padding: 0;
         }
+
         body {
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
-            background-color: #0c0d11; /* A very dark, almost black, background */
+            background-color: #0c0d11;
+            /* A very dark, almost black, background */
             display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
+
         #main-content-wrapper {
             flex: 1;
             display: flex;
@@ -58,6 +64,7 @@
             position: relative;
             z-index: 1;
         }
+
         footer {
             margin-top: auto;
         }
@@ -69,22 +76,29 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1; /* Puts it behind all other content */
+            z-index: -1;
+            /* Puts it behind all other content */
         }
 
         /* Custom scrollbar for a cleaner look */
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
-            background: #1a202c; /* Dark background */
+            background: #1a202c;
+            /* Dark background */
         }
+
         ::-webkit-scrollbar-thumb {
-            background: #4a5568; /* Gray thumb */
+            background: #4a5568;
+            /* Gray thumb */
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
-            background: #6b7280; /* Lighter gray on hover */
+            background: #6b7280;
+            /* Lighter gray on hover */
         }
 
         /* Mobile Menu Animation */
@@ -92,129 +106,218 @@
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             display: block !important;
         }
+
         #mobile-menu.hidden {
             opacity: 0;
             transform: translateY(-20px);
             pointer-events: none;
         }
+
         #mobile-menu:not(.hidden) {
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
         }
     </style>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "CodeFoxSoft",
+      "url": "https://codefoxsoft.com",
+      "logo": "https://codefoxsoft.com/assets/logo.png",
+      "sameAs": [
+        "https://github.com/nbuchanan94",
+        "https://linkedin.com/in/nbuchanan94",
+        "https://youtube.com/@codefoxsoft",
+        "https://play.google.com/store/apps/dev?id=yourid"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "nbuchanan94@gmail.com",
+        "telephone": "+1-240-776-2408",
+        "contactType": "Customer Support"
+      },
+      "founder": {
+        "@type": "Person",
+        "name": "Nicholas Larkin Buchanan",
+        "url": "https://codefoxsoft.com/about"
+      }
+    }
+    </script>
 </head>
+
 <body class="text-gray-100">
 
     <!-- The container for the Three.js animated background -->
     <div id="hero-background"></div>
 
     <div id="main-content-wrapper">
-    <!-- Header -->
-    <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
-        <nav class="container mx-auto flex justify-between items-center px-6">
-            <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
-                <!-- Logo -->
-                <img src="logo.png" onerror="this.onerror=null;this.src='https://placehold.co/48x48/0d9488/ffffff?text=CFS';" alt="CodeFoxSoft™ Logo" class="h-12 w-12 rounded-full mr-3">
-                <span class="hidden md:block">CodeFoxSoft™</span>
-                <span class="block md:hidden">CodeFoxSoft™</span>
-            </a>
+        <!-- Header -->
+        <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
+            <nav class="container mx-auto flex justify-between items-center px-6">
+                <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
+                    <!-- Logo -->
+                    <img src="logo.png"
+                        onerror="this.onerror=null;this.src='https://placehold.co/48x48/0d9488/ffffff?text=CFS';"
+                        alt="CodeFoxSoft™ Logo" class="h-12 w-12 rounded-full mr-3">
+                    <span class="hidden md:block">CodeFoxSoft™</span>
+                    <span class="block md:hidden">CodeFoxSoft™</span>
+                </a>
 
-            <!-- Desktop Navigation Links (visible on md screens and up) -->
-            <ul class="hidden md:flex space-x-6 text-lg">
-                <li><a href="index.html#about" class="hover:text-green-400 transition-colors duration-300">About</a></li>
-                <li><a href="index.html#projects" class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
-                <li><a href="alldownload.html" class="hover:text-green-400 transition-colors duration-300">Downloads</a></li>
-                <li><a href="blog.html" class="hover:text-green-400 transition-colors duration-300">Blog</a></li>
-                <li><a href="index.html#contact" class="hover:text-green-400 transition-colors duration-300">Contact</a></li>
+                <!-- Desktop Navigation Links (visible on md screens and up) -->
+                <ul class="hidden md:flex space-x-6 text-lg">
+                    <li><a href="index.html#about" class="hover:text-green-400 transition-colors duration-300">About</a>
+                    </li>
+                    <li><a href="index.html#projects"
+                            class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
+                    <li><a href="alldownload.html"
+                            class="hover:text-green-400 transition-colors duration-300">Downloads</a></li>
+                    <li><a href="blog.html" class="hover:text-green-400 transition-colors duration-300">Blog</a></li>
+                    <li><a href="index.html#contact"
+                            class="hover:text-green-400 transition-colors duration-300">Contact</a></li>
+                </ul>
+
+                <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
+                <button id="menu-button"
+                    class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </nav>
+        </header>
+
+        <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
+        <div id="mobile-menu"
+            class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
+            <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
+                <li><a href="index.html#about"
+                        class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a>
+                </li>
+                <li><a href="index.html#projects"
+                        class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a>
+                </li>
+                <li><a href="alldownload.html"
+                        class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a>
+                </li>
+                <li><a href="blog.html"
+                        class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Blog</a>
+                </li>
+                <li><a href="index.html#contact"
+                        class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Contact</a>
+                </li>
             </ul>
+        </div>
 
-            <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
-            <button id="menu-button" class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                </svg>
-            </button>
-        </nav>
-    </header>
+        <!-- Main Content Area -->
+        <section class="py-20 pt-32 z-10 relative">
+            <div class="container mx-auto px-6">
+                <div
+                    class="bg-gray-800 bg-opacity-90 backdrop-blur-sm p-8 md:p-12 rounded-xl shadow-lg max-w-4xl mx-auto text-left">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-green-400 mb-6 text-center">About</h1>
 
-    <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
-    <div id="mobile-menu" class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
-        <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
-            <li><a href="index.html#about" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a></li>
-            <li><a href="index.html#projects" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a></li>
-            <li><a href="alldownload.html" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a></li>
-            <li><a href="blog.html" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Blog</a></li>
-            <li><a href="index.html#contact" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Contact</a></li>
-        </ul>
-    </div>
+                    <div class="space-y-8 text-gray-300">
+                        <section>
+                            <h2 class="text-2xl font-bold text-green-300 mb-3">Our Vision</h2>
+                            <p class="mb-4">CodeFoxSoft™ was founded with a single purpose: to innovate boldly and build
+                                systems that respect autonomy, privacy, and creativity. We believe technology should
+                                empower, not constrain. From apps and games to intelligent infrastructure, our mission
+                                is to craft experiences that are engaging, resilient, and future‑ready.</p>
+                        </section>
 
-    <!-- Main Content Area -->
-    <section class="py-20 pt-32 z-10 relative">
-        <div class="container mx-auto px-6">
-            <div class="bg-gray-800 bg-opacity-90 backdrop-blur-sm p-8 md:p-12 rounded-xl shadow-lg max-w-4xl mx-auto text-left">
-                <h1 class="text-4xl md:text-5xl font-extrabold text-green-400 mb-6 text-center">About</h1>
-                
-                <div class="space-y-8 text-gray-300">
-                    <section>
-                        <h2 class="text-2xl font-bold text-green-300 mb-3">Our Vision</h2>
-                        <p class="mb-4">CodeFoxSoft™ was founded with a single purpose: to innovate boldly and build systems that respect autonomy, privacy, and creativity. We believe technology should empower, not constrain. From apps and games to intelligent infrastructure, our mission is to craft experiences that are engaging, resilient, and future‑ready.</p>
-                    </section>
+                        <section>
+                            <h2 class="text-2xl font-bold text-green-300 mb-3">The Architect Behind the Code</h2>
+                            <p class="mb-4">Nicholas Buchanan's journey began in the 6th grade, self‑taught and driven
+                                by curiosity. He mastered QBasic before moving into object‑oriented programming, laying
+                                the foundation for decades of experience across languages and frameworks. His skills
+                                grew into graphics design, web design, logic design, and advanced programming — not
+                                through formal degrees, but through relentless practice and real‑world problem solving.
+                                While he is pursuing a BS today, his career proves that skill and vision often outpace
+                                credentials; after all, many of the greatest minds launched million‑dollar industries
+                                without degrees.</p>
+                            <p class="mb-4">Under his belt is a two‑year internship with the Charles County Board of
+                                Education, where he completed Honors Java and AP Computer Science with distinction. That
+                                foundation expanded into mastery of Java, C#, C++, and scripting languages, enabling
+                                versatile development across platforms and cementing his reputation as a programmer who
+                                learns fast and builds with precision.</p>
+                            <p class="mb-4">Nicholas's career has spanned diverse domains: managing high‑traffic game
+                                servers and online communities, contributing to FDIC Bank Fraud Investigations, and
+                                delivering customer service that sharpened his people‑first leadership. Each chapter
+                                added precision, empathy, and resilience to his toolkit. His entrepreneurial venture,
+                                FauxC, proved that vision and execution could coexist — acquiring, repairing, and
+                                reselling computer systems with expert craftsmanship.</p>
+                        </section>
 
-                    <section>
-                        <h2 class="text-2xl font-bold text-green-300 mb-3">The Architect Behind the Code</h2>
-                        <p class="mb-4">Nicholas Buchanan's journey began in the 6th grade, self‑taught and driven by curiosity. He mastered QBasic before moving into object‑oriented programming, laying the foundation for decades of experience across languages and frameworks. His skills grew into graphics design, web design, logic design, and advanced programming — not through formal degrees, but through relentless practice and real‑world problem solving. While he is pursuing a BS today, his career proves that skill and vision often outpace credentials; after all, many of the greatest minds launched million‑dollar industries without degrees.</p>
-                        <p class="mb-4">Under his belt is a two‑year internship with the Charles County Board of Education, where he completed Honors Java and AP Computer Science with distinction. That foundation expanded into mastery of Java, C#, C++, and scripting languages, enabling versatile development across platforms and cementing his reputation as a programmer who learns fast and builds with precision.</p>
-                        <p class="mb-4">Nicholas's career has spanned diverse domains: managing high‑traffic game servers and online communities, contributing to FDIC Bank Fraud Investigations, and delivering customer service that sharpened his people‑first leadership. Each chapter added precision, empathy, and resilience to his toolkit. His entrepreneurial venture, FauxC, proved that vision and execution could coexist — acquiring, repairing, and reselling computer systems with expert craftsmanship.</p>
-                    </section>
+                        <section>
+                            <h2 class="text-2xl font-bold text-green-300 mb-3">From Biography to Brand</h2>
+                            <p class="mb-4">But CodeFoxSoft is more than one person's résumé. It is a company built on
+                                the belief that software should be modular, secure, and human‑centered. Every project we
+                                take on — whether a game, an app, or a system audit — is designed to deliver outcomes:
+                                faster performance, cleaner workflows, and experiences that feel alive. We don't just
+                                write code; we build ecosystems that respect the user's autonomy and scale with their
+                                ambitions.</p>
+                        </section>
 
-                    <section>
-                        <h2 class="text-2xl font-bold text-green-300 mb-3">From Biography to Brand</h2>
-                        <p class="mb-4">But CodeFoxSoft is more than one person's résumé. It is a company built on the belief that software should be modular, secure, and human‑centered. Every project we take on — whether a game, an app, or a system audit — is designed to deliver outcomes: faster performance, cleaner workflows, and experiences that feel alive. We don't just write code; we build ecosystems that respect the user's autonomy and scale with their ambitions.</p>
-                    </section>
+                        <section>
+                            <h2 class="text-2xl font-bold text-green-300 mb-3">Commissioned Work</h2>
+                            <p class="mb-4">CodeFoxSoft also takes on commissioned projects, delivering tailored
+                                solutions across a wide spectrum of needs:</p>
+                            <ul class="list-disc list-inside space-y-2 pl-4 mb-4">
+                                <li>Websites that are fast, secure, and designed for impact.</li>
+                                <li>Windows and Mobile Applications built with precision and user‑centric design.</li>
+                                <li>Games for Windows and Mobile Devices that blend storytelling, mechanics, and
+                                    intelligent systems.</li>
+                                <li>Custom LLMs (Large Language Models) designed for organizations that want AI tuned to
+                                    their unique data and workflows.</li>
+                            </ul>
+                            <p class="mb-4">Every commission is treated as a partnership: we listen, design, and deliver
+                                with the same meticulous care that defines our own flagship projects.</p>
+                        </section>
 
-                    <section>
-                        <h2 class="text-2xl font-bold text-green-300 mb-3">Commissioned Work</h2>
-                        <p class="mb-4">CodeFoxSoft also takes on commissioned projects, delivering tailored solutions across a wide spectrum of needs:</p>
-                        <ul class="list-disc list-inside space-y-2 pl-4 mb-4">
-                            <li>Websites that are fast, secure, and designed for impact.</li>
-                            <li>Windows and Mobile Applications built with precision and user‑centric design.</li>
-                            <li>Games for Windows and Mobile Devices that blend storytelling, mechanics, and intelligent systems.</li>
-                            <li>Custom LLMs (Large Language Models) designed for organizations that want AI tuned to their unique data and workflows.</li>
-                        </ul>
-                        <p class="mb-4">Every commission is treated as a partnership: we listen, design, and deliver with the same meticulous care that defines our own flagship projects.</p>
-                    </section>
+                        <section>
+                            <h2 class="text-2xl font-bold text-green-300 mb-3">The Gaming Studio Dream</h2>
+                            <p class="mb-4">Our next frontier is gaming. CodeFoxSoft is laying the foundation for a
+                                studio that blends storytelling, mechanics, and intelligent systems into unforgettable
+                                experiences. Projects like Fox Run and Space Pong are just the beginning — proof of
+                                concept for a larger vision. We aim to create games that aren't just played, but lived:
+                                worlds that adapt, communities that thrive, and mechanics that challenge and inspire.
+                            </p>
+                        </section>
 
-                    <section>
-                        <h2 class="text-2xl font-bold text-green-300 mb-3">The Gaming Studio Dream</h2>
-                        <p class="mb-4">Our next frontier is gaming. CodeFoxSoft is laying the foundation for a studio that blends storytelling, mechanics, and intelligent systems into unforgettable experiences. Projects like Fox Run and Space Pong are just the beginning — proof of concept for a larger vision. We aim to create games that aren't just played, but lived: worlds that adapt, communities that thrive, and mechanics that challenge and inspire.</p>
-                    </section>
-
-                    <section>
-                        <h2 class="text-2xl font-bold text-green-300 mb-3">Why We Exist</h2>
-                        <p class="mb-4">We exist to push boundaries. To prove that a small studio can rival giants by being faster, sharper, and more human. To show that autonomy‑driven design can coexist with artistry. To build a future where every app, every game, and every system carries the mark of CodeFoxSoft: precision, resilience, and imagination. And above all, to prove that programmers are not obsolete in the age of AI — they are the leaders who will shape it.</p>
-                    </section>
-                </div>
-                <div class="mt-8 text-center">
-                    <a href="index.html#projects" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 sm:py-4 sm:px-10 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
-                        Our Projects <i class="fas fa-arrow-right ml-2"></i>
-                    </a>
+                        <section>
+                            <h2 class="text-2xl font-bold text-green-300 mb-3">Why We Exist</h2>
+                            <p class="mb-4">We exist to push boundaries. To prove that a small studio can rival giants
+                                by being faster, sharper, and more human. To show that autonomy‑driven design can
+                                coexist with artistry. To build a future where every app, every game, and every system
+                                carries the mark of CodeFoxSoft: precision, resilience, and imagination. And above all,
+                                to prove that programmers are not obsolete in the age of AI — they are the leaders who
+                                will shape it.</p>
+                        </section>
+                    </div>
+                    <div class="mt-8 text-center">
+                        <a href="index.html#projects"
+                            class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 sm:py-4 sm:px-10 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
+                            Our Projects <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 bg-opacity-80 py-10 text-center text-gray-400 text-sm z-10 relative">
-        <div class="container mx-auto px-6">
-            <p>&copy; 2026 CodeFoxSoft™. All rights reserved.</p>
-            <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
-            <a href="privacy.html" class="underline hover:text-green-300">Privacy Policy</a>
+        <!-- Footer -->
+        <footer class="bg-gray-900 bg-opacity-80 py-10 text-center text-gray-400 text-sm z-10 relative">
+            <div class="container mx-auto px-6">
+                <p>&copy; 2026 CodeFoxSoft™. All rights reserved.</p>
+                <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
+                <a href="privacy.html" class="underline hover:text-green-300">Privacy Policy</a>
 
-            <div class="flex justify-center space-x-6 mt-4">
+                <div class="flex justify-center space-x-6 mt-4">
+                </div>
             </div>
-        </div>
-    </footer>
+        </footer>
     </div> <!-- Close main-content-wrapper -->
 
     <!-- Three.js library is required for the galaxy animation -->
@@ -370,7 +473,7 @@
 
             return new THREE.Points(geometry, material);
         }
-        
+
         function init() {
             scene = new THREE.Scene();
             const canvasContainer = document.getElementById('hero-background');
@@ -466,7 +569,7 @@
             renderer.render(scene, camera);
         }
 
-        window.onload = function() {
+        window.onload = function () {
             init();
             animate();
             window.addEventListener('resize', onWindowResize, false);
@@ -474,5 +577,5 @@
         };
     </script>
 </body>
-</html>
 
+</html>

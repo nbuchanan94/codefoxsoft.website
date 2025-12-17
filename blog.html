@@ -1,32 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Read the latest blog posts from CodeFoxSoft. Game development insights, company updates, tech tutorials, and behind-the-scenes content from indie developer Nicholas Larkin Buchanan.">
-    <meta name="keywords" content="CodeFoxSoft blog, game development blog, indie developer blog, tech blog, programming blog, game design blog, Nicholas Larkin Buchanan blog, game development articles, indie game blog, programming tutorials, game design tips, tech articles, software development blog, mobile game development, Android development blog, indie studio blog, game development insights">
+    <meta name="description"
+        content="Read the latest blog posts from CodeFoxSoft. Game development insights, company updates, tech tutorials, and behind-the-scenes content from indie developer Nicholas Larkin Buchanan.">
+    <meta name="keywords"
+        content="CodeFoxSoft blog, game development blog, indie developer blog, tech blog, programming blog, game design blog, Nicholas Larkin Buchanan blog, game development articles, indie game blog, programming tutorials, game design tips, tech articles, software development blog, mobile game development, Android development blog, indie studio blog, game development insights">
     <meta name="author" content="Nicholas Thorne Larkin Buchanan">
     <meta name="robots" content="index, follow">
     <meta name="language" content="English">
     <meta name="revisit-after" content="7 days">
     <link rel="canonical" href="https://codefoxsoft.com/blog.html">
-    
+
     <!-- Open Graph Meta Tags (Facebook, Nextdoor, LinkedIn, etc.) -->
     <meta property="og:title" content="CodeFoxSoft Blog - Game Development & Tech Insights">
-    <meta property="og:description" content="Read the latest blog posts from CodeFoxSoft. Game development insights, company updates, tech tutorials, and behind-the-scenes content from indie developer Nicholas Larkin Buchanan.">
+    <meta property="og:description"
+        content="Read the latest blog posts from CodeFoxSoft. Game development insights, company updates, tech tutorials, and behind-the-scenes content from indie developer Nicholas Larkin Buchanan.">
     <meta property="og:image" content="https://codefoxsoft.com/appsgamessites.png">
     <meta property="og:url" content="https://codefoxsoft.com/blog.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="CodeFoxSoft">
-    
+
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="CodeFoxSoft Blog - Game Development & Tech Insights">
-    <meta name="twitter:description" content="Read the latest blog posts from CodeFoxSoft. Game development insights, company updates, tech tutorials, and behind-the-scenes content from indie developer Nicholas Larkin Buchanan.">
+    <meta name="twitter:description"
+        content="Read the latest blog posts from CodeFoxSoft. Game development insights, company updates, tech tutorials, and behind-the-scenes content from indie developer Nicholas Larkin Buchanan.">
     <meta name="twitter:image" content="https://codefoxsoft.com/appsgamessites.png">
-    
+
     <title>All Blog Posts- CodeFoxSoft</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -39,21 +44,29 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            overflow-x: hidden; /* Prevent horizontal scrolling */
+            overflow-x: hidden;
+            /* Prevent horizontal scrolling */
         }
+
         /* Custom scrollbar for a cleaner look */
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
-            background: #1a202c; /* Dark background */
+            background: #1a202c;
+            /* Dark background */
         }
+
         ::-webkit-scrollbar-thumb {
-            background: #4a5568; /* Gray thumb */
+            background: #4a5568;
+            /* Gray thumb */
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
-            background: #6b7280; /* Lighter gray on hover */
+            background: #6b7280;
+            /* Lighter gray on hover */
         }
 
         /* Basic fade-in animation for sections */
@@ -62,6 +75,7 @@
             transform: translateY(20px);
             transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
+
         .fade-in.visible {
             opacity: 1;
             transform: translateY(0);
@@ -72,18 +86,47 @@
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             display: block !important;
         }
+
         #mobile-menu.hidden {
             opacity: 0;
             transform: translateY(-20px);
             pointer-events: none;
         }
+
         #mobile-menu:not(.hidden) {
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
         }
     </style>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "CodeFoxSoft",
+      "url": "https://codefoxsoft.com",
+      "logo": "https://codefoxsoft.com/assets/logo.png",
+      "sameAs": [
+        "https://github.com/nbuchanan94",
+        "https://linkedin.com/in/nbuchanan94",
+        "https://youtube.com/@codefoxsoft",
+        "https://play.google.com/store/apps/dev?id=yourid"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "nbuchanan94@gmail.com",
+        "telephone": "+1-240-776-2408",
+        "contactType": "Customer Support"
+      },
+      "founder": {
+        "@type": "Person",
+        "name": "Nicholas Larkin Buchanan",
+        "url": "https://codefoxsoft.com/about"
+      }
+    }
+    </script>
 </head>
+
 <body class="bg-gray-900 text-gray-100">
 
     <!-- Header -->
@@ -91,37 +134,57 @@
         <nav class="container mx-auto flex justify-between items-center px-6">
             <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
                 <!-- Logo -->
-                <img src="logo.png" onerror="this.onerror=null;this.src='https://placehold.co/48x48/0d9488/ffffff?text=CFS';" alt="CodeFoxSoft™ Logo" class="h-12 w-12 rounded-full mr-3">
+                <img src="logo.png"
+                    onerror="this.onerror=null;this.src='https://placehold.co/48x48/0d9488/ffffff?text=CFS';"
+                    alt="CodeFoxSoft™ Logo" class="h-12 w-12 rounded-full mr-3">
                 <span class="hidden md:block">CodeFoxSoft™</span>
                 <span class="block md:hidden">CodeFoxSoft™</span>
             </a>
 
             <!-- Desktop Navigation Links (visible on md screens and up) -->
             <ul class="hidden md:flex space-x-6 text-lg">
-                <li><a href="index.html#about" class="hover:text-green-400 transition-colors duration-300">About</a></li>
-                <li><a href="index.html#projects" class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
-                <li><a href="alldownload.html" class="hover:text-green-400 transition-colors duration-300">Downloads</a></li>
+                <li><a href="index.html#about" class="hover:text-green-400 transition-colors duration-300">About</a>
+                </li>
+                <li><a href="index.html#projects"
+                        class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
+                <li><a href="alldownload.html" class="hover:text-green-400 transition-colors duration-300">Downloads</a>
+                </li>
                 <li><a href="index.html#blog" class="hover:text-green-400 transition-colors duration-300">Blog</a></li>
-                <li><a href="index.html#contact" class="hover:text-green-400 transition-colors duration-300">Contact</a></li>
+                <li><a href="index.html#contact" class="hover:text-green-400 transition-colors duration-300">Contact</a>
+                </li>
             </ul>
 
             <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
-            <button id="menu-button" class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            <button id="menu-button"
+                class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
+                    </path>
                 </svg>
             </button>
         </nav>
     </header>
 
     <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
-    <div id="mobile-menu" class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
+    <div id="mobile-menu"
+        class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
         <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
-            <li><a href="index.html#about" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a></li>
-            <li><a href="index.html#projects" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a></li>
-            <li><a href="alldownload.html" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a></li>
-            <li><a href="index.html#blog" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Blog</a></li>
-            <li><a href="index.html#contact" class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Contact</a></li>
+            <li><a href="index.html#about"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a>
+            </li>
+            <li><a href="index.html#projects"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a>
+            </li>
+            <li><a href="alldownload.html"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a>
+            </li>
+            <li><a href="index.html#blog"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Blog</a>
+            </li>
+            <li><a href="index.html#contact"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Contact</a>
+            </li>
         </ul>
     </div>
 
@@ -131,27 +194,31 @@
             <h1 class="text-5xl font-bold text-green-400 mb-10">All Blog Posts</h1>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 <!-- Existing Blog Post Card 1 -->
-                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                <div
+                    class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
                     <img src="needyou600400.png" alt="beta" class="w-full h-48 object-cover">
                     <div class="p-8">
                         <h3 class="text-2xl font-semibold text-white mb-3">Play Store - Beta Testers!</h3>
                         <p class="text-gray-400 text-sm mb-4">
                             Looking for beta testers! Click for more information!
                         </p>
-                        <a href="PlayStore.html" class="text-green-400 hover:text-green-500 font-semibold flex items-center justify-center">
+                        <a href="PlayStore.html"
+                            class="text-green-400 hover:text-green-500 font-semibold flex items-center justify-center">
                             Read More <i class="fas fa-arrow-right ml-2 text-sm"></i>
                         </a>
                     </div>
                 </div>
                 <!-- Existing Blog Post Card 2 -->
-                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                <div
+                    class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
                     <img src="logo600x400.png" alt="launch" class="w-full h-48 object-cover">
                     <div class="p-8">
                         <h3 class="text-2xl font-semibold text-white mb-3">CodeFoxSoft Launch!</h3>
                         <p class="text-gray-400 text-sm mb-4">
                             Welcome Message from CodeFoxSoft - Nicholas Larkin Buchanan
                         </p>
-                        <a href="launch.html" class="text-green-400 hover:text-green-500 font-semibold flex items-center justify-center">
+                        <a href="launch.html"
+                            class="text-green-400 hover:text-green-500 font-semibold flex items-center justify-center">
                             Read More <i class="fas fa-arrow-right ml-2 text-sm"></i>
                         </a>
                     </div>
@@ -199,7 +266,7 @@
         });
 
         // Intersection Observer for fade-in effect
-        window.onload = function() {
+        window.onload = function () {
             const faders = document.querySelectorAll('.fade-in');
 
             const appearOptions = {
@@ -207,7 +274,7 @@
                 rootMargin: "0px 0px -100px 0px" // Start animating 100px before it enters viewport
             };
 
-            const appearOnScroll = new IntersectionObserver(function(entries, appearOnScroll) {
+            const appearOnScroll = new IntersectionObserver(function (entries, appearOnScroll) {
                 entries.forEach(entry => {
                     if (!entry.isIntersecting) {
                         return;
@@ -224,4 +291,5 @@
         };
     </script>
 </body>
+
 </html>
