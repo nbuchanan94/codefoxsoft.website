@@ -32,7 +32,7 @@
         content="Read the latest blog posts from CodeFoxSoft. Game development insights, company updates, tech tutorials, and behind-the-scenes content from indie developer Nicholas Larkin Buchanan.">
     <meta name="twitter:image" content="https://www.codefoxsoft.com/appsgamessites.png">
 
-    <title>Blog - CodeFoxSoft</title>
+    <title>Blog History - CodeFoxSoft</title>
     <link rel="canonical" href="https://www.codefoxsoft.com/blog.html">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -209,8 +209,32 @@
     <!-- Blog Listing Section -->
     <section class="py-20 pt-32 bg-gray-900 min-h-screen fade-in">
         <div class="container mx-auto px-6 text-center">
+            <!-- Back to Home Link -->
+            <div class="mb-8 text-left">
+                <a href="index.html"
+                    class="text-green-400 hover:text-green-500 font-semibold flex items-center inline-block">
+                    <i class="fas fa-arrow-left mr-2"></i> Back Home
+                </a>
+            </div>
             <h1 class="text-5xl font-bold text-green-400 mb-10">All Blog Posts</h1>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <!-- New Blog Post Card -->
+                <div
+                    class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                    <img src="appsgamessites.png" alt="AI Future" class="w-full h-48 object-cover">
+                    <div class="p-8">
+                        <h3 class="text-2xl font-semibold text-white mb-3">AI in Game Development: Partner, Not
+                            Replacement</h3>
+                        <p class="text-gray-400 text-sm mb-4">
+                            Artificial Intelligence is no longer just a buzzword in game development; it’s rapidly
+                            becoming the backbone of immersive and dynamic experiences...
+                        </p>
+                        <a href="blogpost1.html"
+                            class="text-green-400 hover:text-green-500 font-semibold flex items-center justify-center">
+                            Read More <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                        </a>
+                    </div>
+                </div>
                 <!-- Existing Blog Post Card 1 -->
                 <div
                     class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
@@ -229,7 +253,7 @@
                 <!-- Existing Blog Post Card 2 -->
                 <div
                     class="bg-gray-800 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
-                    <img src="logo600x400.png" alt="launch" class="w-full h-48 object-cover">
+                    <img src="launchr.png" alt="launch" class="w-full h-48 object-cover">
                     <div class="p-8">
                         <h3 class="text-2xl font-semibold text-white mb-3">CodeFoxSoft Launch!</h3>
                         <p class="text-gray-400 text-sm mb-4">
