@@ -5,3 +5,4 @@ Disallow: /.idea/
 Disallow: /tmp/
 
 Sitemap: https://www.codefoxsoft.com/sitemap.xml
+Sitemap: https://www.codefoxsoft.com/sitemap_location.xml
