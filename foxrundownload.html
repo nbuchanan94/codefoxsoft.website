@@ -8,7 +8,8 @@
     <!-- SEO Meta Tags -->
     <meta name="description"
         content="Download Fox Run - an addictive endless runner game for Android. Jump over obstacles, collect power-ups, and achieve high scores in this pixel-art adventure. Available on Google Play Store.">
-    <meta name="keywords" content="CodeFoxSoft, Indie Game Developer, Web Developer, App Development, AI Solutions, Nicholas Larkin Buchanan, Codefox soft">
+    <meta name="keywords"
+        content="CodeFoxSoft, Indie Game Developer, Web Developer, App Development, AI Solutions, Nicholas Larkin Buchanan, Codefox soft">
     <meta name="author" content="Nicholas Thorne Larkin Buchanan">
     <meta name="robots" content="index, follow">
     <meta name="language" content="English">
@@ -344,7 +345,7 @@
         });
 
         // Intersection Observer for fade-in effect
-        window.onload = function () {
+        document.addEventListener("DOMContentLoaded", function () {
             const faders = document.querySelectorAll('.fade-in');
 
             const appearOptions = {
@@ -366,7 +367,7 @@
             faders.forEach(fader => {
                 appearOnScroll.observe(fader);
             });
-        };
+        });
     </script>
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
