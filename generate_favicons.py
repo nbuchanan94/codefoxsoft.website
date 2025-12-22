@@ -3,9 +3,11 @@ import os
 
 def generate_favicons(source_file):
     try:
+        if not os.path.exists(source_file):
+            print(f"Source {source_file} not found")
+            return
+
         img = Image.open(source_file)
-        
-        # Ensure RGBA for transparency
         if img.mode != 'RGBA':
             img = img.convert('RGBA')
 
@@ -32,12 +34,4 @@ def generate_favicons(source_file):
         print(f"Error generating favicons: {e}")
 
 if __name__ == "__main__":
-    source = "logo600x400.png"
-    if os.path.exists(source):
-        generate_favicons(source)
-    else:
-        # Fallback to other logo if 600x400 doesn't exist, though listed in directory
-        if os.path.exists("logo.png"):
-             generate_favicons("logo.png")
-        else:
-             print("Source logo not found!")
+    generate_favicons("favicon.png")
