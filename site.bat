@@ -2,8 +2,8 @@
 title CodeFoxSoft GitHub Clone & Push
 color 0A
 
-set REPO_URL=https://github.com/nbuchanan94/codefoxsoft.website
-set REPO_DIR=codefoxsoft.website
+set REPO_URL=https://github.com/codefoxsoft/codefoxsoft.com
+set REPO_DIR=codefoxsoft.com
 
 :: Check if repo folder exists
 if not exist "%REPO_DIR%\.git" (
