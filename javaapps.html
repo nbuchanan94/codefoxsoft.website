@@ -191,6 +191,45 @@
             cursor: pointer;
         }
 
+        /* Next & previous buttons */
+        .lb-prev,
+        .lb-next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            padding: 16px;
+            margin-top: -50px;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+        }
+
+        /* Position the "next" button to the right */
+        .lb-next {
+            right: 0;
+            border-radius: 3px 0 0 3px;
+        }
+
+        /* Position the "prev" button to the left */
+        .lb-prev {
+            left: 0;
+            border-radius: 0 3px 3px 0;
+        }
+
+        /* On hover, add a black background color with a little bit see-through */
+        .lb-prev:hover,
+        .lb-next:hover {
+            background-color: rgba(16, 185, 129, 0.8);
+            /* Green hover */
+        }
+
         @keyframes zoomIn {
             from {
                 transform: scale(0)
@@ -344,7 +383,8 @@
                                     </h2>
                                     <p>An advanced VIM-inspired text editor featuring a command bar, syntax
                                         highlighting,
-                                        autocomplete, and modal editing (Insert vs. Command modes).</p>
+                                        autocomplete, and modal editing. Very fun project to design and work on.
+                                        Definitely a Codefoxsoft favorite.</p>
                                 </div>
                             </div>
                             <hr class='border-gray-800 my-4'>
@@ -363,9 +403,9 @@
                                             target="_blank"
                                             class="text-green-400 hover:text-green-300 hover:underline transition-colors">SmartNotepad.java</a>
                                     </h2>
-                                    <p>An enhanced text editor equipped with an autocomplete feature that suggests words
-                                        from a
-                                        predefined "smart.txt" dictionary.</p>
+                                    <p>An enhanced text editor equipped with an autocomplete feature. This was
+                                        groundbreaking for me; created back in 2011, I learned that I could create my
+                                        own autocomplete function.</p>
                                 </div>
                             </div>
                             <hr class='border-gray-800 my-4'>
@@ -382,9 +422,8 @@
                                             target="_blank"
                                             class="text-green-400 hover:text-green-300 hover:underline transition-colors">JavaNano.java</a>
                                     </h2>
-                                    <p>A terminal-themed text editor GUI that simulates a command-line interface,
-                                        supporting
-                                        file loading, saving, and a persistent line buffer.</p>
+                                    <p>A terminal-themed text editor GUI that simulates a command-line interface. Made
+                                        to be extremely simple and light.</p>
                                 </div>
                             </div>
                             <hr class='border-gray-800 my-4'>
@@ -401,9 +440,8 @@
                                             target="_blank"
                                             class="text-green-400 hover:text-green-300 hover:underline transition-colors">JavaNotepad.java</a>
                                     </h2>
-                                    <p>A fully functional text editor supporting standard file operations (New, Open,
-                                        Save,
-                                        Print) and word wrapping.</p>
+                                    <p>A fully functional text editor supporting standard file operations. I created
+                                        this because I wanted to basically recreate Windows Notepad.</p>
                                 </div>
                             </div>
                             <hr class='border-gray-800 my-4'>
@@ -827,9 +865,8 @@
                                             target="_blank"
                                             class="text-green-400 hover:text-green-300 hover:underline transition-colors">jPong.java</a>
                                     </h2>
-                                    <p>A comprehensive Arkanoid-style arcade game featuring a menu system, multiple
-                                        difficulty
-                                        levels, and brick-breaking gameplay.</p>
+                                    <p>A comprehensive Arkanoid-style arcade game. Believe it or not, this was actually
+                                        the BASE for SpacePong for Android!</p>
                                 </div>
                             </div>
                             <hr class='border-gray-800 my-4'>
@@ -846,9 +883,9 @@
                                             target="_blank"
                                             class="text-green-400 hover:text-green-300 hover:underline transition-colors">Pong.java</a>
                                     </h2>
-                                    <p>An implementation of the classic arcade game Pong, featuring keyboard-controlled
-                                        paddle
-                                        movement (A/S keys) and wall-bouncing physics.</p>
+                                    <p>Pong.java was created in 2011. At this time the most interesting concept to me
+                                        was multithreading, which allows for the illusion of animation. Definitely one
+                                        of the Codefoxsoft Favorites!</p>
                                 </div>
                             </div>
                             <hr class='border-gray-800 my-4'>
@@ -944,9 +981,8 @@
                                             target="_blank"
                                             class="text-green-400 hover:text-green-300 hover:underline transition-colors">HackerTerminalSimulator.java</a>
                                     </h2>
-                                    <p>An immersive "movie-style" hacker terminal simulation featuring fake commands and
-                                        a
-                                        scrolling command history (GUI based).</p>
+                                    <p>An immersive "movie-style" hacker terminal simulation. Has fun commands like
+                                        trace, hack, matrix, or nuke!!!</p>
                                 </div>
                             </div>
                             <hr class='border-gray-800 my-4'>
@@ -1012,9 +1048,8 @@
                                             target="_blank"
                                             class="text-green-400 hover:text-green-300 hover:underline transition-colors">BallMover.java</a>
                                     </h2>
-                                    <p>Displays a smooth animation of a yellow ball bouncing horizontally back and forth
-                                        within
-                                        a window.</p>
+                                    <p>Displays a smooth animation of a yellow ball bouncing horizontally. One of the
+                                        first demonstrations where I learned to use multithreading for animation.</p>
                                 </div>
                             </div>
                             <hr class='border-gray-800 my-4'>
@@ -1051,9 +1086,9 @@
                                             target="_blank"
                                             class="text-green-400 hover:text-green-300 hover:underline transition-colors">RandomPixels.java</a>
                                     </h2>
-                                    <p>A high-speed graphics demo that fills the screen with thousands of randomly
-                                        placed and
-                                        colored small ovals ("pixels").</p>
+                                    <p>A high-speed graphics demo that fills the screen with random "pixels". This was a
+                                        "shout out" to when I first started with QBasic in 2006; as a 6th grader, I
+                                        enjoyed the colors and simple graphics loops.</p>
                                 </div>
                             </div>
                             <hr class='border-gray-800 my-4'>
@@ -1090,9 +1125,8 @@
                                             target="_blank"
                                             class="text-green-400 hover:text-green-300 hover:underline transition-colors">RandomColorSquares.java</a>
                                     </h2>
-                                    <p>Creates a visual "flashing" effect by rapidly drawing randomly sized and colored
-                                        squares
-                                        at random positions.</p>
+                                    <p>Creates a visual "flashing" effect with random squares. This is also a
+                                        Codefoxsoft favorite and a "shout out" to my early days with QBasic in 2006.</p>
                                 </div>
                             </div>
                             <hr class='border-gray-800 my-4'>
@@ -2716,8 +2750,13 @@
     <!-- Lightbox Modal -->
     <div id="lightbox-modal" class="modal" onclick="closeLightbox()">
         <span class="lb-close" onclick="closeLightbox()">&times;</span>
-        <img class="modal-content" id="lightbox-content">
-        <div id="lightbox-caption"></div>
+
+        <!-- Navigation Arrows -->
+        <a class="lb-prev" onclick="event.stopPropagation(); navigateLightbox(-1)">&#10094;</a>
+        <a class="lb-next" onclick="event.stopPropagation(); navigateLightbox(1)">&#10095;</a>
+
+        <img class="modal-content" id="lightbox-content" onclick="event.stopPropagation()">
+        <div id="lightbox-caption" onclick="event.stopPropagation()"></div>
     </div>
 
 
