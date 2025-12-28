@@ -191,17 +191,14 @@
 
         /* Hero Content Box - Base styles for desktop */
         .hero-content-box {
-            background-color: rgba(17, 24, 39, 0.2);
-            /* 20% opacity for desktop - matches mobile transparency */
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            background-color: rgba(31, 41, 55, 0.7); /* Matches bg-gray-800 bg-opacity-70 */
         }
 
         /* Hero Box Mobile Optimization - More transparent with backdrop blur */
         @media (max-width: 768px) {
             .hero-content-box {
                 /* Remove backdrop-filter on mobile for better compatibility */
-                background-color: rgba(17, 24, 39, 0.1) !important;
+                background-color: rgba(31, 41, 55, 0.7) !important;
                 /* Even more transparent - 10% opacity */
                 backdrop-filter: none !important;
                 /* Disable backdrop-filter on mobile */

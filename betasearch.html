@@ -93,6 +93,18 @@
             transform: translateY(0);
             pointer-events: auto;
         }
+    
+        /* The container for the Three.js canvas */
+        #hero-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Puts it behind all other content */
+        }
+
     </style>
     <script type="application/ld+json">
     {
@@ -129,10 +141,12 @@
 
 </head>
 
-<body class="bg-gray-900 text-gray-100">
+<body class="bg-[#0c0d11] text-gray-100">
+    <!-- The container for the Three.js animated background -->
+    <div id="hero-background"></div>
 
     <!-- Header -->
-    <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
+    <header class="bg-gray-800 bg-opacity-70 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
         <nav class="container mx-auto flex justify-between items-center px-6">
             <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
                 <!-- Logo Placeholder: Recommended size 48x48px -->
@@ -170,7 +184,7 @@
 
     <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
     <div id="mobile-menu"
-        class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
+    class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 shadow-lg z-40 hidden rounded-b-lg">
         <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
             <li><a href="index.html#about"
                     class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a>
@@ -191,7 +205,7 @@
     </div>
 
     <!-- Blog Post Content Section -->
-    <section class="py-20 pt-32 bg-gray-900 min-h-screen">
+  <section class="py-20 pt-32 min-h-screen">
         <div class="container mx-auto px-6 max-w-4xl">
             <!-- Back to Blog Link -->
             <div class="mb-8">
@@ -200,7 +214,7 @@
                 </a>
             </div>
 
-            <article class="bg-gray-800 p-8 rounded-xl shadow-lg">
+            <article class="bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg">
                 <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-4 leading-tight break-words">Join Team
                     Beta! - CodeFoxSoft</h1>
                 <p class="text-gray-400 text-lg mb-6">
@@ -293,7 +307,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 py-10 text-center text-gray-400 text-sm">
+    <footer class="bg-gray-900 bg-opacity-70 py-10 text-center text-gray-400 text-sm">
         <div class="container mx-auto px-6">
             <p>&copy; <span id="year"></span> CodeFoxSoft™ All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
@@ -305,30 +319,241 @@
         </div>
     </footer>
 
+    <!-- Three.js library is required for the galaxy animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // JavaScript for the mobile menu toggle
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuButton = document.getElementById('menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
+        // --- Global Variables for Three.js (from the galaxy code) ---
+        let scene, camera, renderer, galaxyGroup, backgroundGalaxyGroup, starField;
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+        let windowHalfX = window.innerWidth / 2;
+        let windowHalfY = window.innerHeight / 2;
+        let starCount = 50000;
+        let backgroundGalaxyCount = 10;
+        const spiralSpeed = 0.0005;
 
-            if (menuButton && mobileMenu) {
-                menuButton.addEventListener('click', () => {
-                    mobileMenu.classList.toggle('hidden');
-                });
+        // --- Helper Functions for Galaxy Creation (from the galaxy code) ---
+        function hsvToRgb(h, s, v) {
+            let r, g, b;
+            let i = Math.floor(h * 6);
+            let f = h * 6 - i;
+            let p = v * (1 - s);
+            let q = v * (1 - f * s);
+            let t = v * (1 - (1 - f) * s);
 
-                // Close the menu when a link is clicked
-                const mobileLinks = mobileMenu.querySelectorAll('a');
-                mobileLinks.forEach(link => {
-                    link.addEventListener('click', () => {
-                        mobileMenu.classList.add('hidden');
-                    });
-                });
+            switch (i % 6) {
+                case 0: r = v, g = t, b = p; break;
+                case 1: r = q, g = v, b = p; break;
+                case 2: r = p, g = v, b = t; break;
+                case 3: r = p, g = q, b = v; break;
+                case 4: r = t, g = p, b = v; break;
+                case 5: r = v, g = p, b = q; break;
             }
-        });
-    </script>
+            return { r: r, g: g, b: b };
+        }
 
-    <script>
-        document.getElementById('year').textContent = new Date().getFullYear();
+        function createGalaxy(starCount, maxRadius, armCount, opacity = 1.0) {
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+            const sizes = new Float32Array(starCount);
+            const armOffset = 1.0;
+
+            for (let i = 0; i < starCount; i++) {
+                const armIndex = i % armCount;
+                const angle = (i / starCount) * Math.PI * 40 + (armIndex * Math.PI * armOffset);
+
+                const distance = Math.pow(Math.random(), 3.0) * maxRadius;
+
+                const crazyFactor = (1 - distance / maxRadius) * 2.0;
+                const randomX = (Math.random() - 0.5) * crazyFactor;
+                const verticalPuffiness = 0.5 + (distance / maxRadius) * 0.5;
+                const randomY = (Math.random() - 0.5) * crazyFactor * verticalPuffiness;
+                const randomZ = (Math.random() - 0.5) * crazyFactor;
+
+                const x = Math.cos(angle) * distance + randomX;
+                const y = randomY;
+                const z = Math.sin(angle) * distance + randomZ;
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                const hue = (distance / maxRadius) * 0.7;
+                const saturation = 0.9 + Math.random() * 0.1;
+                const value = 0.9 + Math.random() * 0.1;
+                let rgb = hsvToRgb(hue, saturation, value);
+
+                if (distance < 1.0) {
+                    rgb.r = 0;
+                    rgb.g = 0;
+                    rgb.b = 0;
+                }
+
+                colors[i * 3] = rgb.r;
+                colors[i * 3 + 1] = rgb.g;
+                colors[i * 3 + 2] = rgb.b;
+
+                sizes[i] = (1 - distance / maxRadius) * 0.05 + 0.005;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.01,
+                vertexColors: true,
+                transparent: true,
+                opacity: opacity,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true
+            });
+
+            return new THREE.Points(geometry, material);
+        }
+
+        function createStarField(starCount, maxDistance) {
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+            const sizes = new Float32Array(starCount);
+
+            for (let i = 0; i < starCount; i++) {
+                const x = (Math.random() - 0.5) * maxDistance * 2;
+                const y = (Math.random() - 0.5) * maxDistance * 2;
+                const z = (Math.random() - 0.5) * maxDistance * 2;
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                colors[i * 3] = 1.0;
+                colors[i * 3 + 1] = 1.0;
+                colors[i * 3 + 2] = 1.0;
+
+                sizes[i] = Math.random() * 0.1 + 0.05;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 1.0,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true
+            });
+
+            return new THREE.Points(geometry, material);
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            const canvasContainer = document.getElementById('hero-background');
+            if (!canvasContainer) {
+                console.error('Canvas container element with ID "hero-background" not found.');
+                return;
+            }
+
+            const width = canvasContainer.clientWidth;
+            const height = canvasContainer.clientHeight;
+
+            camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 8000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(width, height);
+
+            canvasContainer.appendChild(renderer.domElement);
+
+            camera.position.z = 8;
+            camera.position.y = 5;
+            camera.position.x = 0;
+
+            galaxyGroup = new THREE.Group();
+            const mainGalaxy = createGalaxy(starCount, 55, 2, 1.0);
+            galaxyGroup.add(mainGalaxy);
+            galaxyGroup.rotation.x = 0.5;
+            scene.add(galaxyGroup);
+
+            backgroundGalaxyGroup = new THREE.Group();
+            for (let i = 0; i < backgroundGalaxyCount; i++) {
+                const opacity = 0.4 + Math.random() * 0.6;
+                const bgGalaxy = createGalaxy(5000, 20, 2, opacity);
+
+                const bgDistance = 5000 + Math.random() * 2000;
+                const bgAngle = Math.random() * Math.PI * 2;
+                bgGalaxy.position.x = Math.cos(bgAngle) * bgDistance;
+                bgGalaxy.position.y = (Math.random() - 0.5) * bgDistance;
+                bgGalaxy.position.z = Math.sin(bgAngle) * bgDistance;
+
+                bgGalaxy.rotation.x = Math.random() * Math.PI * 2;
+                bgGalaxy.rotation.y = Math.random() * Math.PI * 2;
+                bgGalaxy.rotation.z = Math.random() * Math.PI * 2;
+
+                const scale = 0.5 + Math.random() * 0.5;
+                bgGalaxy.scale.set(scale, scale, scale);
+
+                backgroundGalaxyGroup.add(bgGalaxy);
+            }
+            scene.add(backgroundGalaxyGroup);
+
+            starField = createStarField(5000, 1000);
+            scene.add(starField);
+        }
+
+        function onWindowResize() {
+            const canvasContainer = document.getElementById('hero-background');
+            if (canvasContainer) {
+                windowHalfX = canvasContainer.clientWidth / 2;
+                windowHalfY = canvasContainer.clientHeight / 2;
+                camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+            }
+        }
+
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX - windowHalfX);
+            mouseY = (event.clientY - windowHalfY);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            targetX = mouseX * 0.001;
+            targetY = mouseY * 0.001;
+
+            galaxyGroup.rotation.y += 0.0005 * (targetX - galaxyGroup.rotation.y) + 0.0002;
+            galaxyGroup.rotation.x += 0.0005 * (targetY - galaxyGroup.rotation.x) - 0.00005;
+            galaxyGroup.rotation.z += 0.0001;
+
+            const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
+            galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+            camera.position.x += (targetX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            backgroundGalaxyGroup.rotation.x += 0.00001;
+            backgroundGalaxyGroup.rotation.y += 0.00001;
+
+            starField.rotation.y += 0.00005;
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            init();
+            animate();
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+        };
     </script>
 </body>
 
