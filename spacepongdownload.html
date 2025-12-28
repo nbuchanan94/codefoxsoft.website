@@ -395,6 +395,16 @@
             faders.forEach(fader => {
                 appearOnScroll.observe(fader);
             });
+
+            // Safety Fallback: Force visibility after 1 second if the observer fails to trigger (common on some mobile browsers)
+            setTimeout(() => {
+                faders.forEach(fader => {
+                    if (!fader.classList.contains('visible')) {
+                        console.log("Forcing visibility via safety timeout");
+                        fader.classList.add('visible');
+                    }
+                });
+            }, 1000);
         });
     </script>
     <script>
