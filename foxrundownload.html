@@ -97,18 +97,17 @@
             transform: translateY(0);
             pointer-events: auto;
         }
-    
-    /* The container for the Three.js canvas */
-    #hero-background {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        /* Puts it behind all other content */
-    }
 
+        /* The container for the Three.js canvas */
+        #hero-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Puts it behind all other content */
+        }
     </style>
     <script type="application/ld+json">
     [
@@ -211,7 +210,7 @@
 
     <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
     <div id="mobile-menu"
-    class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 shadow-lg z-40 hidden rounded-b-lg">
+        class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 shadow-lg z-40 hidden rounded-b-lg">
         <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
             <li><a href="index.html#about"
                     class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a>
@@ -358,7 +357,8 @@
         <div class="container mx-auto px-6">
             <p>&copy; <span id="year"></span> CodeFoxSoft™. All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
-            <p class="mt-2 italic font-semibold text-green-400">Code Made Clean. Fox Made Clever. Software Made Powerful.</p>
+            <p class="mt-2 italic font-semibold text-green-400">Code Made Clean. Fox Made Clever. Software Made
+                Powerful.</p>
             <a href="https://www.codefoxsoft.com/privacy.html">Privacy Policy</a>
 
             <div class="flex justify-center space-x-6 mt-4">
@@ -392,8 +392,8 @@
             const faders = document.querySelectorAll('.fade-in');
 
             const appearOptions = {
-                threshold: 0.2, // When 20% of the element is visible
-                rootMargin: "0px 0px -100px 0px" // Start animating 100px before it enters viewport
+                threshold: 0, // Trigger immediately when any part is visible
+                rootMargin: "0px 0px -50px 0px" // Slight offset for effect, but reliable
             };
 
             const appearOnScroll = new IntersectionObserver(function (entries, appearOnScroll) {
@@ -651,7 +651,7 @@
             window.addEventListener('resize', onWindowResize, false);
             document.addEventListener('mousemove', onDocumentMouseMove, false);
         };
-    
+
     </script>
 
 </body>
