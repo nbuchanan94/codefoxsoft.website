@@ -1,0 +1,2833 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Comprehensive privacy policy covering GDPR, CCPA, and data protection for CodeFoxSoft.">
+    <meta name="keywords"
+        content="CodeFoxSoft, Indie Game Developer, Web Developer, App Development, AI Solutions, Nicholas Larkin Buchanan, Codefox soft">
+
+    <meta name="author" content="Nicholas Thorne Larkin Buchanan">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+
+    <!-- Open Graph Meta Tags (Facebook, Nextdoor, LinkedIn, etc.) -->
+    <meta property="og:title" content="Privacy Policy - CodeFoxSoft | GDPR & CCPA Compliant">
+    <meta property="og:description"
+        content="Comprehensive privacy policy covering GDPR, CCPA compliance, data protection practices, and user rights for CodeFoxSoft applications and website.">
+    <meta property="og:image" content="https://www.codefoxsoft.com/appsgamessites.png">
+    <meta property="og:url" content="https://www.codefoxsoft.com/privacy.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="CodeFoxSoft">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Privacy Policy - CodeFoxSoft | GDPR & CCPA Compliant">
+    <meta name="twitter:description"
+        content="Comprehensive privacy policy covering GDPR, CCPA compliance, data protection practices, and user rights for CodeFoxSoft applications and website.">
+    <meta name="twitter:image" content="https://www.codefoxsoft.com/appsgamessites.png">
+
+    <title>CodeFoxSoft Java Repository</title>
+    <link rel="canonical" href="https://www.codefoxsoft.com/privacy.html">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* General body styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background-color: #0c0d11;
+            /* A very dark, almost black, background */
+        }
+
+        /* The container for the Three.js canvas */
+        #hero-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Puts it behind all other content */
+        }
+
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a202c;
+            /* Dark background */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            /* Gray thumb */
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+            /* Lighter gray on hover */
+        }
+
+        /* Mobile Menu Animation */
+        #mobile-menu {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            display: block !important;
+        }
+
+        #mobile-menu.hidden {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+
+        #mobile-menu:not(.hidden) {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+    </style>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "CodeFoxSoft",
+      "url": "https://www.codefoxsoft.com",
+      "logo": "https://www.codefoxsoft.com/logo.png",
+      "sameAs": [
+        "https://github.com/codefoxsoft",
+        "https://linkedin.com/in/codefoxsoft",
+        "https://youtube.com/@codefoxsoft",
+        "https://play.google.com/store/apps/dev?id=8226089087465940870"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "codefoxsoft@gmail.com",
+        "telephone": "+1-240-776-2408",
+        "contactType": "Customer Support"
+      },
+      "founder": {
+        "@type": "Person",
+        "name": "Nicholas Larkin Buchanan",
+        "url": "https://www.codefoxsoft.com/about"
+      }
+    }
+    </script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-v2.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-v2-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-v2-16x16.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon-v2.ico">
+
+
+    <style>
+        /* Lightbox Modal */
+        #lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            padding-top: 50px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+        }
+
+        #lightbox-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 128, 0.2);
+            animation: zoomIn 0.3s ease-out;
+        }
+
+        #lightbox-caption {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+            text-align: center;
+            color: #ccc;
+            padding: 10px 0;
+            height: 150px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .lb-close {
+            position: absolute;
+            top: 25px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .lb-close:hover,
+        .lb-close:focus {
+            color: #10b981;
+            /* Green-500 */
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0)
+            }
+
+            to {
+                transform: scale(1)
+            }
+        }
+
+        /* Responsive Styles for Program List */
+        @media (max-width: 640px) {
+            .program-entry {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+            }
+
+            .program-image {
+                margin-right: 0 !important;
+                margin-bottom: 15px !important;
+                width: 100% !important;
+                justify-content: center !important;
+                display: flex !important;
+                height: auto !important;
+            }
+
+            .program-details {
+                width: 100% !important;
+            }
+
+            .program-details h2 {
+                justify-content: center;
+            }
+        }
+    </style>
+
+</head>
+
+<body class="text-gray-100">
+
+    <!-- The container for the Three.js animated background -->
+    <div id="hero-background"></div>
+
+    <!-- Header -->
+    <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
+        <nav class="container mx-auto flex justify-between items-center px-6">
+            <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
+                <!-- Logo -->
+                <img src="logo.png"
+                    onerror="this.onerror=null;this.src='https://placehold.co/48x48/0d9488/ffffff?text=CFS';"
+                    alt="CodeFoxSoft™ Logo" class="h-12 w-12 rounded-full mr-3">
+                <span class="hidden md:block">CodeFoxSoft™</span>
+                <span class="block md:hidden">CodeFoxSoft™</span>
+            </a>
+
+            <!-- Desktop Navigation Links (visible on md screens and up) -->
+            <ul class="hidden md:flex space-x-6 text-lg">
+                <li><a href="index.html#about" class="hover:text-green-400 transition-colors duration-300">About</a>
+                </li>
+                <li><a href="index.html#projects"
+                        class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
+                <li><a href="alldownload.html" class="hover:text-green-400 transition-colors duration-300">Downloads</a>
+                </li>
+                <li><a href="blog.html" class="hover:text-green-400 transition-colors duration-300">Blog</a></li>
+                <li><a href="index.html#contact" class="hover:text-green-400 transition-colors duration-300">Contact</a>
+                </li>
+            </ul>
+
+            <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
+            <button id="menu-button"
+                class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
+                    </path>
+                </svg>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
+    <div id="mobile-menu"
+        class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
+        <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
+            <li><a href="index.html#about"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a>
+            </li>
+            <li><a href="index.html#projects"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a>
+            </li>
+            <li><a href="alldownload.html"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a>
+            </li>
+            <li><a href="blog.html"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Blog</a>
+            </li>
+            <li><a href="index.html#contact"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Contact</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content Area -->
+
+    <section class="py-20 pt-32 z-10 relative">
+        <div class="container mx-auto px-6">
+            <div
+                class="bg-gray-800 bg-opacity-90 backdrop-blur-sm p-8 md:p-12 rounded-xl shadow-lg max-w-4xl mx-auto text-left">
+                <!-- Back to All Downloads Link -->
+                <div class="mb-4">
+                    <a href="alldownload.html"
+                        class="text-green-400 hover:text-green-500 font-semibold flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to All Downloads
+                    </a>
+                </div>
+                <h1 class="text-3xl md:text-5xl font-bold text-green-500 mb-6 text-center">CodeFoxSoft Java Portfolio
+                </h1>
+                <p class="text-gray-300 mt-6 mb-12 text-lg leading-relaxed">
+                    This page is a living archive of the Java projects that shaped my foundation as a developer — a mix
+                    of instructional builds, experimental ideas, and pure late‑night creativity. Some of these programs
+                    were born in the classroom, others came from the same instinct that drives me to build instead of
+                    consume. While most teenagers were busy playing games, I was reverse‑engineering them, writing my
+                    own engines, and learning how to bend logic into something fun. What you’ll find here isn’t just
+                    code; it’s the evolution of a creator who never stopped pushing, experimenting, or imagining what
+                    else a machine could do.
+                </p>
+                <div class='program-list'>
+
+                    <div class="module-section mb-12">
+                        <h2
+                            class="text-2xl font-bold text-green-400 mb-2 mt-8 border-b border-gray-700 pb-2 flex items-center">
+                            <span class="mr-3 text-3xl">🖥️</span> Professional Text Editors & IDE Tools
+                        </h2>
+                        <p class="text-gray-400 mb-6 italic pl-1">These projects demonstrate complex UI state
+                            management, file stream handling, and modal editing logic.</p>
+                        <div class="module-apps space-y-4">
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/NotepadCommander.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="NotepadCommander.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/NotepadCommander.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">NotepadCommander.java</a>
+                                    </h2>
+                                    <p>An advanced VIM-inspired text editor featuring a command bar, syntax
+                                        highlighting,
+                                        autocomplete, and modal editing (Insert vs. Command modes).</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SmartNotepad.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="SmartNotepad.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SmartNotepad.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SmartNotepad.java</a>
+                                    </h2>
+                                    <p>An enhanced text editor equipped with an autocomplete feature that suggests words
+                                        from a
+                                        predefined "smart.txt" dictionary.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/JavaNano.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="JavaNano.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/JavaNano.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">JavaNano.java</a>
+                                    </h2>
+                                    <p>A terminal-themed text editor GUI that simulates a command-line interface,
+                                        supporting
+                                        file loading, saving, and a persistent line buffer.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/JavaNotepad.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="JavaNotepad.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/JavaNotepad.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">JavaNotepad.java</a>
+                                    </h2>
+                                    <p>A fully functional text editor supporting standard file operations (New, Open,
+                                        Save,
+                                        Print) and word wrapping.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SimpleNotepad.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="SimpleNotepad.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SimpleNotepad.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SimpleNotepad.java</a>
+                                    </h2>
+                                    <p>A basic text editor facilitating opening and saving text files via a graphical
+                                        interface.
+                                    </p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/StudentRecordApp.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="StudentRecordApp.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/StudentRecordApp.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">StudentRecordApp.java</a>
+                                    </h2>
+                                    <p>A data entry application for managing student records (Name, Grade, DOB) with
+                                        file
+                                        save/load capabilities.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+                        </div>
+                    </div>
+                    <div class="module-section mb-12">
+                        <h2
+                            class="text-2xl font-bold text-green-400 mb-2 mt-8 border-b border-gray-700 pb-2 flex items-center">
+                            <span class="mr-3 text-3xl">🧮</span> Advanced Mathematics & Algorithmic Engineering
+                        </h2>
+                        <p class="text-gray-400 mb-6 italic pl-1">Hard-hitting logic demonstrating the handling of
+                            complex
+                            calculations and rigorous data transformations.</p>
+                        <div class="module-apps space-y-4">
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/KeyGenerator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="KeyGenerator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/KeyGenerator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">KeyGenerator.java</a>
+                                    </h2>
+                                    <p>Generates pseudo-random software license keys by calculating massive Fibonacci
+                                        numbers
+                                        and converting subsets of them into formatted Hexadecimal strings.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/MatrixMultiplier.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="MatrixMultiplier.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/MatrixMultiplier.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">MatrixMultiplier.java</a>
+                                    </h2>
+                                    <p>A linear algebra tool that enables users to input two separate dimensions and
+                                        data sets
+                                        for matrices and computes their product.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/MatrixOperations.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="MatrixOperations.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/MatrixOperations.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">MatrixOperations.java</a>
+                                    </h2>
+                                    <p>A matrix arithmetic calculator offering a menu to perform matrix addition, scalar
+                                        addition, or scalar multiplication (Matrix Themed).</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/FibonacciRecursive.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="FibonacciRecursive.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/FibonacciRecursive.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">FibonacciRecursive.java</a>
+                                    </h2>
+                                    <p>A mathematical demonstration that generates and displays the first N terms of the
+                                        Fibonacci sequence using a recursive algorithmic approach.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SmallestMultiple.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="SmallestMultiple.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SmallestMultiple.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SmallestMultiple.java</a>
+                                    </h2>
+                                    <p>A search algorithm that finds the smallest positive number that is evenly
+                                        divisible by
+                                        all integers from 1 to 20.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/PythagoreanTriples.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="PythagoreanTriples.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/PythagoreanTriples.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">PythagoreanTriples.java</a>
+                                    </h2>
+                                    <p>Searches for and lists sets of integers (a, b, c) that satisfy the Pythagorean
+                                        theorem
+                                        within a specified range (1-100).</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/DecimalConverterGUI.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="DecimalConverterGUI.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/DecimalConverterGUI.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">DecimalConverterGUI.java</a>
+                                    </h2>
+                                    <p>A comprehensive number system converter allowing transformation between Decimal,
+                                        Binary,
+                                        Octal, and Hexadecimal formats via radio button selection.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/NumberSystemConverter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="NumberSystemConverter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/NumberSystemConverter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">NumberSystemConverter.java</a>
+                                    </h2>
+                                    <p>A multi-base conversion tool where the user selects source and target checkboxes
+                                        to
+                                        convert values between Decimal, Binary, Octal, and Hexadecimal.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/GeometryCalc.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="GeometryCalc.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/GeometryCalc.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">GeometryCalc.java</a>
+                                    </h2>
+                                    <p>Calculates and displays geometric properties (Circumference, Area, Surface Area,
+                                        Volume)
+                                        for circles and spheres based on a user-defined radius.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/MultiplesOf3And5.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="MultiplesOf3And5.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/MultiplesOf3And5.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">MultiplesOf3And5.java</a>
+                                    </h2>
+                                    <p>A numerical analysis solution that sums all natural numbers below a user-defined
+                                        limit
+                                        that are multiples of 3 or 5.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SumOfSquares.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="SumOfSquares.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SumOfSquares.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SumOfSquares.java</a>
+                                    </h2>
+                                    <p>Calculates the sum of squares for a range of numbers.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/TriangleArea.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="TriangleArea.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/TriangleArea.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">TriangleArea.java</a>
+                                    </h2>
+                                    <p>Calculates the area of a triangle given the coordinates of its three vertices.
+                                    </p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/CircleArea.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="CircleArea.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/CircleArea.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">CircleArea.java</a>
+                                    </h2>
+                                    <p>A mathematical tool that computes the precise area of a circle based on a
+                                        user-submitted
+                                        radius value.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/AreaPerimeter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="AreaPerimeter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/AreaPerimeter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">AreaPerimeter.java</a>
+                                    </h2>
+                                    <p>A geometric calculator GUI that computes and displays both the area and perimeter
+                                        of a
+                                        rectangle derived from user-provided length and width input values.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/MathOperations.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="MathOperations.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/MathOperations.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">MathOperations.java</a>
+                                    </h2>
+                                    <p>A comprehensive demonstration of the Java `Math` library, performing various
+                                        operations
+                                        such as square root, cubing, and random number generation on a single input.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/JavaMathGUI.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="JavaMathGUI.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/JavaMathGUI.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">JavaMathGUI.java</a>
+                                    </h2>
+                                    <p>A math exploration tool that takes a number input and simultaneously displays the
+                                        results
+                                        of various Math class operations.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/LittleMathMethods.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="LittleMathMethods.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/LittleMathMethods.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">LittleMathMethods.java</a>
+                                    </h2>
+                                    <p>A modular arithmetic calculator that accepts two numerical inputs and processes
+                                        them
+                                        through distinct methods to perform arithmetic operations.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/MethodSquare.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="MethodSquare.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/MethodSquare.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">MethodSquare.java</a>
+                                    </h2>
+                                    <p>A simple functional demonstration that accepts an integer input and passes it to
+                                        a
+                                        dedicated method to calculate and return its square value.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+                        </div>
+                    </div>
+                    <div class="module-section mb-12">
+                        <h2
+                            class="text-2xl font-bold text-green-400 mb-2 mt-8 border-b border-gray-700 pb-2 flex items-center">
+                            <span class="mr-3 text-3xl">🎮</span> Game Development & Physics Simulations
+                        </h2>
+                        <p class="text-gray-400 mb-6 italic pl-1">Interactive environments showcasing collision
+                            detection, real-time rendering, and game loops.</p>
+                        <div class="module-apps space-y-4">
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/jPong.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="jPong.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/jpong/jPong.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">jPong.java</a>
+                                    </h2>
+                                    <p>A comprehensive Arkanoid-style arcade game featuring a menu system, multiple
+                                        difficulty
+                                        levels, and brick-breaking gameplay.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/Pong.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="Pong.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/Pong.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">Pong.java</a>
+                                    </h2>
+                                    <p>An implementation of the classic arcade game Pong, featuring keyboard-controlled
+                                        paddle
+                                        movement (A/S keys) and wall-bouncing physics.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/JumbledImagePuzzle.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="JumbledImagePuzzle.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/JumbledImagePuzzle.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">JumbledImagePuzzle.java</a>
+                                    </h2>
+                                    <p>A visual puzzle game that loads an image, splits it into tiles, and allows the
+                                        user to
+                                        click a "Jumble" button to scramble them.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SevenEleven.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="SevenEleven.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SevenEleven/SevenEleven.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SevenEleven.java</a>
+                                    </h2>
+                                    <p>A graphical dice game where the player attempts to roll a sum of 7 or 11 within
+                                        three
+                                        attempts to win.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/GuessTheNumber.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="GuessTheNumber.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/GuessTheNumber.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">GuessTheNumber.java</a>
+                                    </h2>
+                                    <p>An interactive game where the user attempts to guess a randomly generated number
+                                        between
+                                        1 and 10, featuring high/low hints.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SimpleLottery.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="SimpleLottery.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SimpleLottery.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SimpleLottery.java</a>
+                                    </h2>
+                                    <p>A simple luck-based game where the user tries to match two randomly generated
+                                        numbers.
+                                    </p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/HackerTerminalSimulator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="HackerTerminalSimulator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/HackerTerminalSimulator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">HackerTerminalSimulator.java</a>
+                                    </h2>
+                                    <p>An immersive "movie-style" hacker terminal simulation featuring fake commands and
+                                        a
+                                        scrolling command history (GUI based).</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SimpleSpaceGame.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="SimpleSpaceGame.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SimpleSpaceGame.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SimpleSpaceGame.java</a>
+                                    </h2>
+                                    <p>A visual simulation featuring a bouncing text label and rectangle that
+                                        continuously
+                                        reflects off the window edges.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+                        </div>
+                    </div>
+                    <div class="module-section mb-12">
+                        <h2
+                            class="text-2xl font-bold text-green-400 mb-2 mt-8 border-b border-gray-700 pb-2 flex items-center">
+                            <span class="mr-3 text-3xl">🎨</span> Graphics, Animation & Java 2D
+                        </h2>
+                        <p class="text-gray-400 mb-6 italic pl-1">Visual-centric code demonstrating high-speed rendering
+                            and procedural generation.</p>
+                        <div class="module-apps space-y-4">
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/AnalogClock.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="AnalogClock.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/AnalogClock.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">AnalogClock.java</a>
+                                    </h2>
+                                    <p>Renders a functional 24-hour analog clock using Java 2D graphics, featuring
+                                        second,
+                                        minute, and hour hands that update in real-time.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/BallMover.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="BallMover.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/BallMover.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">BallMover.java</a>
+                                    </h2>
+                                    <p>Displays a smooth animation of a yellow ball bouncing horizontally back and forth
+                                        within
+                                        a window.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/RandomWalkAnimation.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="RandomWalkAnimation.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/RandomWalkAnimation.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">RandomWalkAnimation.java</a>
+                                    </h2>
+                                    <p>Simulates a "Random Walk" algorithm on a grid, visualizing the path of an agent
+                                        moving in
+                                        random directions.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/RandomPixels.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="RandomPixels.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/RandomPixels.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">RandomPixels.java</a>
+                                    </h2>
+                                    <p>A high-speed graphics demo that fills the screen with thousands of randomly
+                                        placed and
+                                        colored small ovals ("pixels").</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/ColorArcs.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="ColorArcs.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/ColorArcs.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">ColorArcs.java</a>
+                                    </h2>
+                                    <p>A graphical demonstration that draws multiple concentric arcs using generated
+                                        color
+                                        gradients.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/RandomColorSquares.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="RandomColorSquares.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/RandomColorSquares.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">RandomColorSquares.java</a>
+                                    </h2>
+                                    <p>Creates a visual "flashing" effect by rapidly drawing randomly sized and colored
+                                        squares
+                                        at random positions.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/RandomDots.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="RandomDots.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/RandomDots.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">RandomDots.java</a>
+                                    </h2>
+                                    <p>An automated drawing program that periodically adds a new randomly colored circle
+                                        to the
+                                        window.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/RandomLineDrawer.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="RandomLineDrawer.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/RandomLineDrawer.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">RandomLineDrawer.java</a>
+                                    </h2>
+                                    <p>Accumulates a drawing of random red lines on a white background.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/PatternGenerator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="PatternGenerator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/PatternGenerator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">PatternGenerator.java</a>
+                                    </h2>
+                                    <p>A GUI that generates random maze-like text patterns using `|` and `-` characters,
+                                        responsive to window resizing.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/Welcome.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="Welcome.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/Welcome.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">Welcome.java</a>
+                                    </h2>
+                                    <p>A digital welcome screen displaying the current date and time alongside a dynamic
+                                        image.
+                                    </p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+                        </div>
+                    </div>
+                    <div class="module-section mb-12">
+                        <h2
+                            class="text-2xl font-bold text-green-400 mb-2 mt-8 border-b border-gray-700 pb-2 flex items-center">
+                            <span class="mr-3 text-3xl">🔡</span> String Manipulation & Linguistics
+                        </h2>
+                        <p class="text-gray-400 mb-6 italic pl-1">Sophisticated text processing, parsing, and data
+                            cleaning utilities.</p>
+                        <div class="module-apps space-y-4">
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/MorseCodeTranslator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="MorseCodeTranslator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/MorseCodeTranslator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">MorseCodeTranslator.java</a>
+                                    </h2>
+                                    <p>A translation utility that converts alphanumeric text input into Morse code using
+                                        parallel lookup arrays.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/MorseCodeGUI.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="MorseCodeGUI.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/MorseCodeGUI.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">MorseCodeGUI.java</a>
+                                    </h2>
+                                    <p>Provides a graphical interface for translating user-typed text into visual Morse
+                                        Code
+                                        sequences (dots and dashes).</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/TextAnalyzer.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="TextAnalyzer.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/TextAnalyzer.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">TextAnalyzer.java</a>
+                                    </h2>
+                                    <p>Analyzes a text string to report statistics including vowel counts, total word
+                                        count, and
+                                        letter count.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/WordSearch.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="WordSearch.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/WordSearch.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">WordSearch.java</a>
+                                    </h2>
+                                    <p>A puzzle solver that reads a grid and a dictionary from text inputs to find words
+                                        in all
+                                        8 directions.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/FileTokenizerDemo.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="FileTokenizerDemo.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/FileTokenizerDemo.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">FileTokenizerDemo.java</a>
+                                    </h2>
+                                    <p>A parsing utility that opens a user-specified text file and utilizes the
+                                        `StringTokenizer` class to break down and display the content.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/Strtok.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="Strtok.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/Strtok.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">Strtok.java</a>
+                                    </h2>
+                                    <p>A GUI that demonstrates the use of `StringTokenizer` to split a user-entered
+                                        sentence
+                                        into individual words/tokens.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/PalindromeChecker.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="PalindromeChecker.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/PalindromeChecker.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">PalindromeChecker.java</a>
+                                    </h2>
+                                    <p>A text verification tool that checks if a given string reads the same forwards
+                                        and
+                                        backwards, featuring a "mirror" theme.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SimplePalindrome.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="SimplePalindrome.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SimplePalindrome.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SimplePalindrome.java</a>
+                                    </h2>
+                                    <p>Checks if a user-provided string is a palindrome, ignoring spaces and case.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/WordSorter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="WordSorter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/WordSorter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">WordSorter.java</a>
+                                    </h2>
+                                    <p>Continually accepts words from the user until "done" is typed, then sorts and
+                                        displays
+                                        the list of entered words.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/PhoneNumberConverter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="PhoneNumberConverter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/PhoneNumberConverter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">PhoneNumberConverter.java</a>
+                                    </h2>
+                                    <p>A translation utility that converts alphanumeric phone numbers into their numeric
+                                        equivalent, featuring a "Yellow Pages" theme.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/CharacterCounter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="CharacterCounter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/CharacterCounter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">CharacterCounter.java</a>
+                                    </h2>
+                                    <p>A text analysis utility that scans a user-provided phrase to calculate and report
+                                        the
+                                        exact frequency of a specific target character.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/VowelCounter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="VowelCounter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/VowelCounter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">VowelCounter.java</a>
+                                    </h2>
+                                    <p>Counts the occurrences of each vowel (A, E, I, O, U) in a user-provided phrase,
+                                        case-insensitive (Fixed button layout).</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/StringRotator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="StringRotator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/StringRotator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">StringRotator.java</a>
+                                    </h2>
+                                    <p>Performs a "right rotation" on a string based on a numeric suffix.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/LetterSpan.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="LetterSpan.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/LetterSpan.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">LetterSpan.java</a>
+                                    </h2>
+                                    <p>A linguistic calculation GUI that determines the alphabetical distance between
+                                        two
+                                        characters and lists the intermediate letters.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/NamePrefixer.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="NamePrefixer.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/NamePrefixer.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">NamePrefixer.java</a>
+                                    </h2>
+                                    <p>A string processing utility that iterates through a list of names and appends
+                                        gender-specific titles based on known names.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/CelebNameSlicer.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="CelebNameSlicer.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/CelebNameSlicer.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">CelebNameSlicer.java</a>
+                                    </h2>
+                                    <p>A string manipulation demonstration that processes a list of names by
+                                        programmatically
+                                        trimming specific leading and trailing characters.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/PlayerNameSubstrings.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="PlayerNameSubstrings.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/PlayerNameSubstrings.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">PlayerNameSubstrings.java</a>
+                                    </h2>
+                                    <p>A string manipulation demo that parses full names to extract and display the
+                                        first and
+                                        last names separately.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/nameLength.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="nameLength.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/nameLength.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">nameLength.java</a>
+                                    </h2>
+                                    <p>A string utility that takes a name input, calculates its length, and prints the
+                                        name in
+                                        reverse.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/reverse.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="reverse.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/reverse.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">reverse.java</a>
+                                    </h2>
+                                    <p>A utility that accepts a text string from the user and outputs the reversed
+                                        version of
+                                        that string.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/StringDemo.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="StringDemo.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/StringDemo.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">StringDemo.java</a>
+                                    </h2>
+                                    <p>A demonstration of manual string reversal using character arrays.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+                        </div>
+                    </div>
+                    <div class="module-section mb-12">
+                        <h2
+                            class="text-2xl font-bold text-green-400 mb-2 mt-8 border-b border-gray-700 pb-2 flex items-center">
+                            <span class="mr-3 text-3xl">💼</span> Business, Finance & Logistics
+                        </h2>
+                        <p class="text-gray-400 mb-6 italic pl-1">Practical applications for retail, payroll, and
+                            industrial estimation.</p>
+                        <div class="module-apps space-y-4">
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/BankMainApp.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="BankMainApp.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/BankMainApp.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">BankMainApp.java</a>
+                                    </h2>
+                                    <p>A banking simulation GUI that manages a user's account balance, supporting
+                                        deposit and
+                                        withdrawal transactions. Includes <code>BankHelper.java</code> for backend
+                                        calculations.
+                                    </p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+
+
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/ProductTotalCalculator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="ProductTotalCalculator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/ProductTotalCalculator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">ProductTotalCalculator.java</a>
+                                    </h2>
+                                    <p>A retail calculator that sums product prices with optional descriptions, adds 6%
+                                        tax
+                                        (adjustable), and displays a clear receipt.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/BabySitterPayCalc.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="BabySitterPayCalc.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/BabySitterPayCalc.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">BabySitterPayCalc.java</a>
+                                    </h2>
+                                    <p>A payroll calculator GUI for babysitting services that computes total earnings
+                                        based on
+                                        hours worked and number of children managed.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/MovingCostCalculator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="MovingCostCalculator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/MovingCostCalculator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">MovingCostCalculator.java</a>
+                                    </h2>
+                                    <p>A logistics calculator that estimates moving service costs based on distance
+                                        traveled and
+                                        rate structures.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/CarpetPriceEstimator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="CarpetPriceEstimator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/CarpetPriceEstimator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">CarpetPriceEstimator.java</a>
+                                    </h2>
+                                    <p>A construction cost estimation tool that calculates the total material cost for
+                                        carpeting
+                                        a room, converting input dimensions from feet to square yards.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/BMICalculator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="BMICalculator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/BMICalculator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">BMICalculator.java</a>
+                                    </h2>
+                                    <p>A health utility providing a GUI to calculate Body Mass Index (BMI) based on
+                                        user-inputted height (inches) and weight (pounds).</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/PlanetaryWeightConverter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="PlanetaryWeightConverter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/PlanetaryWeightConverter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">PlanetaryWeightConverter.java</a>
+                                    </h2>
+                                    <p>An astronomical calculator that computes a user's relative weight on different
+                                        fictional
+                                        planets (Voltar, Krypton, etc.).</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/GPACalculator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="GPACalculator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/GPACalculator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">GPACalculator.java</a>
+                                    </h2>
+                                    <p>An academic grading tool that computes a precise Grade Point Average (GPA) by
+                                        converting
+                                        a series of input letter grades into their numerical equivalents.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/teacher.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="teacher.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/teacher.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">teacher.java</a>
+                                    </h2>
+                                    <p>A gradebook application allowing a teacher to input student names and numerical
+                                        grades,
+                                        which are then converted to letter grades and displayed.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/DateFormatter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="DateFormatter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/DateFormatter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">DateFormatter.java</a>
+                                    </h2>
+                                    <p>A date parsing utility that converts raw numerical date inputs (month, day, year)
+                                        into a
+                                        formal localized string format.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/NumberFormatter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="NumberFormatter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/NumberFormatter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">NumberFormatter.java</a>
+                                    </h2>
+                                    <p>A formatting demonstration that illustrates the use of the `DecimalFormat` class
+                                        to
+                                        render large floating-point numbers with custom separators.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+                        </div>
+                    </div>
+                    <div class="module-section mb-12">
+                        <h2
+                            class="text-2xl font-bold text-green-400 mb-2 mt-8 border-b border-gray-700 pb-2 flex items-center">
+                            <span class="mr-3 text-3xl">📊</span> Data Structures & Sorting Algorithms
+                        </h2>
+                        <p class="text-gray-400 mb-6 italic pl-1">Utilities focused on organizing and analyzing
+                            collections of data.</p>
+                        <div class="module-apps space-y-4">
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/NumberFileSorter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="NumberFileSorter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/NumberFileSorter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">NumberFileSorter.java</a>
+                                    </h2>
+                                    <p>A robust data processing tool that attempts to read integers from a file or
+                                        accepts
+                                        manual fallback input, then sorts and displays the collection.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/BasicNumberSorter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="BasicNumberSorter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/BasicNumberSorter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">BasicNumberSorter.java</a>
+                                    </h2>
+                                    <p>A data organization tool that accepts a sequence of integer inputs and utilizes
+                                        standard
+                                        sorting algorithms to output the numbers in ascending numerical order.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/NumericalSorter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="NumericalSorter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/NumericalSorter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">NumericalSorter.java</a>
+                                    </h2>
+                                    <p>A sorting utility that prompts the user for a count of numbers, accepts that many
+                                        integer
+                                        inputs, sorts them, and displays the result.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/StringedArraySorter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="StringedArraySorter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/StringedArraySorter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">StringedArraySorter.java</a>
+                                    </h2>
+                                    <p>Collects a user-specified number of strings, sorts them alphabetically, and
+                                        prints the
+                                        result.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/DigitFrequencyCounter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="DigitFrequencyCounter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/DigitFrequencyCounter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">DigitFrequencyCounter.java</a>
+                                    </h2>
+                                    <p>A statistical analysis tool that parses a string of numeric input to determine
+                                        the
+                                        distribution frequency of each digit (0-9).</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/ListDemo.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="ListDemo.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/ListDemo.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">ListDemo.java</a>
+                                    </h2>
+                                    <p>A data structure demonstration that allows users to populate a dynamic list with
+                                        string
+                                        entries via the GUI.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/StringArrayDemo.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="StringArrayDemo.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/StringArrayDemo.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">StringArrayDemo.java</a>
+                                    </h2>
+                                    <p>Demonstrates storing multiple user inputs in a String array and then iterating
+                                        through
+                                        the array to display them.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+                        </div>
+                    </div>
+                    <div class="module-section mb-12">
+                        <h2
+                            class="text-2xl font-bold text-green-400 mb-2 mt-8 border-b border-gray-700 pb-2 flex items-center">
+                            <span class="mr-3 text-3xl">🛡️</span> Security, Audio & System Utilities
+                        </h2>
+                        <p class="text-gray-400 mb-6 italic pl-1">Low-level system interactions and security
+                            simulations.</p>
+                        <div class="module-apps space-y-4">
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/PasswordValidator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="PasswordValidator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/PasswordValidator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">PasswordValidator.java</a>
+                                    </h2>
+                                    <p>A security simulation that tests passwords against criteria (digits, uppercase,
+                                        special
+                                        chars) and rates them as Weak, Medium, or Strong.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SecurityTextScanner.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="SecurityTextScanner.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SecurityTextScanner.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SecurityTextScanner.java</a>
+                                    </h2>
+                                    <p>Scans a named text file ("dictionary.txt") for specific security-related keywords
+                                        (e.g.,
+                                        "bomb", "gun") and flags any lines containing them.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/BSOD.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="BSOD.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/BSOD.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">BSOD.java</a>
+                                    </h2>
+                                    <p>A "prank" application simulating the Windows Blue Screen of Death, which
+                                        initiates a
+                                        system shutdown timer.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/AudioPlayerExample.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="AudioPlayerExample.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/AudioPlayerExample.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">AudioPlayerExample.java</a>
+                                    </h2>
+                                    <p>An audio demonstration application that loads and plays a specific waveform audio
+                                        file
+                                        ("Blip.wav") using the Java Sound API's Clip interface.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/MidiMusic.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="MidiMusic.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/MidiMusic.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">MidiMusic.java</a>
+                                    </h2>
+                                    <p>A synthesized music player that programmatically generates and plays retro-style
+                                        background music tracks using Java's MIDI system.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SystemBeep.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="SystemBeep.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SystemBeep.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SystemBeep.java</a>
+                                    </h2>
+                                    <p>A simple utility that triggers the system's auditory beep or bell signal.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/FileIODemo.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="FileIODemo.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/FileIODemo.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">FileIODemo.java</a>
+                                    </h2>
+                                    <p>A file management utility with a GUI that demonstrates reading from and writing
+                                        to text
+                                        files ("random.txt"), including a dedicated Read button.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/TriangleClassifierApp.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="TriangleClassifierApp.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/TriangleClassifierApp.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">TriangleClassifierApp.java</a>
+                                    </h2>
+                                    <p>An AWT/Swing-based tool that accepts three side lengths to determine if they form
+                                        a valid
+                                        triangle and classifies it (Equilateral, Isosceles, Scalene).</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/TriangleValidator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="TriangleValidator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/TriangleValidator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">TriangleValidator.java</a>
+                                    </h2>
+                                    <p>A Swing-based variation of a triangle classifier that validates side lengths and
+                                        identifies Right Triangles.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/Problem1GUI.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="Problem1GUI.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/Problem1GUI.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">Problem1GUI.java</a>
+                                    </h2>
+                                    <p>A logic checker that determines if an input number is considered "easy" based on
+                                        whether
+                                        it contains exactly one type of specific digit.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/EvenOddChecker.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="EvenOddChecker.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/EvenOddChecker.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">EvenOddChecker.java</a>
+                                    </h2>
+                                    <p>A parity analysis tool that evaluates an integer input to determine its
+                                        classification as
+                                        either an even or odd number.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+                        </div>
+                    </div>
+                    <div class="module-section mb-12">
+                        <h2
+                            class="text-2xl font-bold text-green-400 mb-2 mt-8 border-b border-gray-700 pb-2 flex items-center">
+                            <span class="mr-3 text-3xl">🧱</span> GUI Fundamentals & Console Art
+                        </h2>
+                        <p class="text-gray-400 mb-6 italic pl-1">The foundational building blocks of UI design and
+                            terminal-based art.</p>
+                        <div class="module-apps space-y-4">
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/JFrameExample.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="JFrameExample.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/JFrameExample.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">JFrameExample.java</a>
+                                    </h2>
+                                    <p>A basic introductory GUI example featuring a text input field and a "Click ME"
+                                        button
+                                        that greets the user.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SimpleGridGui.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="SimpleGridGui.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SimpleGridGui.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SimpleGridGui.java</a>
+                                    </h2>
+                                    <p>A basic GUI demonstration using a 2x2 GridLayout to display buttons, illustrating
+                                        enabled
+                                        and disabled component states.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/ColorCheckBoxWindow.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="ColorCheckBoxWindow.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/ColorCheckBoxWindow.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">ColorCheckBoxWindow.java</a>
+                                    </h2>
+                                    <p>An interactive window allowing the user to toggle the background color and text
+                                        color
+                                        using checkboxes.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/RedWhiteBlue.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="RedWhiteBlue.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/RedWhiteBlue.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">RedWhiteBlue.java</a>
+                                    </h2>
+                                    <p>A simple interactive window with three buttons that change the background color
+                                        of the
+                                        application to Red, White, or Blue.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/AddThis.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="AddThis.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/AddThis.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">AddThis.java</a>
+                                    </h2>
+                                    <p>A basic Swing GUI application that takes two integer inputs in text fields and
+                                        displays
+                                        their sum upon clicking a button.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/Calculator.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="Calculator.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/Calculator.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">Calculator.java</a>
+                                    </h2>
+                                    <p>A fully functional AWT-based calculator supporting standard arithmetic operations
+                                        (add,
+                                        subtract, multiply, divide) and copy-paste functionality.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/inputGUIcalc.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="inputGUIcalc.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/inputGUIcalc.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">inputGUIcalc.java</a>
+                                    </h2>
+                                    <p>Various iterations of GUI-based arithmetic.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/NumberRangePrinter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="NumberRangePrinter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/NumberRangePrinter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">NumberRangePrinter.java</a>
+                                    </h2>
+                                    <p>A sequence generator GUI that accepts two integer bounds from the user and prints
+                                        all
+                                        integers within that range.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SimpleLoop.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="SimpleLoop.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SimpleLoop.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SimpleLoop.java</a>
+                                    </h2>
+                                    <p>A basic loop demonstration that asks the user for a repetition count and then
+                                        prints a
+                                        specific message that many times.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/SimpleIO.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="SimpleIO.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/SimpleIO.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">SimpleIO.java</a>
+                                    </h2>
+                                    <p>A helper class demonstrating cleaner input/output methods.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/TreePrinter.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="TreePrinter.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/TreePrinter.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">TreePrinter.java</a>
+                                    </h2>
+                                    <p>Generates a pyramid-shaped "tree" of asterisks based on a user-supplied height.
+                                    </p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/RectangleDrawer.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="RectangleDrawer.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/RectangleDrawer.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">RectangleDrawer.java</a>
+                                    </h2>
+                                    <p>Draws a solid rectangle of asterisks (*) to the console/output area based on
+                                        user-supplied dimensions.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/ASCII_Rectangle.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';"
+                                        alt="ASCII_Rectangle.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/ASCII_Rectangle.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">ASCII_Rectangle.java</a>
+                                    </h2>
+                                    <p>A utility that generates a visual ASCII art rectangle based on user-specified
+                                        height and
+                                        width dimensions.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+
+                            <div class="program-entry" style="display: flex; margin-bottom: 20px; align-items: center;">
+                                <div class="program-image"
+                                    style="margin-right: 20px; flex-shrink: 0; width: 100px; height: 100px;">
+                                    <img onclick="openLightbox(this.src)" src="resImg/GUI/ascii.jpg"
+                                        onerror="this.onerror=null;this.src='placeholder.png';" alt="ascii.java"
+                                        style="width: 100px; height: 100px; object-fit: fill; cursor: pointer; border-radius: 4px; transition: transform 0.2s;">
+                                </div>
+                                <div class="program-details">
+                                    <h2><a href="https://github.com/codefoxsoft/Java/blob/main/GUI/ascii.java"
+                                            target="_blank"
+                                            class="text-green-400 hover:text-green-300 hover:underline transition-colors">ascii.java</a>
+                                    </h2>
+                                    <p>Prints a reference table of ASCII characters and their corresponding numeric
+                                        values from
+                                        1 to 128.</p>
+                                </div>
+                            </div>
+                            <hr class='border-gray-800 my-4'>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="bg-gray-900 bg-opacity-80 py-10 text-center text-gray-400 text-sm z-10 relative">
+        <div class="container mx-auto px-6">
+            <p>&copy; <span id="year"></span> CodeFoxSoft™. All rights reserved.</p>
+            <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
+            <a href="privacy.html" class="underline hover:text-green-300">Privacy Policy</a>
+            <p class="mt-4"><small>CodeFoxSoft™ is an independent studio and not affiliated with CodeFox LLC or any
+                    other company.</small></p>
+
+            <div class="flex justify-center space-x-6 mt-4">
+            </div>
+        </div>
+    </footer>
+
+    <!-- Three.js library is required for the galaxy animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // JavaScript for the mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+
+                // Close the menu when a link is clicked
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                    });
+                });
+            }
+        });
+
+        // --- Global Variables for Three.js (from the galaxy code) ---
+        let scene, camera, renderer, galaxyGroup, backgroundGalaxyGroup, starField;
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+        let windowHalfX = window.innerWidth / 2;
+        let windowHalfY = window.innerHeight / 2;
+        let starCount = 50000;
+        let backgroundGalaxyCount = 10;
+        const spiralSpeed = 0.0005;
+
+        // --- Helper Functions for Galaxy Creation (from the galaxy code) ---
+        function hsvToRgb(h, s, v) {
+            let r, g, b;
+            let i = Math.floor(h * 6);
+            let f = h * 6 - i;
+            let p = v * (1 - s);
+            let q = v * (1 - f * s);
+            let t = v * (1 - (1 - f) * s);
+
+            switch (i % 6) {
+                case 0: r = v, g = t, b = p; break;
+                case 1: r = q, g = v, b = p; break;
+                case 2: r = p, g = v, b = t; break;
+                case 3: r = p, g = q, b = v; break;
+                case 4: r = t, g = p, b = v; break;
+                case 5: r = v, g = p, b = q; break;
+            }
+            return { r: r, g: g, b: b };
+        }
+
+        function createGalaxy(starCount, maxRadius, armCount, opacity = 1.0) {
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+            const sizes = new Float32Array(starCount);
+            const armOffset = 1.0;
+
+            for (let i = 0; i < starCount; i++) {
+                const armIndex = i % armCount;
+                const angle = (i / starCount) * Math.PI * 40 + (armIndex * Math.PI * armOffset);
+
+                const distance = Math.pow(Math.random(), 3.0) * maxRadius;
+
+                const crazyFactor = (1 - distance / maxRadius) * 2.0;
+                const randomX = (Math.random() - 0.5) * crazyFactor;
+                const verticalPuffiness = 0.5 + (distance / maxRadius) * 0.5;
+                const randomY = (Math.random() - 0.5) * crazyFactor * verticalPuffiness;
+                const randomZ = (Math.random() - 0.5) * crazyFactor;
+
+                const x = Math.cos(angle) * distance + randomX;
+                const y = randomY;
+                const z = Math.sin(angle) * distance + randomZ;
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                const hue = (distance / maxRadius) * 0.7;
+                const saturation = 0.9 + Math.random() * 0.1;
+                const value = 0.9 + Math.random() * 0.1;
+                let rgb = hsvToRgb(hue, saturation, value);
+
+                if (distance < 1.0) {
+                    rgb.r = 0;
+                    rgb.g = 0;
+                    rgb.b = 0;
+                }
+
+                colors[i * 3] = rgb.r;
+                colors[i * 3 + 1] = rgb.g;
+                colors[i * 3 + 2] = rgb.b;
+
+                sizes[i] = (1 - distance / maxRadius) * 0.05 + 0.005;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.01,
+                vertexColors: true,
+                transparent: true,
+                opacity: opacity,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true
+            });
+
+            return new THREE.Points(geometry, material);
+        }
+
+        function createStarField(starCount, maxDistance) {
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+            const sizes = new Float32Array(starCount);
+
+            for (let i = 0; i < starCount; i++) {
+                const x = (Math.random() - 0.5) * maxDistance * 2;
+                const y = (Math.random() - 0.5) * maxDistance * 2;
+                const z = (Math.random() - 0.5) * maxDistance * 2;
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                colors[i * 3] = 1.0;
+                colors[i * 3 + 1] = 1.0;
+                colors[i * 3 + 2] = 1.0;
+
+                sizes[i] = Math.random() * 0.1 + 0.05;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 1.0,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true
+            });
+
+            return new THREE.Points(geometry, material);
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            const canvasContainer = document.getElementById('hero-background');
+            if (!canvasContainer) {
+                console.error('Canvas container element with ID "hero-background" not found.');
+                return;
+            }
+
+            const width = canvasContainer.clientWidth;
+            const height = canvasContainer.clientHeight;
+
+            camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 8000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(width, height);
+
+            canvasContainer.appendChild(renderer.domElement);
+
+            camera.position.z = 8;
+            camera.position.y = 5;
+            camera.position.x = 0;
+
+            galaxyGroup = new THREE.Group();
+            const mainGalaxy = createGalaxy(starCount, 55, 2, 1.0);
+            galaxyGroup.add(mainGalaxy);
+            galaxyGroup.rotation.x = 0.5;
+            scene.add(galaxyGroup);
+
+            backgroundGalaxyGroup = new THREE.Group();
+            for (let i = 0; i < backgroundGalaxyCount; i++) {
+                const opacity = 0.4 + Math.random() * 0.6;
+                const bgGalaxy = createGalaxy(5000, 20, 2, opacity);
+
+                const bgDistance = 5000 + Math.random() * 2000;
+                const bgAngle = Math.random() * Math.PI * 2;
+                bgGalaxy.position.x = Math.cos(bgAngle) * bgDistance;
+                bgGalaxy.position.y = (Math.random() - 0.5) * bgDistance;
+                bgGalaxy.position.z = Math.sin(bgAngle) * bgDistance;
+
+                bgGalaxy.rotation.x = Math.random() * Math.PI * 2;
+                bgGalaxy.rotation.y = Math.random() * Math.PI * 2;
+                bgGalaxy.rotation.z = Math.random() * Math.PI * 2;
+
+                const scale = 0.5 + Math.random() * 0.5;
+                bgGalaxy.scale.set(scale, scale, scale);
+
+                backgroundGalaxyGroup.add(bgGalaxy);
+            }
+            scene.add(backgroundGalaxyGroup);
+
+            starField = createStarField(5000, 1000);
+            scene.add(starField);
+        }
+
+        function onWindowResize() {
+            const canvasContainer = document.getElementById('hero-background');
+            if (canvasContainer) {
+                windowHalfX = canvasContainer.clientWidth / 2;
+                windowHalfY = canvasContainer.clientHeight / 2;
+                camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+            }
+        }
+
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX - windowHalfX);
+            mouseY = (event.clientY - windowHalfY);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            targetX = mouseX * 0.001;
+            targetY = mouseY * 0.001;
+
+            galaxyGroup.rotation.y += 0.0005 * (targetX - galaxyGroup.rotation.y) + 0.0002;
+            galaxyGroup.rotation.x += 0.0005 * (targetY - galaxyGroup.rotation.x) - 0.00005;
+            galaxyGroup.rotation.z += 0.0001;
+
+            const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
+            galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+            camera.position.x += (targetX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            backgroundGalaxyGroup.rotation.x += 0.00001;
+            backgroundGalaxyGroup.rotation.y += 0.00001;
+
+            starField.rotation.y += 0.00005;
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            init();
+            animate();
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+        };
+    </script>
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox-modal" class="modal" onclick="closeLightbox()">
+        <span class="lb-close" onclick="closeLightbox()">&times;</span>
+        <img class="modal-content" id="lightbox-content">
+        <div id="lightbox-caption"></div>
+    </div>
+
+
+    <script>
+        // Global state for the gallery
+        let galleryItems = [];
+        let currentGalleryIndex = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Scrape content from the DOM
+            const entries = document.querySelectorAll('.program-entry');
+            entries.forEach((entry, index) => {
+                const img = entry.querySelector('.program-image img');
+                const titleEl = entry.querySelector('.program-details h2');
+                const descEl = entry.querySelector('.program-details p');
+
+                if (img) {
+                    // Store data for this item
+                    // Use a placeholder title/desc if missing, though they should be there
+                    const title = titleEl ? titleEl.textContent.trim() : '';
+                    const desc = descEl ? descEl.textContent.trim() : '';
+
+                    galleryItems.push({
+                        imgElement: img, // Store reference to access current src (handling placeholders)
+                        title: title,
+                        desc: desc
+                    });
+
+                    // 2. Override existing click behavior
+                    // Remove inline onclick attribute
+                    img.removeAttribute('onclick');
+
+                    // Attach new listener
+                    img.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Refresh src in case it changed (e.g. placeholder fallback)
+                        openLightbox(index);
+                    });
+
+                    // Visual cue
+                    img.style.cursor = 'pointer';
+                }
+            });
+
+            // 3. Keyboard navigation events
+            document.addEventListener('keydown', (e) => {
+                const modal = document.getElementById("lightbox-modal");
+                // Only react if modal is visible
+                if (modal && modal.style.display !== "none") {
+                    if (e.key === "ArrowLeft") {
+                        navigateLightbox(-1);
+                    } else if (e.key === "ArrowRight") {
+                        navigateLightbox(1);
+                    } else if (e.key === "Escape") {
+                        closeLightbox();
+                    }
+                }
+            });
+        });
+
+        function openLightbox(index) {
+            if (index < 0 || index >= galleryItems.length) return;
+
+            currentGalleryIndex = index;
+            const modal = document.getElementById("lightbox-modal");
+
+            // Apply flex styles for centering (overriding any existing css if needed)
+            modal.style.display = "flex";
+            modal.style.flexDirection = "column";
+            modal.style.justifyContent = "center";
+            modal.style.alignItems = "center";
+
+            updateLightboxContent();
+        }
+
+        function closeLightbox() {
+            document.getElementById("lightbox-modal").style.display = "none";
+        }
+
+        function navigateLightbox(direction) {
+            let newIndex = currentGalleryIndex + direction;
+
+            // Wrap around logic
+            if (newIndex < 0) {
+                newIndex = galleryItems.length - 1;
+            } else if (newIndex >= galleryItems.length) {
+                newIndex = 0;
+            }
+
+            currentGalleryIndex = newIndex;
+            updateLightboxContent();
+        }
+
+        function updateLightboxContent() {
+            const item = galleryItems[currentGalleryIndex];
+            const modalImg = document.getElementById("lightbox-content");
+            const captionText = document.getElementById("lightbox-caption");
+
+            if (item) {
+                // Use the current source of the image element (handles loaded placeholders)
+                modalImg.src = item.imgElement.src;
+
+                // Update caption with title and description
+                // Using innerHTML to allow styling (bold title)
+                captionText.innerHTML = `<h3 style="color: #4ade80; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem;">${item.title}</h3><p style="color: #d1d5db; font-size: 1rem; line-height: 1.5;">${item.desc}</p>`;
+            }
+        }
+    </script>
+
+</body>
+
+</html>
