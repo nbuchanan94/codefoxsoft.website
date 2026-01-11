@@ -99,6 +99,98 @@
             transform: translateY(0);
             pointer-events: auto;
         }
+
+        /* --- Advanced Aesthetic Enhancements --- */
+
+        /* Terminal Progress Bar */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(to right, #10b981, #34d399);
+            z-index: 100;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            transition: width 0.1s ease-out;
+        }
+
+        /* Glassmorphism Article Container */
+        .glass-container {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 15px rgba(16, 185, 129, 0.05);
+        }
+
+        /* Code-Inline Styling */
+        .code-inline {
+            background: #1a202c;
+            color: #34d399;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Scroll Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Impactful Pull Quote */
+        .pull-quote {
+            border-left: 4px solid #10b981;
+            padding-left: 1.5rem;
+            font-style: italic;
+            font-size: 1.25rem;
+            margin: 2rem 0;
+            color: #d1d5db;
+            background: rgba(16, 185, 129, 0.03);
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        /* Scanning Divider */
+        .scan-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #10b981, transparent);
+            position: relative;
+            overflow: hidden;
+            margin: 3rem 0;
+            opacity: 0.3;
+        }
+
+        .scan-divider::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.8), transparent);
+            animation: scan 3s infinite linear;
+        }
+
+        @keyframes scan {
+            0% {
+                left: -100%;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
     </style>
     <script type="application/ld+json">
     {
@@ -136,6 +228,8 @@
 </head>
 
 <body class="text-gray-100">
+    <!-- Progress Bar -->
+    <div id="scroll-progress"></div>
 
     <!-- The container for the Three.js animated background -->
     <div id="hero-background"></div>
@@ -207,8 +301,8 @@
 
     <!-- Main Content Area -->
     <section class="py-20 pt-32 z-10 relative">
-        <div class="container mx-auto px-6">
-            <div class="bg-gray-800 bg-opacity-70 p-8 md:p-12 rounded-xl shadow-lg max-w-4xl mx-auto text-left">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <div class="glass-container p-8 md:p-14 rounded-2xl text-left">
 
                 <!-- Back Link -->
                 <div class="mb-8">
@@ -217,7 +311,7 @@
                     </a>
                 </div>
 
-                <article>
+                <article class="reveal">
                     <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-4 leading-tight break-words">The
                         CodeFoxSoft Java Apps: Where the Fox Learned to Run</h1>
                     <p class="text-gray-400 text-lg mb-6">
@@ -237,6 +331,8 @@
                         <p class="mb-4">This isn't just a portfolio.</p>
                         <p class="mb-4">It is a fossil record of my evolution.</p>
 
+                        <div class="scan-divider"></div>
+
                         <h2 class="text-2xl font-bold text-white mb-3 mt-8">From QBasic to the Galaxy</h2>
                         <p class="mb-4">My journey didn’t begin with a startup pitch or a university degree. It began in
                             the 6th grade, staring at a QBasic terminal, realizing that if I typed the right words, I
@@ -245,12 +341,17 @@
                         <p class="mb-4">For nearly two decades, while others were playing games, I was
                             reverse‑engineering them. While others were using tools, I was writing my own. This new page
                             is a living gallery of that obsession, set against a backdrop of drifting stars—a visual
-                            metaphor for a universe built from code.</p>
+                            metaphor for a universe built from <code class="code-inline">code</code>.</p>
                         <p class="mb-4">But to understand why this archive matters, you need to understand the grind
                             behind it.</p>
 
-                        <h2 class="text-2xl font-bold text-white mb-3 mt-8">The Heavy Hitters: Why I Was Coding While
-                            You Were Sleeping</h2>
+                        <div class="scan-divider"></div>
+
+                        <div class="reveal">
+                            <h2 class="text-2xl font-bold text-white mb-3 mt-8">The Heavy Hitters: Why I Was Coding
+                                While
+                                You Were Sleeping</h2>
+                        </div>
                         <p class="mb-4">There are two kinds of developers today:</p>
                         <p class="mb-4">those who need AI to write a loop, and those who use AI to build empires.</p>
                         <p class="mb-4">I am the second kind.</p>
@@ -267,52 +368,101 @@
                         <p class="mb-4">It’s proof of work.</p>
                         <p class="mb-4">It is the difference between a prompter and a programmer.</p>
 
-                        <h2 class="text-2xl font-bold text-white mb-3 mt-8">The Heavy Hitters: Pillars of the Archive
-                        </h2>
+                        <div class="reveal">
+                            <h2 class="text-2xl font-bold text-white mb-3 mt-8">The Heavy Hitters: Pillars of the
+                                Archive
+                            </h2>
+                        </div>
                         <p class="mb-4">When you scroll through this archive, you’ll see dozens of experiments. But if
                             you look closely, you’ll find the giants—the projects where I stopped being a student and
                             became an engineer. These are the true heavy hitters, the ones that earned me the right to
                             command AI instead of depending on it.</p>
 
-                        <div class="space-y-6 mb-8">
+                        <div class="space-y-10 mb-8">
                             <div>
-                                <h3 class="text-xl font-bold text-green-300 mb-2">1. Pong 2011 — The Birth of Physics
-                                </h3>
-                                <p class="mb-2">Before I released apps on the Play Store, I cut my teeth on Pong 2011.
-                                </p>
-                                <p class="mb-2">This wasn’t just about bouncing a ball. It was about understanding that
-                                    physics doesn’t happen by magic. You have to calculate the vectors. You have to
-                                    simulate gravity. You have to handle collision detection in real time.</p>
-                                <p class="mb-2">Pong.java was the moment I realized a blank screen isn’t empty—it’s a
-                                    coordinate system waiting to be conquered.</p>
+                                <h3 class="text-xl font-bold text-green-300 mb-2">1. <code
+                                        class="code-inline">Pong.java</code> (2011) — Where the Fox Learned Physics</h3>
+                                <p class="mb-4 text-gray-300">Before FoxRun, before Android, before engines and
+                                    pipelines, there was <code class="code-inline">Pong.java</code> — the moment I
+                                    stopped using games and started engineering them.</p>
+                                <p class="mb-4 text-gray-300">This wasn’t a clone. It was a revelation.</p>
+                                <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-300">
+                                    <li>I learned that nothing in a game “just happens.”</li>
+                                    <li>Every bounce is a vector.</li>
+                                    <li>Every collision is a calculation.</li>
+                                    <li>Every frame is a negotiation between logic and time.</li>
+                                </ul>
+                                <p class="pull-quote"><code class="code-inline">Pong.java</code> was the first time I
+                                    looked at a blank screen and didn’t see emptiness — I saw a coordinate plane begging
+                                    to be mastered. It was the spark that ignited everything that came after.</p>
                             </div>
                             <div>
-                                <h3 class="text-xl font-bold text-green-300 mb-2">2. Binary Converter — Speaking the
-                                    Machine’s Tongue</h3>
-                                <p class="mb-2">To master the machine, you must speak its language.</p>
-                                <p class="mb-2">The Binary Converter (DecimalConverterGUI.java) was my deep dive into
-                                    the raw data that powers our reality. Translating seamlessly between Decimal,
-                                    Binary, Octal, and Hexadecimal forced me to stop seeing numbers as abstractions and
-                                    start seeing them as the processor sees them: raw data, pure truth.</p>
+                                <h3 class="text-xl font-bold text-green-300 mb-2">2. <code
+                                        class="code-inline">KeyGenerator.java</code> — Turning Chaos Into Code</h3>
+                                <p class="mb-4 text-gray-300">The <code class="code-inline">KeyGenerator.java</code>
+                                    wasn’t a utility. It was a rite of passage.</p>
+                                <p class="mb-4 text-gray-300">This program wrestled with massive Fibonacci numbers,
+                                    carved mathematical patterns out of raw chaos, and forged them into structured
+                                    hexadecimal keys. It forced me to think like a machine — precise, deterministic,
+                                    unforgiving.</p>
+                                <p class="mb-4 text-gray-300">It taught me that algorithms aren’t just instructions.
+                                    They’re architecture. They’re philosophy. They’re the backbone of every system I
+                                    build today.</p>
+                                <p class="pull-quote"><code class="code-inline">KeyGenerator.java</code> is still one of
+                                    the purest expressions of my engineering mindset: take something wild, and make it
+                                    obey.</p>
                             </div>
                             <div>
-                                <h3 class="text-xl font-bold text-green-300 mb-2">3. KeyGenerator — Chaos into Order
-                                </h3>
-                                <p class="mb-2">The KeyGenerator.java wasn’t a toy.</p>
-                                <p class="mb-2">It was an algorithmic beast.</p>
-                                <p class="mb-2">It calculated massive Fibonacci numbers, carved out subsets, and
-                                    converted them into formatted hexadecimal keys. It was an exercise in turning
-                                    mathematical chaos into structured, secure order—a philosophy that still drives
-                                    CodeFoxSoft today.</p>
-                                <p class="mb-2">These weren’t assignments.</p>
-                                <p class="mb-2">They were rites of passage.</p>
+                                <h3 class="text-xl font-bold text-green-300 mb-2">3. <code
+                                        class="code-inline">NotepadCommander.java</code> — Command-Line
+                                    Discipline Meets GUI Control</h3>
+                                <p class="mb-4 text-gray-300"><code class="code-inline">NotepadCommander.java</code> was
+                                    where my engineering discipline met
+                                    my obsession with usability.</p>
+                                <p class="mb-4 text-gray-300">This wasn’t a text editor. It was a command center.</p>
+                                <p class="mb-4 text-gray-300">A hybrid of GUI convenience and raw, keyboard‑driven
+                                    power, it taught me how to design interfaces that respect the user’s flow instead of
+                                    interrupting it. It forced me to think about:</p>
+                                <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-300">
+                                    <li>file I/O at scale</li>
+                                    <li>buffer management</li>
+                                    <li>text rendering</li>
+                                    <li>user experience as a system, not an afterthought</li>
+                                </ul>
+                                <p class="pull-quote"><code class="code-inline">NotepadCommander.java</code> was the
+                                    moment I realized software isn’t
+                                    just logic — it’s feel. It’s the difference between a tool and a companion.</p>
                             </div>
                         </div>
 
-                        <h2 class="text-2xl font-bold text-white mb-3 mt-8">From QBasic & Java TextPad to God Mode</h2>
+                        <div class="reveal">
+                            <div class="bg-gray-900 bg-opacity-40 p-6 rounded-lg border border-green-500/20 mb-8">
+                                <h2 class="text-2xl font-bold text-white mb-4">These Weren’t Projects. They Were
+                                    Milestones.
+                                </h2>
+                                <ul class="space-y-2 text-gray-300">
+                                    <li><strong class="text-green-400"><code
+                                                class="code-inline">Pong.java</code></strong> taught me physics.</li>
+                                    <li><strong class="text-green-400"><code
+                                                class="code-inline">KeyGenerator.java</code></strong> taught me
+                                        algorithms.</li>
+                                    <li><strong class="text-green-400"><code
+                                                class="code-inline">NotepadCommander.java</code></strong> taught me
+                                        systems and UX.</li>
+                                </ul>
+                                <p class="mt-4 text-gray-300 leading-relaxed">Together, they formed the foundation of
+                                    CodeFoxSoft — the studio built on discipline, autonomy, and the belief that real
+                                    developers still lead the future.</p>
+                            </div>
+                        </div>
+
+                        <div class="reveal">
+                            <h2 class="text-2xl font-bold text-white mb-3 mt-8">From QBasic & Java TextPad to God Mode
+                            </h2>
+                        </div>
                         <p class="mb-4">That manual grind didn’t just teach me Java.</p>
                         <p class="mb-4">It taught me how systems actually work.</p>
-                        <p class="mb-4">This is why, when I use AI today, I’m not asking it for help—<strong>I’m giving
+                        <p class="pull-quote">I use AI today, I’m not asking it for help—<strong>I’m giving
                                 it orders.</strong></p>
                         <p class="mb-4">I use AI to accelerate my workflow, not to replace my brain. I can spot a
                             hallucination in a millisecond because I’ve written the underlying logic myself a thousand
@@ -345,12 +495,16 @@
                         <p class="mb-4">I am a shaper.</p>
                         <p class="mb-4">I am a builder.</p>
                         <p class="mb-4">And this is my foundation.</p>
-                        <p class="text-xl font-bold text-white mt-8 italic text-center">Come see the Code where the Fox
-                            learned Run.</p>
+                        <p class="text-xl font-bold text-white mt-8 italic text-center">Come see the <a
+                                href="javaapps.html" class="text-green-400 hover:underline">code</a> where the fox
+                            learned to run!</p>
 
                         <div class="mt-12 text-center">
-                            <img src="javaprojects.jpg" alt="Java Projects Signature"
-                                class="mx-auto rounded-lg shadow-lg max-w-full h-auto" style="max-height: 400px;">
+                            <a href="javaapps.html"
+                                class="inline-block transform hover:scale-105 transition-transform duration-300">
+                                <img src="javaprojects.jpg" alt="Java Projects Signature"
+                                    class="mx-auto rounded-lg shadow-lg max-w-full h-auto" style="max-height: 400px;">
+                            </a>
                         </div>
                     </div>
                 </article>
@@ -632,6 +786,38 @@
     </script>
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
+        // --- Scroll Tracking and Reveal Animations ---
+        window.addEventListener('scroll', () => {
+            // Update Progress Bar
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('scroll-progress').style.width = scrolled + '%';
+
+            // Reveal Animation Trigger
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(reveal => {
+                const windowHeight = window.innerHeight;
+                const revealTop = reveal.getBoundingClientRect().top;
+                const revealPoint = 150;
+
+                if (revealTop < windowHeight - revealPoint) {
+                    reveal.classList.add('active');
+                }
+            });
+        });
+
+        // Initialize animations on load
+        window.addEventListener('load', () => {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(reveal => {
+                const windowHeight = window.innerHeight;
+                const revealTop = reveal.getBoundingClientRect().top;
+                if (revealTop < windowHeight) {
+                    reveal.classList.add('active');
+                }
+            });
+        });
     </script>
 </body>
 

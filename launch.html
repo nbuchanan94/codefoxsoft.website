@@ -104,6 +104,98 @@
             z-index: -1;
             /* Puts it behind all other content */
         }
+
+        /* --- Advanced Aesthetic Enhancements --- */
+
+        /* Terminal Progress Bar */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(to right, #10b981, #34d399);
+            z-index: 100;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            transition: width 0.1s ease-out;
+        }
+
+        /* Glassmorphism Article Container */
+        .glass-container {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 15px rgba(16, 185, 129, 0.05);
+        }
+
+        /* Technical-Inline Styling */
+        .tech-inline {
+            background: #1a202c;
+            color: #34d399;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Scroll Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Impactful Pull Quote */
+        .pull-quote {
+            border-left: 4px solid #10b981;
+            padding-left: 1.5rem;
+            font-style: italic;
+            font-size: 1.25rem;
+            margin: 2rem 0;
+            color: #d1d5db;
+            background: rgba(16, 185, 129, 0.03);
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        /* Scanning Divider */
+        .scan-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #10b981, transparent);
+            position: relative;
+            overflow: hidden;
+            margin: 3rem 0;
+            opacity: 0.3;
+        }
+
+        .scan-divider::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.8), transparent);
+            animation: scan 3s infinite linear;
+        }
+
+        @keyframes scan {
+            0% {
+                left: -100%;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
     </style>
     <script type="application/ld+json">
     {
@@ -141,6 +233,8 @@
 </head>
 
 <body class="bg-[#0c0d11] text-gray-100">
+    <!-- Progress Bar -->
+    <div id="scroll-progress"></div>
     <!-- The container for the Three.js animated background -->
     <div id="hero-background"></div>
 
@@ -210,7 +304,7 @@
     </div>
 
     <!-- Blog Post Content Section -->
-    <section class="py-20 pt-32 min-h-screen">
+    <section class="py-20 pt-32 min-h-screen z-10 relative">
         <div class="container mx-auto px-6 max-w-4xl">
             <!-- Back to Blog Link -->
             <div class="mb-8">
@@ -219,7 +313,7 @@
                 </a>
             </div>
 
-            <article class="bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg">
+            <article class="glass-container p-8 md:p-14 rounded-2xl reveal">
                 <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-4 leading-tight break-words">Official
                     CodeFoxSoft Launch!</h1>
                 <p class="text-gray-400 text-lg mb-6">
@@ -234,55 +328,78 @@
                         <strong>CodeFoxSoft.com</strong>—a new chapter in my journey and a living portfolio of
                         everything I've learned, built, and envisioned.
                     </p>
-                    <p class="mb-4">
+                    <p class="pull-quote">
                         CodeFoxSoft isn’t just a website. It’s a reflection of my passion for secure, scalable web
-                        architecture, my obsession with privacy-respecting tools, and my love for blending backend
-                        mastery with creative expression. From TLS-secured servers to pixel-perfect game assets, every
-                        corner of this platform is handcrafted with intention and care.
+                        architecture and my love for blending backend mastery with creative expression.
                     </p>
-                    <p class="mb-4">
-                        This launch marks the convergence of years spent mastering Linux, Apache, DNS, cryptography,
-                        desktop development, and game design. It’s the result of countless late nights troubleshooting
-                        config files, rebuilding certs from scratch, and iterating through ideas until they felt just
-                        right. CodeFoxSoft is where all those pieces finally come together.
-                    </p>
+
+                    <div class="scan-divider"></div>
+                    <div class="reveal">
+                        <p class="mb-4">
+                            This launch marks the convergence of years spent mastering Linux, Apache, DNS, Cryptography,
+                            desktop development, and game design. It’s the result of countless late nights
+                            troubleshooting
+                            config files, rebuilding certs from scratch, and iterating through ideas until they felt
+                            just
+                            right. CodeFoxSoft is where all those pieces finally come together.
+                        </p>
+                    </div>
                     <h2 class="text-3xl font-bold text-white mb-4 mt-8">What You’ll Find</h2>
                     <p class="mb-4">
                         The site is designed as a modular ecosystem—featuring subdomains for development, assets,
                         community, and analytics. You’ll find:
-                    <ul class="list-disc pl-6 mt-2">
+                    </p>
+                    <ul class="list-disc pl-6 mt-2 mb-8 space-y-2">
                         <li>Game development projects and design insights</li>
                         <li>Desktop app development for privacy-first workflows</li>
                         <li>Custom scripts and automation tools for creators and developers</li>
                         <li>Infrastructure breakdowns and secure server configurations</li>
                     </ul>
-                    </p>
-                    <h2 class="text-3xl font-bold text-white mb-4 mt-8">Featured Project: Fox Run</h2>
-                    <p class="mb-4">
-                        One of the highlights of CodeFoxSoft is <strong>Fox Run</strong>, now live on the Google Play
-                        Store. It’s a fast-paced, pixel-perfect mobile game that blends retro charm with modern
-                        mechanics. Built from the ground up with performance and polish in mind, Fox Run showcases the
-                        kind of creative coding and design philosophy that drives everything I do.
-                    </p>
+
+                    <div class="scan-divider"></div>
+
+                    <div class="reveal">
+                        <h2 class="text-3xl font-bold text-white mb-4 mt-8">Featured Project: Fox Run</h2>
+                        <p class="mb-4">
+                            One of the highlights of CodeFoxSoft is <strong>Fox Run</strong>, now live on the Google
+                            Play
+                            Store. It’s a fast-paced, pixel-perfect mobile game that blends retro charm with modern
+                            mechanics. Built from the ground up with performance and polish in mind, Fox Run showcases
+                            the
+                            kind of creative coding and design philosophy that drives everything I do.
+                        </p>
+                    </div>
                     <p class="mb-4">
                         From asset management to gameplay logic, every element of Fox Run reflects the same attention to
                         detail and commitment to quality that powers CodeFoxSoft as a whole.
                     </p>
-                    <h2 class="text-3xl font-bold text-white mb-4 mt-8">Why It Matters</h2>
-                    <p class="mb-4">
-                        CodeFoxSoft is more than a portfolio—it’s a declaration of independence from cloud lock-in,
-                        insecure defaults, and disposable tech. It’s built for creators, developers, and anyone who
-                        values control, transparency, and long-term maintainability. Every tool and post is designed to
-                        empower others to build with confidence and clarity.
-                    </p>
-                    <p class="mb-4">
-                        This is just the beginning. I’ll be sharing updates, tools, and behind-the-scenes breakdowns as
-                        the platform evolves. Whether you're here to learn, collaborate, or just explore, I’m excited to
-                        have you along for the ride.
-                    </p>
-                    <p>
-                        Welcome to CodeFoxSoft.com—where creativity meets infrastructure, and every byte tells a story.
-                    </p>
+                    <div class="reveal">
+                        <h2 class="text-3xl font-bold text-white mb-4 mt-8">Why It Matters</h2>
+                        <p class="mb-4">
+                            CodeFoxSoft is more than a portfolio—it’s a declaration of independence from cloud lock-in,
+                            insecure defaults, and disposable tech. It’s built for creators, developers, and anyone who
+                            values control, transparency, and long-term maintainability.
+                        </p>
+                        <p class="pull-quote">
+                            Every tool and post is designed to empower others to build with confidence and clarity.
+                        </p>
+                    </div>
+
+                    <div class="scan-divider"></div>
+
+                    <div class="reveal">
+                        <p class="mb-4">
+                            This is just the beginning. I’ll be sharing updates, tools, and behind-the-scenes breakdowns
+                            as
+                            the platform evolves. Whether you're here to learn, collaborate, or just explore, I’m
+                            excited to
+                            have you along for the ride.
+                        </p>
+                        <p class="text-center text-xl font-semibold text-green-400 mt-8">
+                            Welcome to CodeFoxSoft.com—where creativity meets infrastructure, and every byte tells a
+                            story.
+                        </p>
+                    </div>
                     <div class="mt-12 text-center">
                         <img src="launchr.png" alt="Launch Signature"
                             class="mx-auto rounded-lg shadow-lg max-w-full h-auto" style="max-height: 400px;">
@@ -543,7 +660,60 @@
             animate();
             window.addEventListener('resize', onWindowResize, false);
             document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+            // JavaScript for the mobile menu toggle
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+
+                // Close the menu when a link is clicked
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                    });
+                });
+            }
         };
+
+        // --- Scroll Tracking and Reveal Animations ---
+        window.addEventListener('scroll', () => {
+            // Update Progress Bar
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            const progressBar = document.getElementById('scroll-progress');
+            if (progressBar) progressBar.style.width = scrolled + '%';
+
+            // Reveal Animation Trigger
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(reveal => {
+                const windowHeight = window.innerHeight;
+                const revealTop = reveal.getBoundingClientRect().top;
+                const revealPoint = 150;
+
+                if (revealTop < windowHeight - revealPoint) {
+                    reveal.classList.add('active');
+                }
+            });
+        });
+
+        // Initialize animations on load
+        window.addEventListener('scroll', () => { }); // Force trigger initial state if needed
+        document.addEventListener('DOMContentLoaded', () => {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(reveal => {
+                const windowHeight = window.innerHeight;
+                const revealTop = reveal.getBoundingClientRect().top;
+                if (revealTop < windowHeight) {
+                    reveal.classList.add('active');
+                }
+            });
+        });
     </script>
 </body>
 
