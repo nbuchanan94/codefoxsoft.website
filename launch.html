@@ -93,7 +93,7 @@
             transform: translateY(0);
             pointer-events: auto;
         }
-    
+
         /* The container for the Three.js canvas */
         #hero-background {
             position: fixed;
@@ -104,7 +104,6 @@
             z-index: -1;
             /* Puts it behind all other content */
         }
-
     </style>
     <script type="application/ld+json">
     {
@@ -163,6 +162,8 @@
                 </li>
                 <li><a href="index.html#projects"
                         class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
+                <li><a href="javaapps.html" class="hover:text-green-400 transition-colors duration-300">Java Apps</a>
+                </li>
                 <li><a href="alldownload.html" class="hover:text-green-400 transition-colors duration-300">Downloads</a>
                 </li>
                 <li><a href="blog.html" class="hover:text-green-400 transition-colors duration-300">Blog</a></li>
@@ -184,13 +185,17 @@
 
     <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
     <div id="mobile-menu"
-    class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 shadow-lg z-40 hidden rounded-b-lg">
+        class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 shadow-lg z-40 hidden rounded-b-lg">
         <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
             <li><a href="index.html#about"
                     class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a>
             </li>
             <li><a href="index.html#projects"
                     class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a>
+            </li>
+            <li><a href="javaapps.html"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Java
+                    Apps</a>
             </li>
             <li><a href="alldownload.html"
                     class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a>
@@ -205,7 +210,7 @@
     </div>
 
     <!-- Blog Post Content Section -->
-  <section class="py-20 pt-32 min-h-screen">
+    <section class="py-20 pt-32 min-h-screen">
         <div class="container mx-auto px-6 max-w-4xl">
             <!-- Back to Blog Link -->
             <div class="mb-8">
@@ -295,7 +300,8 @@
         <div class="container mx-auto px-6">
             <p>&copy; <span id="year"></span> CodeFoxSoft™. All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
-            <p class="mt-2 italic font-semibold text-green-400">Code Made Clean. Fox Made Clever. Software Made Powerful.</p>
+            <p class="mt-2 italic font-semibold text-green-400">Code Made Clean. Fox Made Clever. Software Made
+                Powerful.</p>
             <a href="https://www.codefoxsoft.com/privacy.html">Privacy Policy</a>
 
             <div class="flex justify-center space-x-6 mt-4">

@@ -124,7 +124,7 @@ def create_blog_page():
 
                         <h2 class="text-2xl font-bold text-white mb-3 mt-8">An Invitation to the Archive</h2>
                         <p class="mb-4">
-                            I invite you to visit the new <a href="javaapps.html" class="text-green-400 font-semibold hover:underline">Java Repository</a>.
+                            I invite you to visit the new <a href="javaapps.html" class="text-green-400 font-semibold hover:underline">Java Apps</a>.
                         </p>
                         <p class="mb-4">
                             Don't just look at the code. Look at the intent. Look at the "pranks" like BSOD.java that show a teenager’s sense of humor. Look at the BabySitterPayCalc.java that shows a young entrepreneur trying to solve real-world problems.
