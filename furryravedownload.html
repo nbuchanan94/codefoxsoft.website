@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Download Furry Rave Screensaver - a high-energy looping video screensaver for Windows. Features a custom settings GUI, sound toggle, and premium visual quality.">
+    <meta name="keywords"
+        content="CodeFoxSoft, Furry Rave, Screensaver, Windows Download, Indie Developer, Nicholas Larkin Buchanan, Codefox soft">
+    <meta name="author" content="Nicholas Thorne Larkin Buchanan">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+
+    <!-- Open Graph Meta Tags (Facebook, Nextdoor, LinkedIn, etc.) -->
+    <meta property="og:title" content="Furry Rave Screensaver - Download for Windows | CodeFoxSoft">
+    <meta property="og:description"
+        content="Download the Furry Rave Screensaver for Windows. A premium looping video experience with customizable settings and sound options.">
+    <meta property="og:image" content="https://www.codefoxsoft.com/furryrave.jpg">
+    <meta property="og:url" content="https://www.codefoxsoft.com/furryravedownload.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="CodeFoxSoft">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Furry Rave Screensaver - Download for Windows | CodeFoxSoft">
+    <meta name="twitter:description"
+        content="Download the Furry Rave Screensaver for Windows. Premium video looping, custom GUI settings, and sound control.">
+    <meta name="twitter:image" content="https://www.codefoxsoft.com/furryrave.jpg">
+
+    <title>Furry Rave Screensaver - Download - CodeFoxSoft</title>
+    <link rel="canonical" href="https://www.codefoxsoft.com/furryravedownload.html">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a202c;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        /* Basic fade-in animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Mobile Menu Animation */
+        #mobile-menu {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            display: block !important;
+        }
+
+        #mobile-menu.hidden {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+
+        #mobile-menu:not(.hidden) {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* The container for the Three.js canvas */
+        #hero-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+    </style>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-v2.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-v2-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-v2-16x16.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon-v2.ico">
+
+</head>
+
+<body class="bg-[#0c0d11] text-gray-100">
+    <!-- The container for the Three.js animated background -->
+    <div id="hero-background"></div>
+
+    <!-- Header -->
+    <header class="bg-gray-800 bg-opacity-70 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
+        <nav class="container mx-auto flex justify-between items-center px-6">
+            <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
+                <img src="logo.png" alt="CodeFoxSoft™" class="h-12 w-12 rounded-full mr-3">
+                <span class="hidden md:block">CodeFoxSoft™</span>
+                <span class="block md:hidden">CodeFoxSoft™</span>
+            </a>
+
+            <ul class="hidden md:flex space-x-6 text-lg">
+                <li><a href="index.html#about" class="hover:text-green-400 transition-colors duration-300">About</a>
+                </li>
+                <li><a href="index.html#projects"
+                        class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
+                <li><a href="javaapps.html" class="hover:text-green-400 transition-colors duration-300">Java Apps</a>
+                </li>
+                <li><a href="alldownload.html" class="hover:text-green-400 transition-colors duration-300">Downloads</a>
+                </li>
+                <li><a href="index.html#blog" class="hover:text-green-400 transition-colors duration-300">Blog</a></li>
+                <li><a href="index.html#contact" class="hover:text-green-400 transition-colors duration-300">Contact</a>
+                </li>
+            </ul>
+
+            <button id="menu-button"
+                class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
+                    </path>
+                </svg>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu"
+        class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 shadow-lg z-40 hidden rounded-b-lg">
+        <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
+            <li><a href="index.html#about"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a>
+            </li>
+            <li><a href="index.html#projects"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Projects</a>
+            </li>
+            <li><a href="javaapps.html"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Java
+                    Apps</a></li>
+            <li><a href="alldownload.html"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a>
+            </li>
+            <li><a href="index.html#blog"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Blog</a>
+            </li>
+            <li><a href="index.html#contact"
+                    class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Contact</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Project Download Section -->
+    <section class="py-20 pt-32 min-h-screen fade-in">
+        <div class="container mx-auto px-6 max-w-4xl text-center">
+
+            <!-- Back to Downloads Link -->
+            <div class="mb-8 text-left">
+                <a href="alldownload.html"
+                    class="text-green-400 hover:text-green-500 font-semibold flex items-center transition-colors duration-300">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to all Downloads
+                </a>
+            </div>
+
+            <h1 class="text-3xl md:text-5xl font-bold text-green-400 mb-4 break-words">Furry Rave Screensaver Download
+                Info</h1>
+
+            <!-- Main Download Button -->
+            <a href="Furry Rave.msix"
+                class="inline-block bg-green-500 text-white font-bold text-xl py-4 px-12 rounded-full shadow-lg hover:bg-green-600 transform hover:scale-105 transition-all duration-300">
+                <i class="fas fa-download mr-3"></i> Download Windows Installer (.msix)
+            </a>
+
+            <!-- Project Screenshots Section -->
+            <div class="mt-12 text-left">
+                <h2 class="text-3xl font-bold text-white mb-6 text-center">Project Screenshots</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <img src="furryrave1.png" alt="Furry Rave Screensaver Preview 1"
+                        class="w-full h-auto rounded-lg shadow-lg">
+                    <img src="furryrave2.jpg" alt="Furry Rave Screensaver Preview 2"
+                        class="w-full h-auto rounded-lg shadow-lg">
+                </div>
+            </div>
+
+            <!-- Additional Information Section -->
+            <div class="mt-12 text-left bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold text-white mb-4">System Requirements</h2>
+                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                    <li>Windows 10 / 11 64-bit</li>
+                    <li>DirectX 11 compatible graphics card</li>
+                    <li>Storage: 200MB available space</li>
+                </ul>
+
+                <h2 class="text-3xl font-bold text-white mt-8 mb-4">Installation Instructions</h2>
+                <ol class="list-decimal list-inside space-y-2 text-gray-300">
+                    <li>Click the "Download Windows Installer" button above.</li>
+                    <li>Open the downloaded `.msix` file.</li>
+                    <li>Click "Install" and wait for the process to complete.</li>
+                    <li>Navigate to your Windows Screensaver Settings to select "Furry Rave".</li>
+                </ol>
+            </div>
+
+            <!-- Expanded Game Info for SEO -->
+            <div class="mt-12 text-left space-y-8">
+                <div class="bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg">
+                    <h2 class="text-3xl font-bold text-white mb-6">Why You'll Love Furry Rave Screensaver</h2>
+                    <p class="text-gray-300 leading-relaxed mb-8">
+                        <em>Furry Rave Screensaver</em> transforms your desktop into a vibrant, high-energy party. It's
+                        not just a video; it's a carefully optimized experience designed to bring life to your workspace
+                        when you're away.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-300">
+                        <div>
+                            <h3 class="text-xl font-semibold text-green-400 mb-2">High-Quality Video</h3>
+                            <p>Smoothly loops `furryrave.mp4` in full-screen glory, ensuring zero visible seams during
+                                playback.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-green-400 mb-2">Custom Settings GUI</h3>
+                            <p>Access a dedicated settings panel directly from the Windows Screensaver dialog to
+                                customize your experience.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-green-400 mb-2">Sound Controls</h3>
+                            <p>Want the rave vibe with audio? Toggle sound on or off with a single click. Your
+                                preference is saved automatically.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-green-400 mb-2">Optimized Performance</h3>
+                            <p>Designed with a "native" feel to ensure minimal CPU and GPU usage while your computer is
+                                idle.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg">
+                    <h2 class="text-3xl font-bold text-white mb-4">Features at a Glance</h2>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>Seamless Looping:</strong> Perfect synchronization for an infinite party.</li>
+                        <li><strong>Audio Toggle:</strong> Default OFF for peace, toggle ON for energy.</li>
+                        <li><strong>Modern Deployment:</strong> Packaged as a Windows MSIX for easy installation and
+                            updates.</li>
+                        <li><strong>CodeFoxSoft Credits:</strong> Built with the signature attention to detail and care
+                            you expect from us.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 bg-opacity-70 py-10 text-center text-gray-400 text-sm">
+        <div class="container mx-auto px-6">
+            <p>&copy; <span id="year"></span> CodeFoxSoft™. All rights reserved.</p>
+            <p class="mt-2">Designed and Developed by Nicholas Larkin Buchanan.</p>
+            <p class="mt-2 italic font-semibold text-green-400">Code Made Clean. Fox Made Clever. Software Made
+                Powerful.</p>
+            <a href="https://www.codefoxsoft.com/privacy.html">Privacy Policy</a>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for the mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+        });
+
+        // Intersection Observer for fade-in effect
+        document.addEventListener("DOMContentLoaded", function () {
+            const faders = document.querySelectorAll('.fade-in');
+            const appearOptions = { threshold: 0, rootMargin: "0px 0px -50px 0px" };
+            const appearOnScroll = new IntersectionObserver(function (entries, appearOnScroll) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        appearOnScroll.unobserve(entry.target);
+                    }
+                });
+            }, appearOptions);
+            faders.forEach(fader => appearOnScroll.observe(fader));
+            setTimeout(() => {
+                faders.forEach(fader => fader.classList.add('visible'));
+            }, 1000);
+        });
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+
+    <!-- Three.js library for background animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, galaxyGroup, backgroundGalaxyGroup, starField;
+        let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
+        let windowHalfX = window.innerWidth / 2, windowHalfY = window.innerHeight / 2;
+        let starCount = 50000;
+
+        function hsvToRgb(h, s, v) {
+            let r, g, b, i = Math.floor(h * 6), f = h * 6 - i, p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+            switch (i % 6) {
+                case 0: r = v, g = t, b = p; break;
+                case 1: r = q, g = v, b = p; break;
+                case 2: r = p, g = v, b = t; break;
+                case 3: r = p, g = q, b = v; break;
+                case 4: r = t, g = p, b = v; break;
+                case 5: r = v, g = p, b = q; break;
+            }
+            return { r, g, b };
+        }
+
+        function createGalaxy(starCount, maxRadius, armCount, opacity = 1.0) {
+            const positions = new Float32Array(starCount * 3), colors = new Float32Array(starCount * 3), sizes = new Float32Array(starCount);
+            for (let i = 0; i < starCount; i++) {
+                const armIndex = i % armCount, angle = (i / starCount) * Math.PI * 40 + (armIndex * Math.PI * 1.0);
+                const distance = Math.pow(Math.random(), 3.0) * maxRadius;
+                positions[i * 3] = Math.cos(angle) * distance + (Math.random() - 0.5) * (1 - distance / maxRadius) * 2.0;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * (1 - distance / maxRadius) * 2.0 * (0.5 + (distance / maxRadius) * 0.5);
+                positions[i * 3 + 2] = Math.sin(angle) * distance + (Math.random() - 0.5) * (1 - distance / maxRadius) * 2.0;
+                const rgb = hsvToRgb((distance / maxRadius) * 0.7, 0.9, distance < 1.0 ? 0 : 0.9);
+                colors[i * 3] = rgb.r; colors[i * 3 + 1] = rgb.g; colors[i * 3 + 2] = rgb.b;
+                sizes[i] = (1 - distance / maxRadius) * 0.05 + 0.005;
+            }
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            return new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.01, vertexColors: true, transparent: true, opacity, blending: THREE.AdditiveBlending }));
+        }
+
+        function createStarField(starCount, maxDistance) {
+            const positions = new Float32Array(starCount * 3);
+            for (let i = 0; i < starCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * maxDistance * 2;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * maxDistance * 2;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * maxDistance * 2;
+            }
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            return new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.1, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending }));
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            const container = document.getElementById('hero-background');
+            camera = new THREE.PerspectiveCamera(120, container.clientWidth / container.clientHeight, 0.1, 8000);
+            camera.position.set(0, 5, 8);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            galaxyGroup = new THREE.Group();
+            galaxyGroup.add(createGalaxy(starCount, 55, 2, 1.0));
+            galaxyGroup.rotation.x = 0.5;
+            scene.add(galaxyGroup);
+            backgroundGalaxyGroup = new THREE.Group();
+            for (let i = 0; i < 10; i++) {
+                const bgG = createGalaxy(5000, 20, 2, 0.4 + Math.random() * 0.6);
+                const dist = 5000 + Math.random() * 2000, ang = Math.random() * Math.PI * 2;
+                bgG.position.set(Math.cos(ang) * dist, (Math.random() - 0.5) * dist, Math.sin(ang) * dist);
+                bgG.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
+                const s = 0.5 + Math.random() * 0.5; bgG.scale.set(s, s, s);
+                backgroundGalaxyGroup.add(bgG);
+            }
+            scene.add(backgroundGalaxyGroup);
+            starField = createStarField(5000, 1000);
+            scene.add(starField);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            targetX = mouseX * 0.001; targetY = mouseY * 0.001;
+            galaxyGroup.rotation.y += 0.0005 * (targetX - galaxyGroup.rotation.y) + 0.0002;
+            galaxyGroup.rotation.x += 0.0005 * (targetY - galaxyGroup.rotation.x) - 0.00005;
+            galaxyGroup.rotation.z += 0.0001;
+            const s = 1 + Math.sin(Date.now() * 0.0005) * 0.02; galaxyGroup.scale.set(s, s, s);
+            camera.position.x += (targetX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            backgroundGalaxyGroup.rotation.x += 0.00001; backgroundGalaxyGroup.rotation.y += 0.00001;
+            starField.rotation.y += 0.00005;
+            renderer.render(scene, camera);
+        }
+
+        window.onload = () => {
+            init(); animate();
+            window.addEventListener('resize', () => {
+                const c = document.getElementById('hero-background');
+                camera.aspect = c.clientWidth / c.clientHeight; camera.updateProjectionMatrix();
+                renderer.setSize(c.clientWidth, c.clientHeight);
+            });
+            document.addEventListener('mousemove', e => { mouseX = e.clientX - windowHalfX; mouseY = e.clientY - windowHalfY; });
+        };
+    </script>
+</body>
+
+</html>
