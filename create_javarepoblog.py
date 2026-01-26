@@ -67,7 +67,7 @@ def create_blog_page():
                 <article>
                     <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-4 leading-tight break-words">The Fossil Record of a Soul: Why I Built an Archive of Echoes</h1>
                     <p class="text-gray-400 text-lg mb-6">
-                        By <span class="text-green-400">Nicholas Larkin Buchanan</span>
+                        By <span class="text-green-400">Nick Larkin</span>
                     </p>
 
                     <div class="prose prose-invert max-w-none text-gray-300 leading-relaxed">
@@ -147,7 +147,7 @@ def create_blog_page():
         # <title>Privacy Policy - CodeFoxSoft</title>
         header_content = header_content.replace('<title>Privacy Policy - CodeFoxSoft</title>', '<title>The Fossil Record of a Soul - CodeFoxSoft Blog</title>')
         header_content = header_content.replace('content="Privacy Policy - CodeFoxSoft | GDPR & CCPA Compliant"', 'content="The Fossil Record of a Soul - CodeFoxSoft Blog"')
-        header_content = header_content.replace('content="Comprehensive privacy policy covering GDPR, CCPA, and data protection for CodeFoxSoft."', 'content="Nicholas Larkin Buchanan reflects on his journey from QBasic to modern AI, introducing the new CodeFoxSoft Java Portfolio archive."')
+        header_content = header_content.replace('content="Comprehensive privacy policy covering GDPR, CCPA, and data protection for CodeFoxSoft."', 'content="Nick Larkin reflects on his journey from QBasic to modern AI, introducing the new CodeFoxSoft Java Portfolio archive."')
         
         # Combine
         full_html = header_content + new_body + footer_content

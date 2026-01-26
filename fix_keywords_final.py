@@ -3,7 +3,7 @@ import re
 
 def fix_keywords_final():
     # The target authorized keyword line
-    correct_tag = '<meta name="keywords" content="CodeFoxSoft, Indie Game Developer, Web Developer, App Development, AI Solutions, Nicholas Larkin Buchanan, Codefox soft">'
+    correct_tag = '<meta name="keywords" content="CodeFoxSoft, Indie Game Developer, Web Developer, App Development, AI Solutions, Nick Larkin, Codefox soft">'
     
     files = glob.glob("*.html")
     

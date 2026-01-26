@@ -21,7 +21,7 @@ def fix_all():
     </script>
 </body>"""
 
-    new_keywords_content = 'content="CodeFoxSoft, Indie Game Developer, Web Developer, App Development, AI Solutions, Nicholas Larkin Buchanan, Codefox soft"'
+    new_keywords_content = 'content="CodeFoxSoft, Indie Game Developer, Web Developer, App Development, AI Solutions, Nick Larkin, Codefox soft"'
 
     files = glob.glob("*.html")
     for file_path in files:
