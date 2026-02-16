@@ -57,8 +57,6 @@
     let shards = [];
 
     // Camera & Shake
-    // Min distance (max closeness) is 200, zoom step is 25.
-    // Setting default to one unit away from max closeness (225) so he's big in the frame.
     let camDistance = 225;
     let camPitch = 25;
     let camYaw = 0;
@@ -87,13 +85,37 @@
             roadColor: '#150500', sidewalkColor: '#201010',
             buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00',
             lightColor: 0xff0000, ambient: 0.4
+        },
+        4: {
+            name: "THE GRID",
+            sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002,
+            roadColor: '#001a1a', sidewalkColor: '#003333',
+            buildColor: '#001111', win1: '#00ffff', win2: '#ffffff',
+            lightColor: 0x00ffff, ambient: 0.6
+        },
+        5: {
+            name: "VOID JUNCTION",
+            sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022,
+            roadColor: '#1a001a', sidewalkColor: '#2a002a',
+            buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00',
+            lightColor: 0xff00ff, ambient: 0.5
+        },
+        6: {
+            name: "OVERDRIVE",
+            sky: 0x000000, fog: 0x000000, fogDens: 0.00035,
+            roadColor: '#111111', sidewalkColor: '#222222',
+            buildColor: '#000000', win1: '#ff0000', win2: '#ffffff',
+            lightColor: 0xffffff, ambient: 0.7
         }
     };
 
     const maps = {
         1: { grid: [[1,1,1,1,1,1,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,0,1,1,1,1,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:5} },
         2: { grid: [[1,1,1,1,1,1,1],[1,0,1,0,0,0,1],[1,0,1,0,1,0,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:1} },
-        3: { grid: [[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,1,0,0,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,1,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:4, z:4} }
+        3: { grid: [[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,1,0,0,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,1,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:4, z:4} },
+        4: { grid: [[1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,1],[1,0,1,1,1,1,0,1],[1,0,1,0,0,1,0,1],[1,0,1,0,0,1,0,1],[1,0,1,1,0,1,0,1],[1,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:4, z:4} },
+        5: { grid: [[1,1,1,1,1,1,1,1,1],[1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,0,1,0,1,1,1],[1,0,0,0,1,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:7, z:7} },
+        6: { grid: [[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,1,0,0,0,0,0,1],[1,0,1,0,1,0,1,1,1,0,1],[1,0,1,0,0,0,0,0,1,0,1],[1,0,1,1,1,1,1,0,1,0,1],[1,0,0,0,0,0,1,0,0,0,1],[1,0,1,1,1,0,1,1,1,0,1],[1,0,0,0,1,0,0,0,1,0,1],[1,1,1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:9, z:7} }
     };
 
     function log(msg, type = 'info') {
@@ -287,7 +309,7 @@
                 } else {
                     const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), mats.road);
                     r.rotation.x = -Math.PI/2; r.position.set(px, 0, pz); levelGroup.add(r);
-                    if (Math.random() > 0.8 && (x !== mapData.start.x || z !== mapData.start.z)) {
+                    if (Math.random() > 0.7 && (x !== mapData.start.x || z !== mapData.start.z)) {
                         spawnShard(px, pz, theme.lightColor);
                     }
                 }
@@ -325,7 +347,6 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            // Camera controls with Arrow Keys
             if(keys['ArrowLeft']) camYaw += 0.05;
             if(keys['ArrowRight']) camYaw -= 0.05;
             if(keys['ArrowUp']) camDistance = Math.max(200, camDistance - 25);
@@ -336,8 +357,6 @@
 
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
-
-                // Movement direction calculation relative to camera.
                 const moveAngle = Math.atan2(inputX, inputZ) + camYaw + Math.PI;
                 const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle);
                 model.quaternion.slerp(targetQuat, 0.15);
@@ -345,7 +364,6 @@
                 const spd = keys.shift ? 75 : 40;
                 if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
 
-                // Velocity based on the rotated model forward vector
                 const vx = Math.sin(moveAngle) * spd;
                 const vz = Math.cos(moveAngle) * spd;
 
@@ -385,9 +403,9 @@
             }
 
             if(model.position.distanceTo(goalOrb.position) < 450) {
-                currentLevel = currentLevel < 3 ? currentLevel + 1 : 1;
+                currentLevel = currentLevel < 6 ? currentLevel + 1 : 1;
                 gameActive = false; document.getElementById('intro-overlay').classList.remove('hidden');
-                document.getElementById('status-text').innerText = "OBJECTIVE SECURED";
+                document.getElementById('status-text').innerText = currentLevel === 1 ? "CHAMPION OF DIMENSIONS" : "OBJECTIVE SECURED";
                 buildLevel(currentLevel); resetNiko();
             }
 
