@@ -22,7 +22,7 @@
 <body>
     <div id="ui">
         <b id="lvl-name">LEVEL 1: THE BRONX</b><br>
-        WASD: Move | SHIFT: Sprint | T: View | +/-: Zoom
+        WASD: Move | SHIFT: Sprint | Q/E: Rotate Cam | +/-: Zoom
     </div>
     <div id="score-display">
         <div id="timer">00:00</div>
@@ -53,13 +53,12 @@
     let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
     let actions = {}, currentAction, idleTimer = 0;
     let isReady = false;
-    let isTurning = false;
     let score = 0;
     let shards = [];
 
     // Camera & Shake
-    let camDistance = 450;
-    let camPitch = 10;
+    let camDistance = 800;
+    let camPitch = 25;
     let camYaw = 0;
     let shakeIntensity = 0;
 
@@ -146,7 +145,6 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Lights
         const ambient = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambient);
         const sun = new THREE.DirectionalLight(0xffffff, 0.5);
@@ -170,11 +168,11 @@
             startAction();
 
             if(k === 't') {
-                camPitch = (camPitch < 60 ? 85 : 10);
-                camDistance = (camPitch === 85 ? 3500 : 450);
+                camPitch = (camPitch < 40 ? 85 : 25);
+                camDistance = (camPitch === 85 ? 3500 : 800);
             }
-            if (e.key === '+' || e.key === '=') camDistance = Math.max(150, camDistance - 40);
-            if (e.key === '-' || e.key === '_') camDistance = Math.min(2200, camDistance + 40);
+            if (e.key === '+' || e.key === '=') camDistance = Math.max(200, camDistance - 100);
+            if (e.key === '-' || e.key === '_') camDistance = Math.min(4000, camDistance + 100);
         });
         window.addEventListener('mousedown', startAction);
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
@@ -194,7 +192,7 @@
                 },
                 undefined,
                 (err) => {
-                    log(`${key} FAILED (CORS/404)`, 'error');
+                    log(`${key} FAILED`, 'error');
                     resolve({ key, error: true });
                 }
             );
@@ -224,8 +222,7 @@
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
         } else {
-            log("Critical: Walk failed. Using Cube.", "error");
-            model = new THREE.Mesh(new THREE.BoxGeometry(100,240,100), new THREE.MeshStandardMaterial({color: 0x00ffcc, emissive: 0x00ffcc}));
+            model = new THREE.Mesh(new THREE.BoxGeometry(100,240,100), new THREE.MeshStandardMaterial({color: 0x00ffcc}));
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
         }
@@ -234,10 +231,7 @@
             if (!res.error && res.fbx && res.fbx.animations.length > 0) {
                 const action = mixer.clipAction(res.fbx.animations[0]);
                 if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
-                if (res.key.includes('turn')) {
-                    action.setLoop(THREE.LoopOnce);
-                    action.clampWhenFinished = true;
-                }
+                if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
                 actions[res.key] = action;
             }
         });
@@ -246,7 +240,7 @@
         if (actions['idle']) fadeToAction('idle');
 
         isReady = true;
-        document.getElementById('status-text').innerText = "ASSETS SYNCED";
+        document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
         document.getElementById('click-prompt').style.display = "block";
     }
 
@@ -262,17 +256,15 @@
 
     function buildLevel(num) {
         while(levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
-        shards = []; // Reset collectibles
+        shards = [];
 
         const theme = themes[num];
         const mapData = maps[num];
         const mats = createThemeMaterials(theme);
 
-        // Apply Theme Global Settings
         scene.background = new THREE.Color(theme.sky);
         scene.fog = new THREE.FogExp2(theme.fog, theme.fogDens);
 
-        // Spawn Geometry
         for(let z=0; z<mapData.grid.length; z++) {
             for(let x=0; x<mapData.grid[z].length; x++) {
                 const px = x*cellSize - 4000, pz = z*cellSize - 4000;
@@ -282,29 +274,23 @@
                 } else {
                     const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), mats.road);
                     r.rotation.x = -Math.PI/2; r.position.set(px, 0, pz); levelGroup.add(r);
-
-                    // Spawn Data Shard (Collectible) - 30% chance on open road
-                    if (Math.random() > 0.7 && (x !== mapData.start.x || z !== mapData.start.z) && (x !== mapData.goal.x || z !== mapData.goal.z)) {
+                    if (Math.random() > 0.8 && (x !== mapData.start.x || z !== mapData.start.z)) {
                         spawnShard(px, pz, theme.lightColor);
                     }
                 }
             }
         }
 
-        // Goal Orb
         goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({color:0xffcc00, emissive:0xffcc00, emissiveIntensity:5}));
         goalOrb.position.set(mapData.goal.x*cellSize - 4000, 300, mapData.goal.z*cellSize - 4000);
         levelGroup.add(goalOrb);
 
         document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
         document.getElementById('intro-title').innerText = theme.name;
-        document.getElementById('intro-title').style.color = '#' + theme.lightColor.toString(16);
     }
 
     function spawnShard(x, z, color) {
-        const geo = new THREE.OctahedronGeometry(80);
-        const mat = new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2, wireframe: true });
-        const shard = new THREE.Mesh(geo, mat);
+        const shard = new THREE.Mesh(new THREE.OctahedronGeometry(80), new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2, wireframe: true }));
         shard.position.set(x, 150, z);
         shards.push(shard);
         levelGroup.add(shard);
@@ -313,8 +299,7 @@
     function resetNiko() {
         const start = maps[currentLevel].start;
         model.position.set(start.x*cellSize - 4000, 0, start.z*cellSize - 4000);
-        model.rotation.y = 0;
-        camYaw = 0; // Reset camera angle
+        model.rotation.y = Math.PI; // Face "forward" initially
     }
 
     function animate() {
@@ -326,108 +311,99 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            let fwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
-            let side = (keys.a ? 1 : 0) - (keys.d ? 1 : 0);
+            // Camera rotation keys
+            if(keys.q) camYaw += 0.04;
+            if(keys.e) camYaw -= 0.04;
 
-            if(keys.arrowleft || keys.q) camYaw += 0.05;
-            if(keys.arrowright || keys.e) camYaw -= 0.05;
+            // Directional Logic
+            let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+            let inputZ = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
 
-            const isMoving = fwd !== 0 || side !== 0;
-
-            if(isMoving) {
+            if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
 
-                // Animation Logic
-                if (keys.a && !isTurning && currentAction !== actions['leftturn']) {
-                    isTurning = true;
-                    fadeToAction('leftturn', 0.1);
-                } else if (keys.d && !isTurning && currentAction !== actions['rightturn']) {
-                    isTurning = true;
-                    fadeToAction('rightturn', 0.1);
+                // Determine movement direction based on Camera Yaw
+                const moveAngle = Math.atan2(inputX, inputZ) + camYaw;
+
+                // Rotation
+                const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle + Math.PI);
+                model.quaternion.slerp(targetQuat, 0.15);
+
+                // Speed
+                const spd = keys.shift ? 65 : 35;
+                if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
+
+                // Apply Velocity
+                const vx = Math.sin(moveAngle) * spd;
+                const vz = Math.cos(moveAngle) * spd;
+
+                const nX = model.position.x + vx;
+                const nZ = model.position.z + vz;
+
+                // Collision
+                const gx = Math.round((nX + 4000) / cellSize);
+                const gz = Math.round((nZ + 4000) / cellSize);
+                if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx] === 0) {
+                    model.position.x = nX;
+                    model.position.z = nZ;
                 }
 
-                if (isTurning) {
-                    const clipDuration = currentAction.getClip().duration;
-                    if (currentAction.time >= clipDuration - 0.1) isTurning = false;
-                }
+                // Animations
+                if (keys.shift) fadeToAction('run');
+                else fadeToAction('walk');
 
-                if (!isTurning) {
-                    let moveAnim = keys.shift ? 'run' : 'walk';
-                    fadeToAction(moveAnim);
-
-                    const spd = keys.shift ? 58 : 30;
-
-                    // Camera Shake on Sprint
-                    if(keys.shift) shakeIntensity = 5;
-
-                    const moveDirection = Math.atan2(side, fwd);
-                    const targetRotation = camYaw + moveDirection + Math.PI;
-                    model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, targetRotation, 0.2);
-
-                    const nX = model.position.x + Math.sin(model.rotation.y) * spd;
-                    const nZ = model.position.z + Math.cos(model.rotation.y) * spd;
-                    const gx = Math.round((nX + 4000) / cellSize);
-                    const gz = Math.round((nZ + 4000) / cellSize);
-
-                    if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx] === 0) {
-                        model.position.x = nX;
-                        model.position.z = nZ;
-                    }
-                }
             } else {
-                mixer.timeScale = 1.0;
                 if (currentAction !== actions['twerk']) {
                     fadeToAction('idle');
                     idleTimer += delta;
-                    if (idleTimer >= 5) { fadeToAction('twerk'); idleTimer = 0; }
-                } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
+                    if (idleTimer >= 8) { fadeToAction('twerk'); idleTimer = 0; }
+                } else if (actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
                     fadeToAction('idle');
                 }
             }
 
-            // --- COLLECTIBLE LOGIC ---
+            // Collectibles
             for (let i = shards.length - 1; i >= 0; i--) {
                 const s = shards[i];
-                s.rotation.y += 0.02; s.rotation.x += 0.01;
-                if (model.position.distanceTo(s.position) < 200) {
+                s.rotation.y += 0.02;
+                if (model.position.distanceTo(s.position) < 250) {
                     score += 100;
                     document.getElementById('score').innerText = `SHARDS: ${score}`;
                     levelGroup.remove(s);
                     shards.splice(i, 1);
-                    shakeIntensity = 20; // Hit shake
+                    shakeIntensity = 15;
                 }
             }
 
-            // Goal Logic
-            if(model.position.distanceTo(goalOrb.position) < 400) {
+            // Goal
+            if(model.position.distanceTo(goalOrb.position) < 450) {
                 currentLevel = currentLevel < 3 ? currentLevel + 1 : 1;
                 gameActive = false; document.getElementById('intro-overlay').classList.remove('hidden');
-                document.getElementById('status-text').innerText = "SECTOR CLEARED";
+                document.getElementById('status-text').innerText = "OBJECTIVE SECURED";
                 buildLevel(currentLevel); resetNiko();
             }
 
-            // --- CAMERA ---
-            shakeIntensity *= 0.9; // Decay shake
-            const shakeX = (Math.random() - 0.5) * shakeIntensity;
-            const shakeY = (Math.random() - 0.5) * shakeIntensity;
+            // Camera follow
+            shakeIntensity *= 0.9;
+            const sX = (Math.random() - 0.5) * shakeIntensity;
+            const sY = (Math.random() - 0.5) * shakeIntensity;
 
-            const centerFocus = model.position.clone().add(new THREE.Vector3(0, 120, 0));
+            const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
-            const targetPos = centerFocus.clone().add(new THREE.Vector3(
-                camDistance * Math.sin(camYaw) * Math.cos(pr) + shakeX,
-                camDistance * Math.sin(pr) + shakeY,
+            const tPos = focus.clone().add(new THREE.Vector3(
+                camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
+                camDistance * Math.sin(pr) + sY,
                 camDistance * Math.cos(camYaw) * Math.cos(pr)
             ));
 
-            camera.position.lerp(targetPos, 0.15);
-            camera.lookAt(centerFocus);
+            camera.position.lerp(tPos, 0.1);
+            camera.lookAt(focus);
         }
 
         if(goalOrb) {
-            goalOrb.rotation.y += 0.05;
-            goalOrb.position.y = 300 + Math.sin(clock.getElapsedTime()*3) * 30;
-            const scale = 1 + Math.sin(clock.getElapsedTime()*5)*0.1;
-            goalOrb.scale.set(scale, scale, scale);
+            goalOrb.position.y = 300 + Math.sin(clock.getElapsedTime()*2) * 40;
+            const sc = 1 + Math.sin(clock.getElapsedTime()*4)*0.15;
+            goalOrb.scale.set(sc, sc, sc);
         }
 
         renderer.render(scene, camera);
