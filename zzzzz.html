@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: FBX Test</title>
+    <title>Niko: Just Walk</title>
     <style>
-        body { margin: 0; background: #000; color: #0f0; font-family: monospace; overflow: hidden; }
-        #status { position: absolute; top: 10px; left: 10px; z-index: 100; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: monospace; }
+        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 10; }
     </style>
 </head>
 <body>
-    <div id="status">ATTEMPTING TO LOAD CATWALK.FBX...</div>
+    <div id="status">LOADING NIKO...</div>
 
 <script type="importmap">
     {
@@ -24,8 +24,8 @@
     import * as THREE from 'three';
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-    let scene, camera, renderer, mixer, clock, model;
-    const statusEl = document.getElementById('status');
+    let scene, camera, renderer, mixer, clock, model, walkAction;
+    let mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster(), targetPos = new THREE.Vector3();
 
     init();
 
@@ -34,59 +34,38 @@
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a0a0a);
 
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 20000);
-        camera.position.set(500, 500, 500);
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+        camera.position.set(200, 300, 600);
 
         scene.add(new THREE.AmbientLight(0xffffff, 2));
-        const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-        dirLight.position.set(100, 200, 100);
-        scene.add(dirLight);
-        scene.add(new THREE.GridHelper(5000, 50, 0x444444, 0x222222));
+        scene.add(new THREE.GridHelper(2000, 50, 0x333333, 0x222222));
 
         const loader = new FBXLoader();
 
         loader.load('catwalk.fbx', (fbx) => {
-            statusEl.innerHTML = "FILE LOADED. ANALYZING ANIMATION...";
             model = fbx;
             scene.add(model);
-
-            // 1. Auto-Center and Zoom Camera
-            const box = new THREE.Box3().setFromObject(model);
-            const size = box.getSize(new THREE.Vector3()).length();
-            const center = box.getCenter(new THREE.Vector3());
-            camera.position.set(center.x, center.y + (size / 1.5), center.z + size);
-            camera.lookAt(center);
-
-            // 2. Setup Mixer
             mixer = new THREE.AnimationMixer(model);
 
             if (fbx.animations.length > 0) {
                 const clip = fbx.animations[0];
+                // Strip bone prefixes to ensure it plays
+                clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
 
-                // 3. The "Brute Force" Bone Fix
-                // This strips every possible prefix so the motion finds the bones
-                clip.tracks.forEach(track => {
-                    track.name = track.name.replace(/mixamorig[0-9]*_?|.*:/g, "");
-                });
-
-                const action = mixer.clipAction(clip);
-                action.play();
-                statusEl.innerHTML = "SUCCESS: ANIMATION PLAYING";
-            } else {
-                statusEl.innerHTML = "ERROR: NO ANIMATION TRACKS FOUND IN FBX";
+                walkAction = mixer.clipAction(clip);
+                walkAction.play();
+                document.getElementById('status').innerHTML = "NIKO READY: LEAD THE WAY";
             }
-
-        }, (xhr) => {
-            const p = Math.round(xhr.loaded / xhr.total * 100);
-            statusEl.innerHTML = `LOADING: ${p}%`;
-        }, (err) => {
-            statusEl.innerHTML = "CRITICAL ERROR: COULD NOT FIND catwalk.fbx";
-            console.error(err);
         });
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
 
         animate();
     }
@@ -95,6 +74,22 @@
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
         if (mixer) mixer.update(delta);
+
+        if (model && walkAction) {
+            raycaster.setFromCamera(mouse, camera);
+            const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+            raycaster.ray.intersectPlane(plane, targetPos);
+
+            const distance = model.position.distanceTo(targetPos);
+
+            if (distance > 40) {
+                walkAction.paused = false; // Keep walking
+                model.lookAt(targetPos.x, model.position.y, targetPos.z);
+                model.translateZ(5);
+            } else {
+                walkAction.paused = true; // Stop walking when close
+            }
+        }
         renderer.render(scene, camera);
     }
 </script>
