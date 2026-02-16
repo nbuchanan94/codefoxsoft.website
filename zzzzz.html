@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko's Meadow</title>
+    <title>Niko's Meadow: Fixed</title>
     <style>
-        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: 'Courier New', monospace; }
-        #status { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; z-index: 10; }
+        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: monospace; }
+        #status { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; z-index: 10; background: rgba(0,0,0,0.3); padding: 5px; }
     </style>
 </head>
 <body>
-    <div id="status">CREATING THE WORLD...</div>
+    <div id="status">LOCATING NIKO...</div>
 
 <script type="importmap">
     {
@@ -32,47 +32,38 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-
-        // 1. THE SKY (Light Blue)
         scene.background = new THREE.Color(0x87CEEB);
-        scene.fog = new THREE.Fog(0x87CEEB, 200, 1000);
+        scene.fog = new THREE.Fog(0x87CEEB, 500, 2000);
 
-        // 2. THE CAMERA (Lower and closer)
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000);
-        camera.position.set(0, 150, 400);
+        // Camera: High and angled down so we can see the ground and Niko
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+        camera.position.set(0, 500, 1000);
+        camera.lookAt(0, 0, 0);
 
-        // 3. LIGHTING (Sunny Day)
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 3);
-        scene.add(hemiLight);
+        scene.add(new THREE.AmbientLight(0xffffff, 2));
         const sun = new THREE.DirectionalLight(0xffffff, 2);
-        sun.position.set(100, 200, 100);
+        sun.position.set(100, 500, 100);
         scene.add(sun);
 
-        // 4. THE GRASS (A big green circle)
-        const groundGeo = new THREE.CircleGeometry(2000, 32);
-        const groundMat = new THREE.MeshPhongMaterial({ color: 0x228B22 });
-        const ground = new THREE.Mesh(groundGeo, groundMat);
+        // Green Grass Floor
+        const ground = new THREE.Mesh(
+            new THREE.PlaneGeometry(4000, 4000),
+            new THREE.MeshPhongMaterial({ color: 0x2d5a27 })
+        );
         ground.rotation.x = -Math.PI / 2;
         scene.add(ground);
-
-        // 5. THE CLOUDS (Simple white blobs)
-        for(let i=0; i<20; i++) {
-            const cloudGeo = new THREE.SphereGeometry(Math.random()*50 + 20, 8, 8);
-            const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
-            const cloud = new THREE.Mesh(cloudGeo, cloudMat);
-            cloud.position.set(Math.random()*2000-1000, Math.random()*200+300, Math.random()*2000-1000);
-            scene.add(cloud);
-        }
 
         const loader = new FBXLoader();
 
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
 
-            // --- THE SCALE FIX ---
-            // If he's tiny, we force him to a solid size.
-            // Adjust this number (currently 5) if he's still too small!
-            model.scale.setScalar(5);
+            // 1. THE RESET: Force him to the center
+            model.position.set(0, 0, 0);
+
+            // 2. THE BIG SCALE: We're going huge to make sure he's visible
+            // If he's TOO big, change this 10 to 1.
+            model.scale.setScalar(10);
 
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
@@ -82,7 +73,7 @@
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
                 walkAction = mixer.clipAction(clip);
                 walkAction.play();
-                document.getElementById('status').innerHTML = "NIKO IS OUTDOORS";
+                document.getElementById('status').innerHTML = "NIKO FOUND AT CENTER";
             }
         });
 
@@ -110,12 +101,12 @@
 
             const distance = model.position.distanceTo(targetPos);
 
-            if (distance > 20) {
+            if (distance > 50) {
                 walkAction.paused = false;
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(3); // Walking speed
+                model.translateZ(8);
 
-                // Camera follows Niko slightly
+                // Camera follows Niko's position
                 camera.lookAt(model.position);
             } else {
                 walkAction.paused = true;
