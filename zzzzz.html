@@ -9,7 +9,7 @@
     </style>
 </head>
 <body>
-    <div id="status">LOCATING NIKO...</div>
+    <div id="status">LOCATING NIKO IN THE TALL GRASS...</div>
 
 <script type="importmap">
     {
@@ -33,24 +33,24 @@
         clock = new THREE.Clock();
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
-        scene.fog = new THREE.Fog(0x87CEEB, 500, 2000);
+        scene.fog = new THREE.Fog(0x87CEEB, 500, 3000);
 
-        // Camera: High and angled down so we can see the ground and Niko
+        // High-angle camera to start
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
         camera.position.set(0, 500, 1000);
-        camera.lookAt(0, 0, 0);
 
         scene.add(new THREE.AmbientLight(0xffffff, 2));
         const sun = new THREE.DirectionalLight(0xffffff, 2);
         sun.position.set(100, 500, 100);
         scene.add(sun);
 
-        // Green Grass Floor
+        // Green Grass Floor (The "Meadow")
         const ground = new THREE.Mesh(
-            new THREE.PlaneGeometry(4000, 4000),
+            new THREE.PlaneGeometry(10000, 10000),
             new THREE.MeshPhongMaterial({ color: 0x2d5a27 })
         );
         ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -1; // Slightly below zero so Niko stands ON it
         scene.add(ground);
 
         const loader = new FBXLoader();
@@ -58,14 +58,18 @@
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
 
-            // 1. THE RESET: Force him to the center
+            // --- THE VISIBILITY RESCUE ---
+            // 1. Force Scale (Boosted to 15 since he was microscopic)
+            model.scale.setScalar(15);
+
+            // 2. Force Position (Stand him on the grass)
             model.position.set(0, 0, 0);
 
-            // 2. THE BIG SCALE: We're going huge to make sure he's visible
-            // If he's TOO big, change this 10 to 1.
-            model.scale.setScalar(10);
-
             scene.add(model);
+
+            // 3. Focus Camera on him
+            camera.lookAt(model.position);
+
             mixer = new THREE.AnimationMixer(model);
 
             if (fbx.animations.length > 0) {
@@ -73,7 +77,7 @@
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
                 walkAction = mixer.clipAction(clip);
                 walkAction.play();
-                document.getElementById('status').innerHTML = "NIKO FOUND AT CENTER";
+                document.getElementById('status').innerHTML = "NIKO IS ON THE GRASS";
             }
         });
 
@@ -101,12 +105,15 @@
 
             const distance = model.position.distanceTo(targetPos);
 
+            // If mouse is far, walk to it
             if (distance > 50) {
                 walkAction.paused = false;
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
                 model.translateZ(8);
 
-                // Camera follows Niko's position
+                // Dynamic Camera: follow the homie
+                camera.position.x += (model.position.x - camera.position.x) * 0.05;
+                camera.position.z += ((model.position.z + 800) - camera.position.z) * 0.05;
                 camera.lookAt(model.position);
             } else {
                 walkAction.paused = true;
