@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <title>Niko: Found You</title>
     <style>
-        body { margin: 0; background: #222; overflow: hidden; font-family: monospace; }
-        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px; }
+        body { margin: 0; background: #111; overflow: hidden; font-family: monospace; }
+        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 10; background: rgba(0,0,0,0.8); padding: 8px; border: 1px solid #0f0; }
     </style>
 </head>
 <body>
-    <div id="status">SCANNING VOID FOR NIKO...</div>
+    <div id="status">SCANNING THE VOID...</div>
 
 <script type="importmap">
     {
@@ -26,24 +26,26 @@
 
     let scene, camera, renderer, mixer, clock, model, walkAction;
     let mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster(), targetPos = new THREE.Vector3();
+    let modelSize = 1;
 
     init();
 
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x222222); // Gray background so we can see black models
+        scene.background = new THREE.Color(0x111111);
 
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 50000);
+        // Extreme far-plane so we don't lose him if he's giant
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100000);
         camera.position.set(500, 500, 500);
 
-        // Max out the lights
+        // Brightest possible lights to avoid black-on-black
         scene.add(new THREE.AmbientLight(0xffffff, 3));
         const sun = new THREE.DirectionalLight(0xffffff, 3);
         sun.position.set(1000, 1000, 1000);
         scene.add(sun);
 
-        scene.add(new THREE.GridHelper(5000, 50, 0x888888, 0x444444));
+        scene.add(new THREE.GridHelper(5000, 50, 0x444444, 0x222222));
 
         const loader = new FBXLoader();
 
@@ -51,24 +53,25 @@
             model = fbx;
             scene.add(model);
 
-            // --- THE AUTO-FINDER ---
+            // --- THE HOMIE FINDER ---
             const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
-            const maxDim = Math.max(size.x, size.y, size.z);
+            modelSize = size.length();
 
-            // Move camera to see him perfectly
-            camera.position.set(center.x, center.y + (maxDim), center.z + (maxDim * 2));
+            // Reposition camera based on his actual size
+            camera.position.set(center.x, center.y + (modelSize * 0.5), center.z + (modelSize * 1.5));
             camera.lookAt(center);
 
             mixer = new THREE.AnimationMixer(model);
 
             if (fbx.animations.length > 0) {
                 const clip = fbx.animations[0];
+                // Force bone names to match
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
                 walkAction = mixer.clipAction(clip);
                 walkAction.play();
-                document.getElementById('status').innerHTML = `FOUND NIKO at scale: ${maxDim.toFixed(1)}`;
+                document.getElementById('status').innerHTML = `FOUND NIKO | Scale: ${Math.round(modelSize)} units`;
             }
         });
 
@@ -96,14 +99,14 @@
 
             const distance = model.position.distanceTo(targetPos);
 
-            // Dynamic distance threshold based on model size
-            const box = new THREE.Box3().setFromObject(model);
-            const stopDist = box.getSize(new THREE.Vector3()).length() * 0.2;
+            // Move speed scales automatically to his size
+            const moveThreshold = modelSize * 0.1;
+            const moveSpeed = modelSize * 0.01;
 
-            if (distance > stopDist) {
+            if (distance > moveThreshold) {
                 walkAction.paused = false;
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(maxDim * 0.01); // Scale speed to model size
+                model.translateZ(moveSpeed);
             } else {
                 walkAction.paused = true;
             }
