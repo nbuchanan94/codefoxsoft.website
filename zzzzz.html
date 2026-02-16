@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Maze Master - FOCUS FIX</title>
+    <title>Niko: Maze Master - The Twerk Edition</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
         #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px #000; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 4px; border-left: 4px solid #00ffcc; z-index: 100; pointer-events: none; }
         #timer { position: absolute; top: 20px; right: 20px; color: #ffcc00; font-size: 2em; font-weight: bold; z-index: 100; }
         #intro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: #00ffcc; text-align: center; cursor: pointer;}
         #load-bar-container { width: 300px; height: 10px; background: #222; margin-top: 20px; border-radius: 5px; overflow: hidden; }
-        #load-bar { width: 0%; height: 100%; background: #00ffcc; transition: width 0.3s; }
+        #load-bar { width: 0%; height: 100%; background: #00ffcc; transition: width 0.1s; }
         .hidden { opacity: 0; pointer-events: none; }
     </style>
 </head>
@@ -21,9 +21,9 @@
     <div id="timer">00:00</div>
     <div id="intro-overlay">
         <h1 id="intro-title">THE BRONX</h1>
-        <p id="status-text" style="color:white">DOWNLOADING NIKO.FBX...</p>
+        <p id="status-text" style="color:white">LOADING ANIMATIONS...</p>
         <div id="load-bar-container"><div id="load-bar"></div></div>
-        <p id="click-prompt" style="color:#00ffcc; margin-top:20px; display:none;">[ CLICK SCREEN OR PRESS KEY TO START ]</p>
+        <p id="click-prompt" style="color:#00ffcc; margin-top:20px; display:none;">[ CLICK TO START ]</p>
     </div>
 
 <script type="importmap">
@@ -41,6 +41,7 @@
 
     let scene, camera, renderer, mixer, clock, model, goalOrb;
     let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
+    let actions = {}, currentAction, idleTimer = 0;
     let isReady = false;
     let camDistance = 950, camPitch = 35, camYaw = 0;
     const keys = {}, cellSize = 1800;
@@ -98,27 +99,62 @@
         levelGroup = new THREE.Group();
         scene.add(levelGroup);
 
-        // --- START TRIGGER ---
         const startAction = () => {
             if(isReady && !gameActive) {
                 gameActive = true;
                 startTime = Date.now();
                 document.getElementById('intro-overlay').classList.add('hidden');
-                console.log("Game Started!");
             }
         };
 
-        window.addEventListener('keydown', (e) => {
-            keys[e.key.toLowerCase()] = true;
-            startAction();
-            if(e.key.toLowerCase()==='t') { camPitch = (camPitch === 35 ? 85 : 35); camDistance = (camPitch === 85 ? 3500 : 950); }
-        });
+        window.addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; startAction(); });
         window.addEventListener('mousedown', startAction);
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
 
         buildLevel(currentLevel);
-        loadNiko();
+        loadAllAssets();
         animate();
+    }
+
+    async function loadAllAssets() {
+        const loader = new FBXLoader();
+        const files = { walk: 'catwalk.fbx', idle: 'idle.fbx', twerk: 'twerk.fbx' };
+        let loadedCount = 0;
+
+        for (const [key, path] of Object.entries(files)) {
+            const fbx = await loader.loadAsync(path, (xhr) => {
+                const total = (loadedCount / 3) + (xhr.loaded / xhr.total / 3);
+                document.getElementById('load-bar').style.width = (total * 100) + "%";
+            });
+
+            if (key === 'walk') {
+                model = fbx;
+                const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
+                model.scale.setScalar(240 / size.y);
+                scene.add(model);
+                mixer = new THREE.AnimationMixer(model);
+            }
+
+            const action = mixer.clipAction(fbx.animations[0]);
+            if (key === 'twerk') action.setLoop(THREE.LoopOnce);
+            actions[key] = action;
+            loadedCount++;
+        }
+
+        resetNiko();
+        fadeToAction('idle');
+        isReady = true;
+        document.getElementById('status-text').innerText = "READY TO RUMBLE";
+        document.getElementById('click-prompt').style.display = "block";
+    }
+
+    function fadeToAction(name) {
+        const prev = currentAction;
+        currentAction = actions[name];
+        if (prev !== currentAction) {
+            if (prev) prev.fadeOut(0.2);
+            currentAction.reset().fadeIn(0.2).play();
+        }
     }
 
     function buildLevel(num) {
@@ -148,26 +184,6 @@
         document.getElementById('intro-title').innerText = mapData.name;
     }
 
-    function loadNiko() {
-        new FBXLoader().load('catwalk.fbx', (fbx) => {
-            model = fbx;
-            const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
-            model.scale.setScalar(240 / size.y);
-            resetNiko();
-            scene.add(model);
-            mixer = new THREE.AnimationMixer(model);
-            if(fbx.animations.length>0) mixer.clipAction(fbx.animations[0]).play();
-
-            isReady = true;
-            document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
-            document.getElementById('click-prompt').style.display = "block";
-            document.getElementById('load-bar').style.width = "100%";
-        }, (xhr) => {
-            const percent = (xhr.loaded / xhr.total) * 100;
-            document.getElementById('load-bar').style.width = percent + "%";
-        });
-    }
-
     function resetNiko() {
         const start = maps[currentLevel].start;
         model.position.set(start.x*cellSize - 4000, 0, start.z*cellSize - 4000);
@@ -178,26 +194,42 @@
         const delta = clock.getDelta();
         if(mixer) mixer.update(delta);
 
-        if(gameActive) {
+        if(gameActive && isReady) {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
             let fwd = (keys.w?1:0)-(keys.s?1:0), side = (keys.d?1:0)-(keys.a?1:0);
             if(keys.arrowleft) camYaw += 0.05; if(keys.arrowright) camYaw -= 0.05;
 
-            if(fwd!==0 || side!==0) {
+            const isMoving = fwd !== 0 || side !== 0;
+
+            if(isMoving) {
+                idleTimer = 0; // Reset twerk countdown
+                fadeToAction('walk');
                 model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, camYaw + Math.atan2(side, fwd) + Math.PI, 0.2);
-                const spd = keys.shift ? 50 : 25;
+                const spd = keys.shift ? 55 : 28;
                 const nX = model.position.x + Math.sin(model.rotation.y)*spd, nZ = model.position.z + Math.cos(model.rotation.y)*spd;
                 const gx = Math.round((nX+4000)/cellSize), gz = Math.round((nZ+4000)/cellSize);
                 if(maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx]===0) {
                     model.position.x=nX; model.position.z=nZ;
                 }
+            } else {
+                // Not moving logic
+                if (currentAction !== actions['twerk']) {
+                    fadeToAction('idle');
+                    idleTimer += delta;
+                    if (idleTimer >= 5) {
+                        fadeToAction('twerk');
+                        idleTimer = 0;
+                    }
+                } else if (actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
+                    fadeToAction('idle'); // Loop back to idle after twerking
+                }
             }
+
             if(model.position.distanceTo(goalOrb.position)<400) {
                 currentLevel = currentLevel < 3 ? currentLevel + 1 : 1;
-                gameActive = false;
-                document.getElementById('intro-overlay').classList.remove('hidden');
+                gameActive = false; document.getElementById('intro-overlay').classList.remove('hidden');
                 buildLevel(currentLevel); resetNiko();
             }
 
