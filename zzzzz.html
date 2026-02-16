@@ -299,7 +299,7 @@
     function resetNiko() {
         const start = maps[currentLevel].start;
         model.position.set(start.x*cellSize - 4000, 0, start.z*cellSize - 4000);
-        model.rotation.y = Math.PI; // Face "forward" initially
+        model.rotation.y = 0;
     }
 
     function animate() {
@@ -316,17 +316,21 @@
             if(keys.e) camYaw -= 0.04;
 
             // Directional Logic
+            // W/S: Forward/Backward relative to camera
+            // A/D: Left/Right relative to camera
             let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-            let inputZ = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
+            let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
 
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
 
                 // Determine movement direction based on Camera Yaw
+                // The +Math.PI is removed/adjusted here to fix the moonwalking
                 const moveAngle = Math.atan2(inputX, inputZ) + camYaw;
 
                 // Rotation
-                const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle + Math.PI);
+                // Niko should face exactly where he is moving
+                const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle);
                 model.quaternion.slerp(targetQuat, 0.15);
 
                 // Speed
@@ -334,6 +338,7 @@
                 if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
 
                 // Apply Velocity
+                // We calculate vx/vz based on the movement angle
                 const vx = Math.sin(moveAngle) * spd;
                 const vz = Math.cos(moveAngle) * spd;
 
@@ -357,7 +362,7 @@
                     fadeToAction('idle');
                     idleTimer += delta;
                     if (idleTimer >= 8) { fadeToAction('twerk'); idleTimer = 0; }
-                } else if (actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
+                } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
                     fadeToAction('idle');
                 }
             }
