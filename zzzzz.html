@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Dungeon Maze</title>
+    <title>Niko: Smooth & Bright</title>
     <style>
-        body { margin: 0; background: #050505; overflow: hidden; font-family: 'Courier New', monospace; }
-        #ui { position: absolute; top: 10px; left: 10px; color: #ffae00; text-shadow: 2px 2px black; background: rgba(0,0,0,0.7); padding: 10px; border: 1px solid #ffae00; border-radius: 5px; }
+        body { margin: 0; background: #111; overflow: hidden; font-family: 'Courier New', monospace; }
+        #ui { position: absolute; top: 10px; left: 10px; color: #00ff00; text-shadow: 2px 2px black; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid #00ff00; z-index: 100; pointer-events: none; }
     </style>
 </head>
 <body>
     <div id="ui">
-        <b>WASD</b>: Walk | <b>ARROWS</b>: Camera<br>
+        <b>WASD</b>: Move | <b>ARROWS</b>: Camera<br>
         <b>+ / -</b>: Zoom | <b>P</b>: Pause
     </div>
 
@@ -27,11 +27,11 @@
     import * as THREE from 'three';
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-    let scene, camera, renderer, mixer, clock, model, walkAction;
-    let zoomDist = 1200, camAngle = 0;
+    let scene, camera, renderer, mixer, clock, model, walkAction, nikoLight;
+    let zoomDist = 1000, camAngle = 0;
     let isPaused = false;
     const keys = {};
-    const cellSize = 500; // Wider halls
+    const cellSize = 600;
 
     const mazeMap = [
         [1,1,1,1,1,1,1,1,1,1],
@@ -50,36 +50,36 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050505);
-        scene.fog = new THREE.Fog(0x050505, 500, 4000);
+        scene.background = new THREE.Color(0x111111);
+        scene.fog = new THREE.Fog(0x111111, 1000, 5000);
 
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 15000);
 
-        renderer = new THREE.WebGLRenderer({ antialias: false });
+        renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Dungeon Lighting
-        scene.add(new THREE.AmbientLight(0x404040, 1)); // Dim base light
-        const pointLight = new THREE.PointLight(0xffae00, 2, 2000); // Torch-like light
-        scene.add(pointLight);
+        // --- BRIGHTER LIGHTING ---
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8)); // Base visibility
+        nikoLight = new THREE.PointLight(0xffffff, 15, 1500); // Super bright light on Niko
+        scene.add(nikoLight);
 
         // Dark Stone Floor
         const floor = new THREE.Mesh(
             new THREE.PlaneGeometry(10000, 10000),
-            new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 })
+            new THREE.MeshStandardMaterial({ color: 0x222222 })
         );
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
         // Stone Walls
-        const wallGeo = new THREE.BoxGeometry(cellSize, 600, cellSize);
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 });
+        const wallGeo = new THREE.BoxGeometry(cellSize, 500, cellSize);
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x444444 });
         for(let z = 0; z < mazeMap.length; z++) {
             for(let x = 0; x < mazeMap[z].length; x++) {
                 if(mazeMap[z][x] === 1) {
                     const wall = new THREE.Mesh(wallGeo, wallMat);
-                    wall.position.set(x * cellSize - 2500, 300, z * cellSize - 2500);
+                    wall.position.set(x * cellSize - 3000, 250, z * cellSize - 3000);
                     scene.add(wall);
                 }
             }
@@ -90,7 +90,7 @@
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
             model.scale.setScalar(250 / (size.y || 1));
-            model.position.set(-2000, 0, -2000);
+            model.position.set(-2400, 0, -2400);
             scene.add(model);
 
             mixer = new THREE.AnimationMixer(model);
@@ -106,8 +106,8 @@
         window.addEventListener('keydown', (e) => {
             keys[e.key.toLowerCase()] = true;
             if(e.key === 'p') isPaused = !isPaused;
-            if(e.key === '+' || e.key === '=') zoomDist = Math.max(400, zoomDist - 100);
-            if(e.key === '-' || e.key === '_') zoomDist = Math.min(4000, zoomDist + 100);
+            if(e.key === '+' || e.key === '=') zoomDist = Math.max(400, zoomDist - 150);
+            if(e.key === '-' || e.key === '_') zoomDist = Math.min(4000, zoomDist + 150);
         });
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
 
@@ -115,8 +115,8 @@
     }
 
     function canMoveTo(x, z) {
-        const gridX = Math.round((x + 2500) / cellSize);
-        const gridZ = Math.round((z + 2500) / cellSize);
+        const gridX = Math.round((x + 3000) / cellSize);
+        const gridZ = Math.round((z + 3000) / cellSize);
         if(mazeMap[gridZ] && mazeMap[gridZ][gridX] === 1) return false;
         return true;
     }
@@ -139,20 +139,21 @@
 
             if (moveDir.length() > 0) {
                 moving = true;
-                // Rotate moveDir relative to camera
+                moveDir.normalize(); // Keep speed consistent diagonally
                 moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), camAngle);
 
-                // PIVOT FIX: Calculate the exact target angle
+                // --- THE SMOOTH TURN FIX ---
                 const targetRot = Math.atan2(moveDir.x, moveDir.z);
 
-                // Faster lerp for rotation (0.3 instead of 0.15) makes him pivot faster
+                // This ensures he turns the "short way" around
                 let diff = targetRot - model.rotation.y;
                 while (diff < -Math.PI) diff += Math.PI * 2;
                 while (diff > Math.PI) diff -= Math.PI * 2;
-                model.rotation.y += diff * 0.3;
 
-                // Only move forward if we are roughly facing the right way
-                const speed = 14;
+                // Slower multiplier (0.1) makes the rotation visible
+                model.rotation.y += diff * 0.12;
+
+                const speed = 15;
                 const nextX = model.position.x + Math.sin(model.rotation.y) * speed;
                 const nextZ = model.position.z + Math.cos(model.rotation.y) * speed;
 
@@ -164,13 +165,15 @@
 
             if (walkAction) walkAction.paused = !moving;
 
-            // Camera Controls
-            if (keys.arrowleft) camAngle -= 0.05;
-            if (keys.arrowright) camAngle += 0.05;
+            // Camera & Light follow
+            if (keys.arrowleft) camAngle -= 0.04;
+            if (keys.arrowright) camAngle += 0.04;
+
+            nikoLight.position.set(model.position.x, 300, model.position.z);
 
             const camX = model.position.x + Math.sin(camAngle) * zoomDist;
             const camZ = model.position.z + Math.cos(camAngle) * zoomDist;
-            camera.position.set(camX, 700 + (zoomDist * 0.3), camZ);
+            camera.position.set(camX, 800, camZ);
             camera.lookAt(model.position.x, 150, model.position.z);
         }
         renderer.render(scene, camera);
