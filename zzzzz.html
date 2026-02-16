@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Smooth Meadow</title>
+    <title>Niko's Maze Quest</title>
     <style>
-        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: monospace; }
-        #status { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; z-index: 10; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; }
+        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: 'Courier New', monospace; }
+        #ui { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; z-index: 10; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; pointer-events: none; }
+        b { color: #0f0; }
     </style>
 </head>
 <body>
-    <div id="status">SCROLL TO ZOOM | NIKO IS READY</div>
+    <div id="ui">
+        <b>WASD</b> to Move | <b>Mouse</b> to Lead<br>
+        <b>SCROLL</b> to Zoom | <b>P</b> to Pause/Resume
+    </div>
 
 <script type="importmap">
     {
@@ -26,7 +30,9 @@
 
     let scene, camera, renderer, mixer, clock, model, walkAction;
     let mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster(), targetPos = new THREE.Vector3();
-    let zoomDist = 1200; // Starting zoom distance
+    let zoomDist = 1500;
+    let isPaused = false;
+    const keys = { w: false, a: false, s: false, d: false };
 
     init();
 
@@ -34,43 +40,50 @@
         clock = new THREE.Clock();
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
-        scene.fog = new THREE.Fog(0x87CEEB, 1000, 5000);
+        scene.fog = new THREE.Fog(0x87CEEB, 1000, 7000);
 
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 30000);
-        camera.position.set(0, 600, zoomDist);
 
         scene.add(new THREE.AmbientLight(0xffffff, 2.5));
         const sun = new THREE.DirectionalLight(0xffffff, 2);
         sun.position.set(500, 1000, 500);
         scene.add(sun);
 
-        // Meadow
+        // Meadow Floor
         const floor = new THREE.Mesh(
-            new THREE.PlaneGeometry(20000, 20000),
+            new THREE.PlaneGeometry(10000, 10000),
             new THREE.MeshPhongMaterial({ color: 0x2d5a27 })
         );
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
+        // --- CREATE A SIMPLE MAZE ---
+        const wallMat = new THREE.MeshPhongMaterial({ color: 0x888888 });
+        const wallGeo = new THREE.BoxGeometry(200, 300, 200);
+        for(let i = 0; i < 60; i++) {
+            const wall = new THREE.Mesh(wallGeo, wallMat);
+            wall.position.set(
+                Math.round((Math.random() - 0.5) * 40) * 200,
+                150,
+                Math.round((Math.random() - 0.5) * 40) * 200
+            );
+            scene.add(wall);
+        }
+
         const loader = new FBXLoader();
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
-
-            // Apply that massive 14869x scale factor automatically
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
-            const scaleFactor = 250 / (size.y || 1);
-            model.scale.setScalar(scaleFactor);
-
+            model.scale.setScalar(250 / (size.y || 1));
             scene.add(model);
 
             mixer = new THREE.AnimationMixer(model);
             if (fbx.animations.length > 0) {
-                const clip = fbx.animations[0];
-                clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
-                walkAction = mixer.clipAction(clip);
+                walkAction = mixer.clipAction(fbx.animations[0]);
+                walkAction.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
                 walkAction.play();
-                walkAction.paused = true; // Stay still until mouse moves
+                walkAction.paused = true;
             }
         });
 
@@ -78,15 +91,25 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // --- CONTROLS ---
+        // --- EVENT LISTENERS ---
         window.addEventListener('mousemove', (e) => {
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
         });
 
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (key in keys) keys[key] = true;
+            if (key === 'p') isPaused = !isPaused;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            if (key in keys) keys[key] = false;
+        });
+
         window.addEventListener('wheel', (e) => {
-            zoomDist += e.deltaY * 0.5;
-            zoomDist = Math.max(300, Math.min(zoomDist, 5000)); // Clamp zoom
+            zoomDist = Math.max(500, Math.min(zoomDist + e.deltaY, 5000));
         });
 
         animate();
@@ -95,35 +118,55 @@
     function animate() {
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
+
+        if (isPaused) {
+            if (walkAction) walkAction.paused = true;
+            renderer.render(scene, camera);
+            return;
+        }
+
         if (mixer) mixer.update(delta);
 
-        if (model && walkAction) {
+        if (model) {
+            let moving = false;
+            let moveVec = new THREE.Vector3(0, 0, 0);
+
+            // 1. MOUSE LOGIC (Targeting)
             raycaster.setFromCamera(mouse, camera);
             const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
             raycaster.ray.intersectPlane(plane, targetPos);
+            const distToMouse = model.position.distanceTo(targetPos);
 
-            const distance = model.position.distanceTo(targetPos);
+            // 2. WASD LOGIC
+            if (keys.w) moveVec.z -= 1;
+            if (keys.s) moveVec.z += 1;
+            if (keys.a) moveVec.x -= 1;
+            if (keys.d) moveVec.x += 1;
 
-            if (distance > 30) {
-                walkAction.paused = false;
-
-                // 1. SMOOTH ROTATION (Look at target gradually)
-                const targetRotation = Math.atan2(targetPos.x - model.position.x, targetPos.z - model.position.z);
-                model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, targetRotation, 0.1);
-
-                // 2. SMOOTH MOVEMENT
-                model.translateZ(6);
-
-                // 3. SMOOTH CAMERA FOLLOW
-                const camTargetY = 400 + (zoomDist * 0.2);
-                camera.position.x = THREE.MathUtils.lerp(camera.position.x, model.position.x, 0.05);
-                camera.position.z = THREE.MathUtils.lerp(camera.position.z, model.position.z + zoomDist, 0.05);
-                camera.position.y = THREE.MathUtils.lerp(camera.position.y, camTargetY, 0.05);
-                camera.lookAt(model.position.x, 150, model.position.z);
-            } else {
-                walkAction.paused = true;
+            if (moveVec.length() > 0) {
+                moving = true;
+                const angle = Math.atan2(moveVec.x, moveVec.z);
+                model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, angle, 0.1);
+                model.translateZ(8);
             }
+            // 3. AUTO-STOP MOUSE LOGIC (Only if not using WASD)
+            else if (distToMouse > 80) { // STOPPING DISTANCE
+                moving = true;
+                const targetRot = Math.atan2(targetPos.x - model.position.x, targetPos.z - model.position.z);
+                model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, targetRot, 0.1);
+                model.translateZ(8);
+            }
+
+            // Play/Pause animation based on movement
+            if (walkAction) walkAction.paused = !moving;
+
+            // Camera follow
+            camera.position.x = THREE.MathUtils.lerp(camera.position.x, model.position.x, 0.05);
+            camera.position.z = THREE.MathUtils.lerp(camera.position.z, model.position.z + zoomDist, 0.05);
+            camera.position.y = THREE.MathUtils.lerp(camera.position.y, model.position.y + (zoomDist * 0.5), 0.05);
+            camera.lookAt(model.position.x, 150, model.position.z);
         }
+
         renderer.render(scene, camera);
     }
 </script>
