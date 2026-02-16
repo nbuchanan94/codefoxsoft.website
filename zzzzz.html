@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Bronx Speedrun - FIXED SPAWN</title>
+    <title>Niko: Maze Master</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
         #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px #000; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 4px; border-left: 4px solid #00ffcc; z-index: 100; pointer-events: none; }
-        #timer { position: absolute; top: 20px; right: 20px; color: #ffcc00; font-size: 2em; font-weight: bold; text-shadow: 0 0 10px #ffaa00; z-index: 100; }
-        #intro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: #00ffcc; transition: opacity 0.5s; text-align: center;}
-        #intro-overlay h1 { font-size: 3em; margin: 0; letter-spacing: 5px; }
+        #timer { position: absolute; top: 20px; right: 20px; color: #ffcc00; font-size: 2em; font-weight: bold; z-index: 100; }
+        #intro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: #00ffcc; text-align: center;}
+        #load-bar-container { width: 300px; height: 10px; background: #222; margin-top: 20px; border-radius: 5px; overflow: hidden; }
+        #load-bar { width: 0%; height: 100%; background: #00ffcc; transition: width 0.3s; }
         .hidden { opacity: 0; pointer-events: none; }
     </style>
 </head>
@@ -20,7 +21,8 @@
     <div id="timer">00:00</div>
     <div id="intro-overlay">
         <h1 id="intro-title">THE BRONX</h1>
-        <p style="color:white">WAKE UP NIKO...<br><br>PRESS [ANY KEY] TO START</p>
+        <p id="status-text" style="color:white">LOADING CITY ASSETS...</p>
+        <div id="load-bar-container"><div id="load-bar"></div></div>
     </div>
 
 <script type="importmap">
@@ -38,35 +40,60 @@
 
     let scene, camera, renderer, mixer, clock, model, goalOrb;
     let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
-    let camDistance = 900, camPitch = 30, camYaw = 0;
+    let camDistance = 900, camPitch = 35, camYaw = 0;
     const keys = {}, cellSize = 1800;
 
+    // --- RESTORED MAZE LEVELS ---
     const maps = {
-        1: { name: "THE BRONX", grid: [[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1]] },
-        2: { name: "UPTOWN", grid: [[1,1,1,1,1,1],[1,0,0,1,0,1],[1,1,0,0,0,1],[1,0,0,1,0,1],[1,1,1,1,1,1]] },
-        3: { name: "DOWNTOWN", grid: [[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,1,1,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]] }
+        1: { name: "THE BRONX", grid: [
+            [1,1,1,1,1,1,1],
+            [1,0,0,0,1,0,1],
+            [1,1,1,0,1,0,1],
+            [1,0,0,0,0,0,1],
+            [1,0,1,1,1,1,1],
+            [1,0,0,0,0,0,0], // Goal here
+            [1,1,1,1,1,1,1]
+        ], start: {x:1, z:1}, goal: {x:5, z:5} },
+        2: { name: "UPTOWN", grid: [
+            [1,1,1,1,1,1,1],
+            [1,0,1,0,0,0,1],
+            [1,0,1,0,1,0,1],
+            [1,0,0,0,1,0,1],
+            [1,1,1,0,1,0,1],
+            [1,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1]
+        ], start: {x:1, z:1}, goal: {x:5, z:1} },
+        3: { name: "DOWNTOWN", grid: [
+            [1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,1],
+            [1,0,1,1,1,1,1,0,1],
+            [1,0,1,0,0,0,1,0,1],
+            [1,0,1,0,1,0,1,0,1],
+            [1,0,0,0,1,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1]
+        ], start: {x:1, z:1}, goal: {x:4, z:4} }
     };
 
     function createCityTextures() {
         const rC = document.createElement('canvas'); rC.width = 512; rC.height = 512;
         const rCtx = rC.getContext('2d');
-        rCtx.fillStyle = '#222'; rCtx.fillRect(0,0,512,512); // Sidewalk
-        rCtx.fillStyle = '#0a0a0a'; rCtx.fillRect(80,0,352,512); // Asphalt
-        rCtx.fillStyle = '#333'; for(let i=0; i<512; i+=64) rCtx.fillRect(250, i, 12, 32);
+        rCtx.fillStyle = '#222'; rCtx.fillRect(0,0,512,512); // Sidewalks
+        rCtx.fillStyle = '#080808'; rCtx.fillRect(60,0,392,512); // Asphalt
+        rCtx.fillStyle = '#333'; for(let i=0; i<512; i+=64) rCtx.fillRect(250, i, 10, 30);
 
         const bC = document.createElement('canvas'); bC.width = 512; bC.height = 1024;
         const bCtx = bC.getContext('2d');
-        bCtx.fillStyle = '#111115'; bCtx.fillRect(0,0,512,1024);
+        bCtx.fillStyle = '#111'; bCtx.fillRect(0,0,512,1024);
         const eC = document.createElement('canvas'); eC.width = 512; eC.height = 1024;
         const eCtx = eC.getContext('2d');
         eCtx.fillStyle = '#000'; eCtx.fillRect(0,0,512,1024);
 
-        for(let y=50; y<1024; y+=130) {
-            for(let x=40; x<512; x+=110) {
-                if(Math.random() > 0.3) {
-                    const col = Math.random() > 0.5 ? '#ff9900' : '#0077ff';
-                    bCtx.fillStyle = col; bCtx.globalAlpha = 0.2; bCtx.fillRect(x,y,60,50);
-                    eCtx.fillStyle = col; eCtx.shadowBlur = 15; eCtx.shadowColor = col; eCtx.fillRect(x,y,60,50);
+        for(let y=40; y<1024; y+=120) {
+            for(let x=30; x<512; x+=100) {
+                if(Math.random() > 0.4) {
+                    const col = Math.random() > 0.5 ? '#ff9900' : '#0099ff';
+                    bCtx.fillStyle = col; bCtx.globalAlpha = 0.2; bCtx.fillRect(x,y,65,45);
+                    eCtx.fillStyle = col; eCtx.shadowBlur = 15; eCtx.shadowColor = col; eCtx.fillRect(x,y,65,45);
                 }
             }
         }
@@ -75,7 +102,7 @@
             build: new THREE.MeshStandardMaterial({
                 map: new THREE.CanvasTexture(bC),
                 emissiveMap: new THREE.CanvasTexture(eC),
-                emissive: 0xffffff, emissiveIntensity: 2.0
+                emissive: 0xffffff, emissiveIntensity: 2.2
             })
         };
     }
@@ -85,10 +112,10 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x010103);
-        scene.fog = new THREE.FogExp2(0x010103, 0.0001);
+        scene.background = new THREE.Color(0x010102);
+        scene.fog = new THREE.FogExp2(0x010102, 0.00012);
 
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 50000);
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 60000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
@@ -97,9 +124,12 @@
         scene.add(levelGroup);
 
         window.addEventListener('keydown', (e) => {
-            if(!gameActive) { gameActive = true; startTime = Date.now(); document.getElementById('intro-overlay').classList.add('hidden'); }
+            if(!gameActive && document.getElementById('status-text').innerText.includes('READY')) {
+                gameActive = true; startTime = Date.now();
+                document.getElementById('intro-overlay').classList.add('hidden');
+            }
             keys[e.key.toLowerCase()] = true;
-            if(e.key.toLowerCase()==='t') { camPitch = (camPitch === 30 ? 80 : 30); camDistance = (camPitch === 80 ? 3000 : 900); }
+            if(e.key.toLowerCase()==='t') { camPitch = (camPitch === 35 ? 85 : 35); camDistance = (camPitch === 85 ? 3500 : 900); }
         });
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
 
@@ -110,55 +140,65 @@
 
     function buildLevel(num) {
         while(levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
-        const map = maps[num].grid;
+        const mapData = maps[num];
+        const grid = mapData.grid;
 
-        levelGroup.add(new THREE.AmbientLight(0xffffff, 0.5));
-        const l = new THREE.DirectionalLight(0x4455ff, 0.6); l.position.set(2000,3000,1000);
-        levelGroup.add(l);
+        levelGroup.add(new THREE.AmbientLight(0xffffff, 0.4));
+        const sun = new THREE.DirectionalLight(0x4455ff, 0.5); sun.position.set(2000,4000,1000);
+        levelGroup.add(sun);
 
-        for(let z=0; z<map.length; z++) {
-            for(let x=0; x<map[z].length; x++) {
-                const px = x*cellSize - 2000, pz = z*cellSize - 2000;
-                if(map[z][x] === 1) {
-                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize-100, 6000, cellSize-100), cityMaterials.build);
+        for(let z=0; z<grid.length; z++) {
+            for(let x=0; x<grid[z].length; x++) {
+                const px = x*cellSize - 4000, pz = z*cellSize - 4000;
+                if(grid[z][x] === 1) {
+                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 6000, cellSize), cityMaterials.build);
                     b.position.set(px, 3000, pz); levelGroup.add(b);
                 } else {
                     const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), cityMaterials.road);
                     r.rotation.x = -Math.PI/2; r.position.set(px, 0, pz); levelGroup.add(r);
-                    if((x+z)%2===0) spawnLamp(px - cellSize/2 + 100, pz);
+                    if((x+z)%2===0) spawnLamp(px, pz);
                 }
             }
         }
-        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(200), new THREE.MeshStandardMaterial({color:0xffd700, emissive:0xffd700, emissiveIntensity:5}));
-        goalOrb.position.set(cellSize*(map[0].length-2)-2000, 300, cellSize*(map.length-2)-2000);
+        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({color:0xffcc00, emissive:0xffcc00, emissiveIntensity:6}));
+        goalOrb.position.set(mapData.goal.x*cellSize - 4000, 300, mapData.goal.z*cellSize - 4000);
         levelGroup.add(goalOrb);
 
-        document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${maps[num].name}`;
-        document.getElementById('intro-title').innerText = maps[num].name;
+        document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${mapData.name}`;
+        document.getElementById('intro-title').innerText = mapData.name;
     }
 
     function spawnLamp(x, z) {
         const g = new THREE.Group();
-        const p = new THREE.Mesh(new THREE.CylinderGeometry(12,15,800), new THREE.MeshStandardMaterial({color:0x000}));
+        const p = new THREE.Mesh(new THREE.CylinderGeometry(10,10,800), new THREE.MeshStandardMaterial({color:0x000}));
         p.position.y=400; g.add(p);
-        const s = new THREE.SpotLight(0xfff5ee, 120000, 2000, 0.7, 0.5, 1);
-        s.position.set(0, 800, 0); s.target.position.set(0, 0, 0);
+        const s = new THREE.SpotLight(0xfff5ee, 150000, 2500, 0.7, 0.5, 1);
+        s.position.set(0, 800, 0); s.target.position.set(0,0,0);
         g.add(s); g.add(s.target);
-        const c = new THREE.Mesh(new THREE.ConeGeometry(500, 800, 24), new THREE.MeshBasicMaterial({color:0xfff5ee, transparent:true, opacity:0.15, blending:THREE.AdditiveBlending, depthWrite:false}));
-        c.position.set(0, 400, 0); c.rotation.z = Math.PI;
-        g.add(c); g.position.set(x, 0, z); levelGroup.add(g);
+        g.position.set(x, 0, z); levelGroup.add(g);
     }
 
     function loadNiko() {
         new FBXLoader().load('catwalk.fbx', (fbx) => {
             model = fbx;
             const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
-            model.scale.setScalar(220 / size.y);
-            model.position.set(0, 0, 0); // START IN CENTER OF ROAD
+            model.scale.setScalar(240 / size.y);
+            resetNiko();
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
             if(fbx.animations.length>0) mixer.clipAction(fbx.animations[0]).play();
-        }, (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded'); });
+
+            document.getElementById('status-text').innerText = "SYSTEMS ONLINE. PRESS ANY KEY.";
+            document.getElementById('load-bar').style.width = "100%";
+        }, (xhr) => {
+            const percent = (xhr.loaded / xhr.total) * 100;
+            document.getElementById('load-bar').style.width = percent + "%";
+        });
+    }
+
+    function resetNiko() {
+        const start = maps[currentLevel].start;
+        model.position.set(start.x*cellSize - 4000, 0, start.z*cellSize - 4000);
     }
 
     function animate() {
@@ -166,31 +206,30 @@
         const delta = clock.getDelta();
         if(mixer) mixer.update(delta);
 
-        if(gameActive && startTime > 0) {
+        if(gameActive) {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const m = Math.floor(elapsed/60).toString().padStart(2,'0');
-            const s = (elapsed%60).toString().padStart(2,'0');
-            document.getElementById('timer').innerText = `${m}:${s}`;
-        }
+            document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-        if(model && gameActive) {
             let fwd = (keys.w?1:0)-(keys.s?1:0), side = (keys.d?1:0)-(keys.a?1:0);
             if(keys.arrowleft) camYaw += 0.05; if(keys.arrowright) camYaw -= 0.05;
 
             if(fwd!==0 || side!==0) {
                 model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, camYaw + Math.atan2(side, fwd) + Math.PI, 0.2);
-                const spd = keys.shift ? 48 : 24;
+                const spd = keys.shift ? 50 : 25;
                 const nX = model.position.x + Math.sin(model.rotation.y)*spd, nZ = model.position.z + Math.cos(model.rotation.y)*spd;
-                const gx = Math.round((nX+2000)/cellSize), gz = Math.round((nZ+2000)/cellSize);
 
+                // Better Collision for Narrow Alleys
+                const gx = Math.round((nX+4000)/cellSize), gz = Math.round((nZ+4000)/cellSize);
                 if(maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx]===0) {
                     model.position.x=nX; model.position.z=nZ;
                 }
             }
-            if(model.position.distanceTo(goalOrb.position)<350) {
+            if(model.position.distanceTo(goalOrb.position)<400) {
                 currentLevel = currentLevel < 3 ? currentLevel + 1 : 1;
-                gameActive = false; document.getElementById('intro-overlay').classList.remove('hidden');
-                buildLevel(currentLevel); model.position.set(0, 0, 0);
+                gameActive = false;
+                document.getElementById('intro-overlay').classList.remove('hidden');
+                document.getElementById('status-text').innerText = "READY FOR NEXT SECTOR. PRESS ANY KEY.";
+                buildLevel(currentLevel); resetNiko();
             }
 
             const p = model.position.clone().add(new THREE.Vector3(0,250,0));
