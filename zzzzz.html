@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Niko: Maze Master - Fixed Lighting</title>
+    <title>Niko: Maze Master - Fixed Orientation</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
         #ui { position: absolute; top: 20px; left: 20px; color: #fff; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 4px; border-left: 4px solid #00ffcc; z-index: 100; pointer-events: none; }
@@ -20,7 +20,7 @@
 <body>
     <div id="ui">
         <b id="lvl-name">LEVEL 1: THE BRONX</b><br>
-        WASD: Move | SHIFT: Sprint | T: View
+        WASD: Move | SHIFT: Sprint | T: View | +/-: Zoom
     </div>
     <div id="timer">00:00</div>
     <div id="debug-log">DEBUG CONSOLE:<br></div>
@@ -49,8 +49,9 @@
     let actions = {}, currentAction, idleTimer = 0;
     let isReady = false;
 
-    let camDistance = 550;
-    let camPitch = 25;
+    // Camera Settings
+    let camDistance = 450;
+    let camPitch = 10;
     let camYaw = 0;
     const keys = {}, cellSize = 1800;
 
@@ -113,7 +114,6 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Persistent Global Lighting (Prevents black screen)
         const ambient = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambient);
         const sun = new THREE.DirectionalLight(0x4455ff, 1.2);
@@ -132,12 +132,17 @@
         };
 
         window.addEventListener('keydown', (e) => {
-            keys[e.key.toLowerCase()] = true;
+            const k = e.key.toLowerCase();
+            keys[k] = true;
             startAction();
-            if(e.key.toLowerCase()==='t') {
-                camPitch = (camPitch < 80 ? 85 : 25);
-                camDistance = (camPitch === 85 ? 3500 : 550);
+
+            if(k === 't') {
+                camPitch = (camPitch < 60 ? 85 : 10);
+                camDistance = (camPitch === 85 ? 3500 : 450);
             }
+
+            if (e.key === '+' || e.key === '=') camDistance = Math.max(150, camDistance - 40);
+            if (e.key === '-' || e.key === '_') camDistance = Math.min(2200, camDistance + 40);
         });
         window.addEventListener('mousedown', startAction);
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
@@ -169,8 +174,11 @@
         const baseUrl = 'https://www.codefoxsoft.com/';
         const files = [
             { key: 'walk', path: baseUrl + 'catwalk.fbx' },
-            { key: 'idle', path: baseUrl + 'idle2.fbx' }, // Updated to idle2
-            { key: 'twerk', path: baseUrl + 'twerk.fbx' }
+            { key: 'idle', path: baseUrl + 'idle2.fbx' },
+            { key: 'twerk', path: baseUrl + 'twerk.fbx' },
+            { key: 'run', path: baseUrl + 'run.fbx' },
+            { key: 'leftturn', path: baseUrl + 'leftturn.fbx' },
+            { key: 'rightturn', path: baseUrl + 'rightturn.fbx' }
         ];
 
         const results = await Promise.all(files.map(f => loadFile(loader, f.key, f.path)));
@@ -194,6 +202,7 @@
             if (!res.error && res.fbx && res.fbx.animations.length > 0) {
                 const action = mixer.clipAction(res.fbx.animations[0]);
                 if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
+                if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
                 actions[res.key] = action;
             }
         });
@@ -206,20 +215,18 @@
         document.getElementById('click-prompt').style.display = "block";
     }
 
-    function fadeToAction(name) {
+    function fadeToAction(name, duration = 0.2) {
         if (!actions[name]) return;
         const prev = currentAction;
         currentAction = actions[name];
         if (prev !== currentAction) {
-            if (prev) prev.fadeOut(0.2);
-            currentAction.reset().fadeIn(0.2).play();
+            if (prev) prev.fadeOut(duration);
+            currentAction.reset().fadeIn(duration).play();
         }
     }
 
     function buildLevel(num) {
-        // Clear old geometry but NOT global lights
         while(levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
-
         const mapData = maps[num];
 
         for(let z=0; z<mapData.grid.length; z++) {
@@ -243,6 +250,7 @@
     function resetNiko() {
         const start = maps[currentLevel].start;
         model.position.set(start.x*cellSize - 4000, 0, start.z*cellSize - 4000);
+        model.rotation.y = 0;
     }
 
     function animate() {
@@ -254,7 +262,12 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            let fwd = (keys.w?1:0)-(keys.s?1:0), side = (keys.d?1:0)-(keys.a?1:0);
+            // Screen-relative movement logic
+            let fwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
+            // FIXED: 'a' now moves him left on screen (negative X in camera space)
+            // 'd' now moves him right on screen (positive X in camera space)
+            let side = (keys.a ? 1 : 0) - (keys.d ? 1 : 0);
+
             if(keys.arrowleft || keys.q) camYaw += 0.05;
             if(keys.arrowright || keys.e) camYaw -= 0.05;
 
@@ -262,15 +275,38 @@
 
             if(isMoving) {
                 idleTimer = 0;
-                fadeToAction('walk');
-                const spd = keys.shift ? 58 : 30;
-                mixer.timeScale = keys.shift ? 1.8 : 1.0;
 
-                model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, camYaw + Math.atan2(side, fwd) + Math.PI, 0.2);
-                const nX = model.position.x + Math.sin(model.rotation.y)*spd, nZ = model.position.z + Math.cos(model.rotation.y)*spd;
-                const gx = Math.round((nX+4000)/cellSize), gz = Math.round((nZ+4000)/cellSize);
-                if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx]===0) {
-                    model.position.x=nX; model.position.z=nZ;
+                let moveAnim = keys.shift ? 'run' : 'walk';
+
+                // Animation Logic
+                if (keys.a && actions['leftturn'] && currentAction !== actions['leftturn']) {
+                    fadeToAction('leftturn', 0.1);
+                } else if (keys.d && actions['rightturn'] && currentAction !== actions['rightturn']) {
+                    fadeToAction('rightturn', 0.1);
+                } else {
+                    const isTurning = currentAction === actions['leftturn'] || currentAction === actions['rightturn'];
+                    if (!isTurning || (currentAction.time >= currentAction.getClip().duration - 0.1)) {
+                        fadeToAction(moveAnim);
+                    }
+                }
+
+                const spd = keys.shift ? 58 : 30;
+
+                // Calculate move direction relative to camera
+                const moveDirection = Math.atan2(side, fwd);
+                const targetRotation = camYaw + moveDirection + Math.PI;
+
+                model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, targetRotation, 0.2);
+
+                const nX = model.position.x + Math.sin(model.rotation.y) * spd;
+                const nZ = model.position.z + Math.cos(model.rotation.y) * spd;
+
+                const gx = Math.round((nX + 4000) / cellSize);
+                const gz = Math.round((nZ + 4000) / cellSize);
+
+                if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx] === 0) {
+                    model.position.x = nX;
+                    model.position.z = nZ;
                 }
             } else {
                 mixer.timeScale = 1.0;
@@ -283,21 +319,23 @@
                 }
             }
 
-            if(model.position.distanceTo(goalOrb.position)<400) {
+            if(model.position.distanceTo(goalOrb.position) < 400) {
                 currentLevel = currentLevel < 3 ? currentLevel + 1 : 1;
                 gameActive = false; document.getElementById('intro-overlay').classList.remove('hidden');
                 buildLevel(currentLevel); resetNiko();
             }
 
-            const p = model.position.clone().add(new THREE.Vector3(0,250,0));
+            // Balanced Cinematic Camera
+            const centerFocus = model.position.clone().add(new THREE.Vector3(0, 120, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
-            const targetPos = p.clone().add(new THREE.Vector3(
+            const targetPos = centerFocus.clone().add(new THREE.Vector3(
                 camDistance * Math.sin(camYaw) * Math.cos(pr),
                 camDistance * Math.sin(pr),
                 camDistance * Math.cos(camYaw) * Math.cos(pr)
             ));
+
             camera.position.lerp(targetPos, 0.15);
-            camera.lookAt(p);
+            camera.lookAt(centerFocus);
         }
         renderer.render(scene, camera);
     }
