@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Niko: Catwalk to Idle</title>
+    <title>Niko Debugger</title>
     <style>
-        body { margin: 0; background-color: #050505; overflow: hidden; font-family: sans-serif; }
-        #loading-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); color: #0f0;
-            display: flex; align-items: center; justify-content: center; z-index: 10;
-        }
+        body { margin: 0; background: #111; color: #0f0; font-family: monospace; overflow: hidden; }
+        #debug-log { position: absolute; top: 10px; left: 10px; pointer-events: none; z-index: 100; }
     </style>
 </head>
 <body>
-    <div id="loading-overlay">Syncing Animations...</div>
+    <div id="debug-log">SYSTEM STARTING...<br></div>
 
 <script type="importmap">
     {
@@ -33,48 +29,63 @@
     let actions = {}, activeAction;
     let mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster(), targetPos = new THREE.Vector3();
 
+    const log = (msg) => {
+        document.getElementById('debug-log').innerHTML += msg + "<br>";
+        console.log(msg);
+    };
+
     init();
 
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a0a);
-
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
         camera.position.set(100, 200, 300);
 
         scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 3));
-        const light = new THREE.DirectionalLight(0xffffff, 2);
-        light.position.set(0, 200, 100);
-        scene.add(light);
+        scene.add(new THREE.GridHelper(1000, 20, 0x333333, 0x222222));
 
         const loader = new FBXLoader();
 
-        // 1. Load Catwalk (Main Body)
+        log("Attempting to load catwalk.fbx...");
         loader.load('catwalk.fbx', (fbx) => {
+            log("SUCCESS: catwalk.fbx loaded.");
             model = fbx;
-            model.scale.setScalar(1); // Adjust if he is giant/tiny
             scene.add(model);
-
             mixer = new THREE.AnimationMixer(model);
 
-            // Fix the walk track names
             const walkClip = fbx.animations[0];
             fixTracks(walkClip);
             actions['walk'] = mixer.clipAction(walkClip);
 
-            // 2. Load Idle (Animation Only)
+            log("Attempting to load idle.fbx...");
             loader.load('idle.fbx', (idleFbx) => {
+                log("SUCCESS: idle.fbx loaded.");
                 const idleClip = idleFbx.animations[0];
                 fixTracks(idleClip);
                 actions['idle'] = mixer.clipAction(idleClip);
 
-                // Start with Idle
                 activeAction = actions['idle'];
                 activeAction.play();
-
-                document.getElementById('loading-overlay').style.display = 'none';
+                log("Niko is ready. Move your mouse.");
+            }, (xhr) => {
+                // Progress tracker
+                if (xhr.lengthComputable) {
+                    const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                    if (percent % 20 === 0) log(`Idle loading: ${percent}%`);
+                }
+            }, (err) => {
+                log("ERROR: Could not load idle.fbx. Check file name/path.");
+                console.error(err);
             });
+        }, (xhr) => {
+            if (xhr.lengthComputable) {
+                const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                if (percent % 20 === 0) log(`Catwalk loading: ${percent}%`);
+            }
+        }, (err) => {
+            log("ERROR: Could not load catwalk.fbx. Check file name/path.");
+            console.error(err);
         });
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -89,8 +100,8 @@
         animate();
     }
 
-    // This handles the Mixamo/Accurig prefix naming issue
     function fixTracks(clip) {
+        if (!clip) return;
         clip.tracks.forEach(track => {
             track.name = track.name.replace(/mixamorig[0-9]*_?|.*:/g, "");
         });
@@ -116,10 +127,10 @@
             const lookTarget = new THREE.Vector3(targetPos.x, model.position.y, targetPos.z);
             const distance = model.position.distanceTo(lookTarget);
 
-            if (distance > 15) { // Threshold for walking
+            if (distance > 20) {
                 fadeTo('walk');
                 model.lookAt(lookTarget);
-                model.translateZ(2.5); // Speed for FBX units
+                model.translateZ(3);
             } else {
                 fadeTo('idle');
             }
