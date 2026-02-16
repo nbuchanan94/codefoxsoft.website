@@ -22,7 +22,7 @@
 <body>
     <div id="ui">
         <b id="lvl-name">LEVEL 1: THE BRONX</b><br>
-        WASD: Move | SHIFT: Sprint | Q/E: Rotate Cam | +/-: Zoom
+        WASD: Move | SHIFT: Sprint | ARROWS: Rotate/Zoom Cam | T: Toggle Birds-eye
     </div>
     <div id="score-display">
         <div id="timer">00:00</div>
@@ -57,7 +57,7 @@
     let shards = [];
 
     // Camera & Shake
-    let camDistance = 400;
+    let camDistance = 800;
     let camPitch = 25;
     let camYaw = 0;
     let shakeIntensity = 0;
@@ -164,17 +164,21 @@
         window.addEventListener('keydown', (e) => {
             const k = e.key.toLowerCase();
             keys[k] = true;
+            // Handle arrow keys separately since e.key is descriptive
+            if (e.key.startsWith('Arrow')) keys[e.key] = true;
+
             startAction();
 
             if(k === 't') {
                 camPitch = (camPitch < 40 ? 85 : 25);
-                camDistance = (camPitch === 85 ? 3500 : 400);
+                camDistance = (camPitch === 85 ? 3500 : 800);
             }
-            if (e.key === '+' || e.key === '=') camDistance = Math.max(200, camDistance - 100);
-            if (e.key === '-' || e.key === '_') camDistance = Math.min(4000, camDistance + 100);
         });
         window.addEventListener('mousedown', startAction);
-        window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+        window.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+            if (e.key.startsWith('Arrow')) keys[e.key] = false;
+        });
 
         buildLevel(currentLevel);
         loadAllAssets();
@@ -320,9 +324,11 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            // Manual camera rotation
-            if(keys.q) camYaw += 0.05;
-            if(keys.e) camYaw -= 0.05;
+            // Manual camera rotation and zoom with Arrow Keys
+            if(keys['ArrowLeft']) camYaw += 0.05;
+            if(keys['ArrowRight']) camYaw -= 0.05;
+            if(keys['ArrowUp']) camDistance = Math.max(200, camDistance - 15);
+            if(keys['ArrowDown']) camDistance = Math.min(4000, camDistance + 15);
 
             let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
             let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
@@ -351,25 +357,13 @@
                     model.position.z = nZ;
                 }
 
-                // IMPROVED AUTO-FOLLOW BEHIND (Niko's back)
-                if (!keys.q && !keys.e) {
-                    // Get the angle Niko is actually facing
+                // AUTO-FOLLOW BEHIND LOGIC (Only if not manually rotating)
+                if (!keys['ArrowLeft'] && !keys['ArrowRight']) {
                     const nikoRotation = model.rotation.y;
-
-                    // The camera should ideally be at nikoRotation + Math.PI (behind him)
-                    // But our coordinate system logic uses camYaw directly to calculate offset.
-                    // Let's find the difference between current camYaw and Niko's rotation.
                     let diff = nikoRotation - camYaw;
-
-                    // Normalize angle difference to [-PI, PI]
                     while (diff < -Math.PI) diff += Math.PI * 2;
                     while (diff > Math.PI) diff -= Math.PI * 2;
-
-                    // SNAPPING LOGIC:
-                    // If moving back (S), we want the cam to rotate around to see his back.
-                    // If moving forward (W), it naturally follows.
-                    // We apply a faster lerp here (0.1) for high responsiveness.
-                    camYaw += diff * 0.1;
+                    camYaw += diff * 0.08;
                 }
 
                 if (keys.shift) fadeToAction('run');
@@ -411,14 +405,12 @@
             const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
 
-            // Calculate target position based on camYaw
             const tPos = new THREE.Vector3(
                 focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
                 focus.y + camDistance * Math.sin(pr) + sY,
                 focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
             );
 
-            // Snap camera position faster for responsive movement
             camera.position.lerp(tPos, 0.2);
             camera.lookAt(focus);
         }
