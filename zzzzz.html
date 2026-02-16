@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Niko: Maze Master - Fixed Orientation</title>
+    <title>Niko: Maze Master - Dimensions</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
         #ui { position: absolute; top: 20px; left: 20px; color: #fff; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 4px; border-left: 4px solid #00ffcc; z-index: 100; pointer-events: none; }
-        #timer { position: absolute; top: 20px; right: 20px; color: #ffcc00; font-size: 2em; font-weight: bold; z-index: 100; }
+        #score-display { position: absolute; top: 20px; right: 20px; text-align: right; z-index: 100; pointer-events: none; }
+        #timer { color: #ffcc00; font-size: 2em; font-weight: bold; text-shadow: 0 0 10px #ffaa00; }
+        #score { color: #00ffcc; font-size: 1.5em; margin-top: 5px; }
         #intro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: #00ffcc; text-align: center; cursor: pointer;}
         #load-bar-container { width: 300px; height: 10px; background: #222; margin-top: 20px; border-radius: 5px; overflow: hidden; }
         #load-bar { width: 0%; height: 100%; background: #00ffcc; transition: width 0.1s; }
@@ -22,7 +24,10 @@
         <b id="lvl-name">LEVEL 1: THE BRONX</b><br>
         WASD: Move | SHIFT: Sprint | T: View | +/-: Zoom
     </div>
-    <div id="timer">00:00</div>
+    <div id="score-display">
+        <div id="timer">00:00</div>
+        <div id="score">SHARDS: 0</div>
+    </div>
     <div id="debug-log">DEBUG CONSOLE:<br></div>
     <div id="intro-overlay">
         <h1 id="intro-title">THE BRONX</h1>
@@ -49,17 +54,46 @@
     let actions = {}, currentAction, idleTimer = 0;
     let isReady = false;
     let isTurning = false;
+    let score = 0;
+    let shards = [];
 
-    // Camera Settings
+    // Camera & Shake
     let camDistance = 450;
     let camPitch = 10;
     let camYaw = 0;
+    let shakeIntensity = 0;
+
     const keys = {}, cellSize = 1800;
 
+    // --- THEME DATA ---
+    const themes = {
+        1: {
+            name: "THE BRONX",
+            sky: 0x050510, fog: 0x050510, fogDens: 0.00018,
+            roadColor: '#1a1a1a', sidewalkColor: '#333',
+            buildColor: '#15151a', win1: '#ffaa00', win2: '#00aaff',
+            lightColor: 0xffaa00, ambient: 0.6
+        },
+        2: {
+            name: "NEON DISTRICT",
+            sky: 0x000510, fog: 0x000510, fogDens: 0.00025,
+            roadColor: '#0a0a15', sidewalkColor: '#111',
+            buildColor: '#050510', win1: '#ff00ff', win2: '#00ffff',
+            lightColor: 0x00ffff, ambient: 0.5
+        },
+        3: {
+            name: "THE CORE",
+            sky: 0x100500, fog: 0x100500, fogDens: 0.0003,
+            roadColor: '#150500', sidewalkColor: '#201010',
+            buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00',
+            lightColor: 0xff0000, ambient: 0.4
+        }
+    };
+
     const maps = {
-        1: { name: "THE BRONX", grid: [[1,1,1,1,1,1,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,0,1,1,1,1,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:5} },
-        2: { name: "UPTOWN", grid: [[1,1,1,1,1,1,1],[1,0,1,0,0,0,1],[1,0,1,0,1,0,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:1} },
-        3: { name: "DOWNTOWN", grid: [[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,1,0,0,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,1,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:4, z:4} }
+        1: { grid: [[1,1,1,1,1,1,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,0,1,1,1,1,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:5} },
+        2: { grid: [[1,1,1,1,1,1,1],[1,0,1,0,0,0,1],[1,0,1,0,1,0,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:1} },
+        3: { grid: [[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,1,0,0,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,1,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:4, z:4} }
     };
 
     function log(msg, type = 'info') {
@@ -71,22 +105,22 @@
         div.scrollTop = div.scrollHeight;
     }
 
-    function createCityTextures() {
+    function createThemeMaterials(theme) {
         const rC = document.createElement('canvas'); rC.width = 512; rC.height = 512;
         const rCtx = rC.getContext('2d');
-        rCtx.fillStyle = '#1a1a1a'; rCtx.fillRect(0,0,512,512);
-        rCtx.fillStyle = '#050505'; rCtx.fillRect(60,0,392,512);
+        rCtx.fillStyle = theme.sidewalkColor; rCtx.fillRect(0,0,512,512);
+        rCtx.fillStyle = theme.roadColor; rCtx.fillRect(60,0,392,512);
         rCtx.fillStyle = '#444'; for(let i=0; i<512; i+=64) rCtx.fillRect(250, i, 12, 32);
 
         const bC = document.createElement('canvas'); bC.width = 512; bC.height = 1024;
-        const bCtx = bC.getContext('2d'); bCtx.fillStyle = '#0a0a0c'; bCtx.fillRect(0,0,512,1024);
+        const bCtx = bC.getContext('2d'); bCtx.fillStyle = theme.buildColor; bCtx.fillRect(0,0,512,1024);
         const eC = document.createElement('canvas'); eC.width = 512; eC.height = 1024;
         const eCtx = eC.getContext('2d'); eCtx.fillStyle = '#000'; eCtx.fillRect(0,0,512,1024);
 
         for(let y=40; y<1024; y+=120) {
             for(let x=30; x<512; x+=100) {
                 if(Math.random() > 0.4) {
-                    const col = Math.random() > 0.5 ? '#ffaa00' : '#00aaff';
+                    const col = Math.random() > 0.5 ? theme.win1 : theme.win2;
                     bCtx.fillStyle = col; bCtx.globalAlpha = 0.15; bCtx.fillRect(x,y,65,45);
                     eCtx.fillStyle = col; eCtx.shadowBlur = 25; eCtx.shadowColor = col; eCtx.fillRect(x,y,65,45);
                 }
@@ -97,27 +131,25 @@
             build: new THREE.MeshStandardMaterial({
                 map: new THREE.CanvasTexture(bC),
                 emissiveMap: new THREE.CanvasTexture(eC),
-                emissive: 0xffffff, emissiveIntensity: 3.5
-            })
+                emissive: 0xffffff, emissiveIntensity: 2.5
+            }),
+            lightColor: theme.lightColor
         };
     }
-
-    const cityMaterials = createCityTextures();
 
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x000005);
-        scene.fog = new THREE.FogExp2(0x000005, 0.00018);
 
         camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 60000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+        // Lights
+        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambient);
-        const sun = new THREE.DirectionalLight(0x4455ff, 1.2);
+        const sun = new THREE.DirectionalLight(0xffffff, 0.5);
         sun.position.set(2000, 4000, 1000);
         scene.add(sun);
 
@@ -141,7 +173,6 @@
                 camPitch = (camPitch < 60 ? 85 : 10);
                 camDistance = (camPitch === 85 ? 3500 : 450);
             }
-
             if (e.key === '+' || e.key === '=') camDistance = Math.max(150, camDistance - 40);
             if (e.key === '-' || e.key === '_') camDistance = Math.min(2200, camDistance + 40);
         });
@@ -231,30 +262,59 @@
 
     function buildLevel(num) {
         while(levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
-        const mapData = maps[num];
+        shards = []; // Reset collectibles
 
+        const theme = themes[num];
+        const mapData = maps[num];
+        const mats = createThemeMaterials(theme);
+
+        // Apply Theme Global Settings
+        scene.background = new THREE.Color(theme.sky);
+        scene.fog = new THREE.FogExp2(theme.fog, theme.fogDens);
+
+        // Spawn Geometry
         for(let z=0; z<mapData.grid.length; z++) {
             for(let x=0; x<mapData.grid[z].length; x++) {
                 const px = x*cellSize - 4000, pz = z*cellSize - 4000;
                 if(mapData.grid[z][x] === 1) {
-                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 6000, cellSize), cityMaterials.build);
+                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 6000, cellSize), mats.build);
                     b.position.set(px, 3000, pz); levelGroup.add(b);
                 } else {
-                    const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), cityMaterials.road);
+                    const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), mats.road);
                     r.rotation.x = -Math.PI/2; r.position.set(px, 0, pz); levelGroup.add(r);
+
+                    // Spawn Data Shard (Collectible) - 30% chance on open road
+                    if (Math.random() > 0.7 && (x !== mapData.start.x || z !== mapData.start.z) && (x !== mapData.goal.x || z !== mapData.goal.z)) {
+                        spawnShard(px, pz, theme.lightColor);
+                    }
                 }
             }
         }
-        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({color:0xffcc00, emissive:0xffcc00, emissiveIntensity:8}));
+
+        // Goal Orb
+        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({color:0xffcc00, emissive:0xffcc00, emissiveIntensity:5}));
         goalOrb.position.set(mapData.goal.x*cellSize - 4000, 300, mapData.goal.z*cellSize - 4000);
         levelGroup.add(goalOrb);
-        document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${mapData.name}`;
+
+        document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
+        document.getElementById('intro-title').innerText = theme.name;
+        document.getElementById('intro-title').style.color = '#' + theme.lightColor.toString(16);
+    }
+
+    function spawnShard(x, z, color) {
+        const geo = new THREE.OctahedronGeometry(80);
+        const mat = new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2, wireframe: true });
+        const shard = new THREE.Mesh(geo, mat);
+        shard.position.set(x, 150, z);
+        shards.push(shard);
+        levelGroup.add(shard);
     }
 
     function resetNiko() {
         const start = maps[currentLevel].start;
         model.position.set(start.x*cellSize - 4000, 0, start.z*cellSize - 4000);
         model.rotation.y = 0;
+        camYaw = 0; // Reset camera angle
     }
 
     function animate() {
@@ -266,7 +326,6 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            // Screen-relative movement logic
             let fwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
             let side = (keys.a ? 1 : 0) - (keys.d ? 1 : 0);
 
@@ -278,7 +337,7 @@
             if(isMoving) {
                 idleTimer = 0;
 
-                // Animation Logic: Turn First, then Move
+                // Animation Logic
                 if (keys.a && !isTurning && currentAction !== actions['leftturn']) {
                     isTurning = true;
                     fadeToAction('leftturn', 0.1);
@@ -287,30 +346,26 @@
                     fadeToAction('rightturn', 0.1);
                 }
 
-                // If a turn is happening, check if it's finished before walking
                 if (isTurning) {
                     const clipDuration = currentAction.getClip().duration;
-                    if (currentAction.time >= clipDuration - 0.1) {
-                        isTurning = false;
-                    }
+                    if (currentAction.time >= clipDuration - 0.1) isTurning = false;
                 }
 
-                // Only move and update walk animation if NOT in the middle of a turn
                 if (!isTurning) {
                     let moveAnim = keys.shift ? 'run' : 'walk';
                     fadeToAction(moveAnim);
 
                     const spd = keys.shift ? 58 : 30;
 
-                    // Calculate move direction relative to camera
+                    // Camera Shake on Sprint
+                    if(keys.shift) shakeIntensity = 5;
+
                     const moveDirection = Math.atan2(side, fwd);
                     const targetRotation = camYaw + moveDirection + Math.PI;
-
                     model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, targetRotation, 0.2);
 
                     const nX = model.position.x + Math.sin(model.rotation.y) * spd;
                     const nZ = model.position.z + Math.cos(model.rotation.y) * spd;
-
                     const gx = Math.round((nX + 4000) / cellSize);
                     const gz = Math.round((nZ + 4000) / cellSize);
 
@@ -320,8 +375,6 @@
                     }
                 }
             } else {
-                // Not moving
-                isTurning = false;
                 mixer.timeScale = 1.0;
                 if (currentAction !== actions['twerk']) {
                     fadeToAction('idle');
@@ -332,24 +385,51 @@
                 }
             }
 
+            // --- COLLECTIBLE LOGIC ---
+            for (let i = shards.length - 1; i >= 0; i--) {
+                const s = shards[i];
+                s.rotation.y += 0.02; s.rotation.x += 0.01;
+                if (model.position.distanceTo(s.position) < 200) {
+                    score += 100;
+                    document.getElementById('score').innerText = `SHARDS: ${score}`;
+                    levelGroup.remove(s);
+                    shards.splice(i, 1);
+                    shakeIntensity = 20; // Hit shake
+                }
+            }
+
+            // Goal Logic
             if(model.position.distanceTo(goalOrb.position) < 400) {
                 currentLevel = currentLevel < 3 ? currentLevel + 1 : 1;
                 gameActive = false; document.getElementById('intro-overlay').classList.remove('hidden');
+                document.getElementById('status-text').innerText = "SECTOR CLEARED";
                 buildLevel(currentLevel); resetNiko();
             }
 
-            // Balanced Cinematic Camera
+            // --- CAMERA ---
+            shakeIntensity *= 0.9; // Decay shake
+            const shakeX = (Math.random() - 0.5) * shakeIntensity;
+            const shakeY = (Math.random() - 0.5) * shakeIntensity;
+
             const centerFocus = model.position.clone().add(new THREE.Vector3(0, 120, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
             const targetPos = centerFocus.clone().add(new THREE.Vector3(
-                camDistance * Math.sin(camYaw) * Math.cos(pr),
-                camDistance * Math.sin(pr),
+                camDistance * Math.sin(camYaw) * Math.cos(pr) + shakeX,
+                camDistance * Math.sin(pr) + shakeY,
                 camDistance * Math.cos(camYaw) * Math.cos(pr)
             ));
 
             camera.position.lerp(targetPos, 0.15);
             camera.lookAt(centerFocus);
         }
+
+        if(goalOrb) {
+            goalOrb.rotation.y += 0.05;
+            goalOrb.position.y = 300 + Math.sin(clock.getElapsedTime()*3) * 30;
+            const scale = 1 + Math.sin(clock.getElapsedTime()*5)*0.1;
+            goalOrb.scale.set(scale, scale, scale);
+        }
+
         renderer.render(scene, camera);
     }
     init();
