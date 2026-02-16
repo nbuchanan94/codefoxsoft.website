@@ -324,7 +324,7 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            // Camera rotation keys (Manual)
+            // Camera rotation keys (Manual Override)
             if(keys.q) camYaw += 0.04;
             if(keys.e) camYaw -= 0.04;
 
@@ -359,10 +359,9 @@
                 }
 
                 // GTA-style Auto-Follow:
-                // Only snap camera if 'W' is pressed (moving forward) and no manual cam rotation is active
-                if (keys.w && !keys.q && !keys.e) {
+                // Snap camera if moving (any WASD) and no manual cam rotation is actively being held
+                if (!keys.q && !keys.e) {
                     // We want camYaw to match the model rotation over time
-                    // We normalize the angles to ensure the interpolation takes the shortest path
                     const targetYaw = model.rotation.y;
                     let diff = targetYaw - camYaw;
                     while (diff < -Math.PI) diff += Math.PI * 2;
