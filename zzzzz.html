@@ -2,18 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Neon City - 3 Level Master</title>
+    <title>Niko: Bronx Speedrun - FIXED SPAWN</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.9); background: rgba(0,0,0,0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00ffcc; pointer-events: none; z-index: 100; }
-        #level-display { font-weight: bold; color: #00ffcc; font-size: 1.5em; display: block; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px #000; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 4px; border-left: 4px solid #00ffcc; z-index: 100; pointer-events: none; }
+        #timer { position: absolute; top: 20px; right: 20px; color: #ffcc00; font-size: 2em; font-weight: bold; text-shadow: 0 0 10px #ffaa00; z-index: 100; }
+        #intro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: #00ffcc; transition: opacity 0.5s; text-align: center;}
+        #intro-overlay h1 { font-size: 3em; margin: 0; letter-spacing: 5px; }
+        .hidden { opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
     <div id="ui">
-        <span id="level-display">LEVEL 1: THE BRONX</span>
-        <b>WASD</b> Move | <b>SHIFT</b> Sprint<br>
-        <b>ARROWS</b> Orbit | <b>T</b> Toggle View
+        <b id="lvl-name">LEVEL 1: THE BRONX</b><br>
+        WASD: Move | SHIFT: Sprint | T: View
+    </div>
+    <div id="timer">00:00</div>
+    <div id="intro-overlay">
+        <h1 id="intro-title">THE BRONX</h1>
+        <p style="color:white">WAKE UP NIKO...<br><br>PRESS [ANY KEY] TO START</p>
     </div>
 
 <script type="importmap">
@@ -29,211 +36,168 @@
     import * as THREE from 'three';
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-    let scene, camera, renderer, mixer, clock, model, walkAction, goalOrb;
-    let currentLevel = 1, isSprinting = false;
-    let camDistance = 800, camPitch = 25, camYaw = 0;
+    let scene, camera, renderer, mixer, clock, model, goalOrb;
+    let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
+    let camDistance = 900, camPitch = 30, camYaw = 0;
     const keys = {}, cellSize = 1800;
 
-    // --- LEVEL DESIGNS (0 = Road, 1 = Building) ---
-    const levelMaps = {
-        1: [ [1,1,1,1,1], [1,0,0,0,1], [1,0,1,0,1], [1,0,0,0,1], [1,1,1,1,1] ],
-        2: [ [1,1,1,1,1,1], [1,0,0,1,0,1], [1,1,0,0,0,1], [1,0,0,1,0,1], [1,1,1,1,1,1] ],
-        3: [ [1,1,1,1,1,1,1], [1,0,0,0,0,0,1], [1,0,1,1,1,0,1], [1,0,0,0,0,0,1], [1,1,1,1,1,1,1] ]
+    const maps = {
+        1: { name: "THE BRONX", grid: [[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1]] },
+        2: { name: "UPTOWN", grid: [[1,1,1,1,1,1],[1,0,0,1,0,1],[1,1,0,0,0,1],[1,0,0,1,0,1],[1,1,1,1,1,1]] },
+        3: { name: "DOWNTOWN", grid: [[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,1,1,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]] }
     };
 
-    // --- TEXTURE CREATORS ---
-    function getBuildingMaterial() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512; canvas.height = 1024;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#1a1a1c'; ctx.fillRect(0,0,512,1024);
-        const emitCanvas = document.createElement('canvas');
-        emitCanvas.width = 512; emitCanvas.height = 1024;
-        const eCtx = emitCanvas.getContext('2d');
+    function createCityTextures() {
+        const rC = document.createElement('canvas'); rC.width = 512; rC.height = 512;
+        const rCtx = rC.getContext('2d');
+        rCtx.fillStyle = '#222'; rCtx.fillRect(0,0,512,512); // Sidewalk
+        rCtx.fillStyle = '#0a0a0a'; rCtx.fillRect(80,0,352,512); // Asphalt
+        rCtx.fillStyle = '#333'; for(let i=0; i<512; i+=64) rCtx.fillRect(250, i, 12, 32);
+
+        const bC = document.createElement('canvas'); bC.width = 512; bC.height = 1024;
+        const bCtx = bC.getContext('2d');
+        bCtx.fillStyle = '#111115'; bCtx.fillRect(0,0,512,1024);
+        const eC = document.createElement('canvas'); eC.width = 512; eC.height = 1024;
+        const eCtx = eC.getContext('2d');
         eCtx.fillStyle = '#000'; eCtx.fillRect(0,0,512,1024);
 
-        for(let y=60; y<1024; y+=120) {
+        for(let y=50; y<1024; y+=130) {
             for(let x=40; x<512; x+=110) {
-                if(Math.random() > 0.4) {
-                    const color = Math.random() > 0.5 ? '#ffaa00' : '#4488ff';
-                    ctx.fillStyle = color; ctx.globalAlpha = 0.2; ctx.fillRect(x,y,65,50);
-                    eCtx.fillStyle = color; eCtx.shadowBlur = 15; eCtx.shadowColor = color; eCtx.fillRect(x,y,65,50);
+                if(Math.random() > 0.3) {
+                    const col = Math.random() > 0.5 ? '#ff9900' : '#0077ff';
+                    bCtx.fillStyle = col; bCtx.globalAlpha = 0.2; bCtx.fillRect(x,y,60,50);
+                    eCtx.fillStyle = col; eCtx.shadowBlur = 15; eCtx.shadowColor = col; eCtx.fillRect(x,y,60,50);
                 }
             }
         }
-        return new THREE.MeshStandardMaterial({
-            map: new THREE.CanvasTexture(canvas),
-            emissiveMap: new THREE.CanvasTexture(emitCanvas),
-            emissive: 0xffffff, emissiveIntensity: 1.2
-        });
+        return {
+            road: new THREE.MeshStandardMaterial({map: new THREE.CanvasTexture(rC)}),
+            build: new THREE.MeshStandardMaterial({
+                map: new THREE.CanvasTexture(bC),
+                emissiveMap: new THREE.CanvasTexture(eC),
+                emissive: 0xffffff, emissiveIntensity: 2.0
+            })
+        };
     }
 
-    function getRoadMaterial() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512; canvas.height = 512;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#333'; ctx.fillRect(0,0,512,512); // Sidewalk
-        ctx.fillStyle = '#111'; ctx.fillRect(60,0,392,512); // Asphalt
-        ctx.fillStyle = '#555'; // Road Lines
-        for(let i=0; i<512; i+=64) ctx.fillRect(250, i, 10, 30);
-        const tex = new THREE.CanvasTexture(canvas);
-        return new THREE.MeshStandardMaterial({ map: tex });
-    }
+    const cityMaterials = createCityTextures();
 
-    // --- INITIALIZATION ---
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x020205);
-        scene.fog = new THREE.FogExp2(0x020205, 0.00018);
+        scene.background = new THREE.Color(0x010103);
+        scene.fog = new THREE.FogExp2(0x010103, 0.0001);
 
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 30000);
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 50000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.25));
-        const moon = new THREE.DirectionalLight(0x4455ff, 0.3);
-        moon.position.set(500, 1000, 500);
-        scene.add(moon);
-
-        loadLevel(currentLevel);
-        loadNiko();
+        levelGroup = new THREE.Group();
+        scene.add(levelGroup);
 
         window.addEventListener('keydown', (e) => {
+            if(!gameActive) { gameActive = true; startTime = Date.now(); document.getElementById('intro-overlay').classList.add('hidden'); }
             keys[e.key.toLowerCase()] = true;
-            if (e.key.toLowerCase() === 't') {
-                camPitch = (camPitch === 25) ? 80 : 25;
-                camDistance = (camPitch === 80) ? 2500 : 800;
-            }
+            if(e.key.toLowerCase()==='t') { camPitch = (camPitch === 30 ? 80 : 30); camDistance = (camPitch === 80 ? 3000 : 900); }
         });
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+
+        buildLevel(currentLevel);
+        loadNiko();
         animate();
     }
 
-    function createStreetLamp(x, z) {
-        const group = new THREE.Group();
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(8, 12, 600), new THREE.MeshStandardMaterial({color: 0x050505}));
-        pole.position.y = 300;
-        group.add(pole);
-        const head = new THREE.Mesh(new THREE.BoxGeometry(100, 20, 40), new THREE.MeshStandardMaterial({color: 0x111}));
-        head.position.set(40, 600, 0);
-        group.add(head);
+    function buildLevel(num) {
+        while(levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
+        const map = maps[num].grid;
 
-        const light = new THREE.SpotLight(0xfff5ee, 70000, 1500, Math.PI/3.5, 0.5, 1);
-        light.position.set(80, 600, 0);
-        light.target.position.set(80, 0, 0);
-        group.add(light);
-        group.add(light.target);
-
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(400, 600, 24), new THREE.MeshBasicMaterial({ color: 0xfff5ee, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending }));
-        cone.position.set(80, 300, 0);
-        cone.rotation.z = Math.PI;
-        group.add(cone);
-
-        group.position.set(x, 0, z);
-        scene.add(group);
-    }
-
-    function loadLevel(num) {
-        // Clear old level
-        while(scene.children.length > 0){ scene.remove(scene.children[0]); }
-        scene.add(new THREE.AmbientLight(0xffffff, 0.25));
-
-        const map = levelMaps[num];
-        const buildMat = getBuildingMaterial();
-        const roadMat = getRoadMaterial();
+        levelGroup.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const l = new THREE.DirectionalLight(0x4455ff, 0.6); l.position.set(2000,3000,1000);
+        levelGroup.add(l);
 
         for(let z=0; z<map.length; z++) {
             for(let x=0; x<map[z].length; x++) {
-                const px = x * cellSize - 2000, pz = z * cellSize - 2000;
+                const px = x*cellSize - 2000, pz = z*cellSize - 2000;
                 if(map[z][x] === 1) {
-                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize - 150, 4000, cellSize - 150), buildMat);
-                    b.position.set(px, 2000, pz);
-                    scene.add(b);
-                    // Dark filler for alleys
-                    const f = new THREE.Mesh(new THREE.BoxGeometry(cellSize + 10, 3900, cellSize + 10), new THREE.MeshBasicMaterial({color: 0x000000}));
-                    f.position.set(px, 1950, pz);
-                    f.renderOrder = -1;
-                    scene.add(f);
+                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize-100, 6000, cellSize-100), cityMaterials.build);
+                    b.position.set(px, 3000, pz); levelGroup.add(b);
                 } else {
-                    const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), roadMat);
-                    r.rotation.x = -Math.PI/2;
-                    r.position.set(px, 0, pz);
-                    scene.add(r);
-                    if((x+z)%2===0) createStreetLamp(px - cellSize/2 + 100, pz);
+                    const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), cityMaterials.road);
+                    r.rotation.x = -Math.PI/2; r.position.set(px, 0, pz); levelGroup.add(r);
+                    if((x+z)%2===0) spawnLamp(px - cellSize/2 + 100, pz);
                 }
             }
         }
+        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(200), new THREE.MeshStandardMaterial({color:0xffd700, emissive:0xffd700, emissiveIntensity:5}));
+        goalOrb.position.set(cellSize*(map[0].length-2)-2000, 300, cellSize*(map.length-2)-2000);
+        levelGroup.add(goalOrb);
 
-        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(200), new THREE.MeshStandardMaterial({color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 3}));
-        goalOrb.position.set(cellSize * (map[0].length-2) - 2000, 250, cellSize * (map.length-2) - 2000);
-        scene.add(goalOrb);
-        if(model) scene.add(model);
-        document.getElementById('level-display').innerText = `LEVEL ${num}: ${num===1?'THE BRONX':num===2?'UPTOWN':'DOWNTOWN'}`;
+        document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${maps[num].name}`;
+        document.getElementById('intro-title').innerText = maps[num].name;
+    }
+
+    function spawnLamp(x, z) {
+        const g = new THREE.Group();
+        const p = new THREE.Mesh(new THREE.CylinderGeometry(12,15,800), new THREE.MeshStandardMaterial({color:0x000}));
+        p.position.y=400; g.add(p);
+        const s = new THREE.SpotLight(0xfff5ee, 120000, 2000, 0.7, 0.5, 1);
+        s.position.set(0, 800, 0); s.target.position.set(0, 0, 0);
+        g.add(s); g.add(s.target);
+        const c = new THREE.Mesh(new THREE.ConeGeometry(500, 800, 24), new THREE.MeshBasicMaterial({color:0xfff5ee, transparent:true, opacity:0.15, blending:THREE.AdditiveBlending, depthWrite:false}));
+        c.position.set(0, 400, 0); c.rotation.z = Math.PI;
+        g.add(c); g.position.set(x, 0, z); levelGroup.add(g);
     }
 
     function loadNiko() {
         new FBXLoader().load('catwalk.fbx', (fbx) => {
             model = fbx;
-            const box = new THREE.Box3().setFromObject(model);
-            const size = box.getSize(new THREE.Vector3());
-            model.scale.setScalar(200 / (size.y || 1));
-            model.position.set(-cellSize, 0, -cellSize);
+            const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
+            model.scale.setScalar(220 / size.y);
+            model.position.set(0, 0, 0); // START IN CENTER OF ROAD
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
-            if (fbx.animations.length > 0) {
-                walkAction = mixer.clipAction(fbx.animations[0]);
-                walkAction.play(); walkAction.paused = true;
-            }
-        });
+            if(fbx.animations.length>0) mixer.clipAction(fbx.animations[0]).play();
+        }, (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded'); });
     }
 
     function animate() {
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
-        if (mixer) mixer.update(delta);
-        if (model) {
-            isSprinting = keys.shift;
-            let moveFwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
-            let moveSide = (keys.d ? 1 : 0) - (keys.a ? 1 : 0); // Corrected A/D
+        if(mixer) mixer.update(delta);
 
-            if (keys.arrowleft) camYaw += 0.04;
-            if (keys.arrowright) camYaw -= 0.04;
+        if(gameActive && startTime > 0) {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const m = Math.floor(elapsed/60).toString().padStart(2,'0');
+            const s = (elapsed%60).toString().padStart(2,'0');
+            document.getElementById('timer').innerText = `${m}:${s}`;
+        }
 
-            if (moveFwd !== 0 || moveSide !== 0) {
-                const moveAngle = camYaw + Math.atan2(moveSide, moveFwd);
-                let diff = (moveAngle + Math.PI) - model.rotation.y;
-                while (diff < -Math.PI) diff += Math.PI * 2;
-                while (diff > Math.PI) diff -= Math.PI * 2;
-                model.rotation.y += diff * 0.15;
-                const speed = isSprinting ? 45 : 22;
-                if (walkAction) { walkAction.paused = false; walkAction.timeScale = isSprinting ? 2.2 : 1.0; }
-                const nextX = model.position.x + Math.sin(model.rotation.y) * speed;
-                const nextZ = model.position.z + Math.cos(model.rotation.y) * speed;
+        if(model && gameActive) {
+            let fwd = (keys.w?1:0)-(keys.s?1:0), side = (keys.d?1:0)-(keys.a?1:0);
+            if(keys.arrowleft) camYaw += 0.05; if(keys.arrowright) camYaw -= 0.05;
 
-                // Collision
-                const gx = Math.round((nextX + 2000) / cellSize);
-                const gz = Math.round((nextZ + 2000) / cellSize);
-                const map = levelMaps[currentLevel];
-                if (!(map[gz] && map[gz][gx] === 1)) {
-                    model.position.x = nextX; model.position.z = nextZ;
+            if(fwd!==0 || side!==0) {
+                model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, camYaw + Math.atan2(side, fwd) + Math.PI, 0.2);
+                const spd = keys.shift ? 48 : 24;
+                const nX = model.position.x + Math.sin(model.rotation.y)*spd, nZ = model.position.z + Math.cos(model.rotation.y)*spd;
+                const gx = Math.round((nX+2000)/cellSize), gz = Math.round((nZ+2000)/cellSize);
+
+                if(maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx]===0) {
+                    model.position.x=nX; model.position.z=nZ;
                 }
-            } else if (walkAction) { walkAction.paused = true; }
-
-            // Goal Check
-            if(model.position.distanceTo(goalOrb.position) < 300) {
+            }
+            if(model.position.distanceTo(goalOrb.position)<350) {
                 currentLevel = currentLevel < 3 ? currentLevel + 1 : 1;
-                loadLevel(currentLevel);
-                model.position.set(-cellSize, 0, -cellSize);
+                gameActive = false; document.getElementById('intro-overlay').classList.remove('hidden');
+                buildLevel(currentLevel); model.position.set(0, 0, 0);
             }
 
-            const playerPos = model.position.clone().add(new THREE.Vector3(0, 200, 0));
-            const pitchRad = THREE.MathUtils.degToRad(camPitch);
-            camera.position.lerp(playerPos.clone().add(new THREE.Vector3(camDistance * Math.sin(camYaw) * Math.cos(pitchRad), camDistance * Math.sin(pitchRad), camDistance * Math.cos(camYaw) * Math.cos(pitchRad))), 0.1);
-            camera.lookAt(playerPos);
+            const p = model.position.clone().add(new THREE.Vector3(0,250,0));
+            const pr = THREE.MathUtils.degToRad(camPitch);
+            camera.position.lerp(p.clone().add(new THREE.Vector3(camDistance*Math.sin(camYaw)*Math.cos(pr), camDistance*Math.sin(pr), camDistance*Math.cos(camYaw)*Math.cos(pr))), 0.1);
+            camera.lookAt(p);
         }
-        if(goalOrb) goalOrb.rotation.y += 0.05;
         renderer.render(scene, camera);
     }
     init();
