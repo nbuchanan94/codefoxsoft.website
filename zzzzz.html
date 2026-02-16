@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Dual GLB System</title>
+    <title>Niko: Self-Healing Loader</title>
     <style>
-        body { margin: 0; background: #0b0b0b; overflow: hidden; font-family: sans-serif; }
-        #loading { position: absolute; top: 50%; width: 100%; text-align: center; color: #00ff88; font-family: monospace; }
+        body { margin: 0; background: #000; color: #0f0; font-family: monospace; overflow: hidden; }
+        #status { position: absolute; top: 10px; left: 10px; z-index: 100; pointer-events: none; }
     </style>
 </head>
 <body>
-    <div id="loading">VIBE CHECKING NIKO...</div>
+    <div id="status">CHECKING FILES...</div>
 
 <script type="importmap">
     {
@@ -28,47 +28,54 @@
     let actions = {}, activeAction;
     let mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster(), targetPos = new THREE.Vector3();
 
+    const statusEl = document.getElementById('status');
+    const log = (m) => { statusEl.innerHTML += `<br>> ${m}`; console.log(m); };
+
     init();
 
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111111);
 
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5, 12);
 
         scene.add(new THREE.AmbientLight(0xffffff, 2));
-        const sun = new THREE.DirectionalLight(0xffffff, 2);
-        sun.position.set(5, 10, 5);
-        scene.add(sun);
         scene.add(new THREE.GridHelper(100, 50, 0x333333, 0x222222));
 
         const loader = new GLTFLoader();
 
-        // 1. Load the Catwalk model (The Body + Walk Anim)
+        log("Loading catwalk.glb...");
         loader.load('catwalk.glb', (gltf) => {
             model = gltf.scene;
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
 
-            // Store the Walk animation found in catwalk.glb
             if (gltf.animations.length > 0) {
                 actions['walk'] = mixer.clipAction(gltf.animations[0]);
+                log("Walk animation found.");
+            } else {
+                log("WARN: No animation in catwalk.glb");
             }
 
-            // 2. Load the Idle animation file
+            log("Loading idle.glb...");
             loader.load('idle.glb', (idleGltf) => {
                 if (idleGltf.animations.length > 0) {
-                    // We take the animation from idle.glb and apply it to our main mixer
                     actions['idle'] = mixer.clipAction(idleGltf.animations[0]);
-
-                    // Start in Idle
+                    log("Idle animation found.");
                     activeAction = actions['idle'];
                     activeAction.play();
+                } else {
+                    log("WARN: No animation in idle.glb");
+                    // Fallback to walk if idle is missing
+                    if(actions['walk']) { activeAction = actions['walk']; activeAction.play(); }
                 }
-                document.getElementById('loading').style.display = 'none';
-            });
-        });
+                log("READY. Move mouse to walk.");
+                setTimeout(() => { statusEl.style.opacity = "0.3"; }, 3000);
+            }, undefined, (e) => log("ERROR: idle.glb failed to load."));
+
+        }, undefined, (e) => log("ERROR: catwalk.glb failed to load. Check file names."));
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -82,13 +89,11 @@
         animate();
     }
 
-    // Smoothly blends between animations
     function fadeTo(name) {
         if (!actions[name] || activeAction === actions[name]) return;
-        const nextAction = actions[name];
-        nextAction.reset().fadeIn(0.4).play();
-        activeAction.fadeOut(0.4);
-        activeAction = nextAction;
+        actions[name].reset().fadeIn(0.5).play();
+        activeAction.fadeOut(0.5);
+        activeAction = actions[name];
     }
 
     function animate() {
@@ -96,19 +101,18 @@
         const delta = clock.getDelta();
         if (mixer) mixer.update(delta);
 
-        if (model && actions['walk'] && actions['idle']) {
+        if (model) {
             raycaster.setFromCamera(mouse, camera);
             const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
             raycaster.ray.intersectPlane(plane, targetPos);
 
-            const lookTarget = new THREE.Vector3(targetPos.x, model.position.y, targetPos.z);
-            const distance = model.position.distanceTo(lookTarget);
+            const distance = model.position.distanceTo(targetPos);
 
-            if (distance > 0.8) {
+            if (distance > 1.0 && actions['walk']) {
                 fadeTo('walk');
-                model.lookAt(lookTarget);
-                model.translateZ(0.1); // Adjust for catwalk speed
-            } else {
+                model.lookAt(targetPos.x, model.position.y, targetPos.z);
+                model.translateZ(0.1);
+            } else if (actions['idle']) {
                 fadeTo('idle');
             }
         }
