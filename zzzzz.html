@@ -56,57 +56,22 @@
     let score = 0;
     let shards = [];
 
-    // Camera & Shake
-    let camDistance = 225;
+    // Camera settings
+    let camDistance = 800;
     let camPitch = 25;
     let camYaw = 0;
     let shakeIntensity = 0;
 
     const keys = {}, cellSize = 1800;
+    const mapOffset = 4000;
 
     const themes = {
-        1: {
-            name: "THE BRONX",
-            sky: 0x050510, fog: 0x050510, fogDens: 0.00018,
-            roadColor: '#1a1a1a', sidewalkColor: '#333',
-            buildColor: '#15151a', win1: '#ffaa00', win2: '#00aaff',
-            lightColor: 0xffaa00, ambient: 0.6
-        },
-        2: {
-            name: "NEON DISTRICT",
-            sky: 0x000510, fog: 0x000510, fogDens: 0.00025,
-            roadColor: '#0a0a15', sidewalkColor: '#111',
-            buildColor: '#050510', win1: '#ff00ff', win2: '#00ffff',
-            lightColor: 0x00ffff, ambient: 0.5
-        },
-        3: {
-            name: "THE CORE",
-            sky: 0x100500, fog: 0x100500, fogDens: 0.0003,
-            roadColor: '#150500', sidewalkColor: '#201010',
-            buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00',
-            lightColor: 0xff0000, ambient: 0.4
-        },
-        4: {
-            name: "THE GRID",
-            sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002,
-            roadColor: '#001a1a', sidewalkColor: '#003333',
-            buildColor: '#001111', win1: '#00ffff', win2: '#ffffff',
-            lightColor: 0x00ffff, ambient: 0.6
-        },
-        5: {
-            name: "VOID JUNCTION",
-            sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022,
-            roadColor: '#1a001a', sidewalkColor: '#2a002a',
-            buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00',
-            lightColor: 0xff00ff, ambient: 0.5
-        },
-        6: {
-            name: "OVERDRIVE",
-            sky: 0x000000, fog: 0x000000, fogDens: 0.00035,
-            roadColor: '#111111', sidewalkColor: '#222222',
-            buildColor: '#000000', win1: '#ff0000', win2: '#ffffff',
-            lightColor: 0xffffff, ambient: 0.7
-        }
+        1: { name: "THE BRONX", sky: 0x050510, fog: 0x050510, fogDens: 0.00018, roadColor: '#1a1a1a', sidewalkColor: '#333', buildColor: '#15151a', win1: '#ffaa00', win2: '#00aaff', lightColor: 0xffaa00, ambient: 0.6 },
+        2: { name: "NEON DISTRICT", sky: 0x000510, fog: 0x000510, fogDens: 0.00025, roadColor: '#0a0a15', sidewalkColor: '#111', buildColor: '#050510', win1: '#ff00ff', win2: '#00ffff', lightColor: 0x00ffff, ambient: 0.5 },
+        3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.4 },
+        4: { name: "THE GRID", sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002, roadColor: '#001a1a', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ffffff', lightColor: 0x00ffff, ambient: 0.6 },
+        5: { name: "VOID JUNCTION", sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022, roadColor: '#1a001a', sidewalkColor: '#2a002a', buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00', lightColor: 0xff00ff, ambient: 0.5 },
+        6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 }
     };
 
     const maps = {
@@ -302,7 +267,7 @@
 
         for(let z=0; z<mapData.grid.length; z++) {
             for(let x=0; x<mapData.grid[z].length; x++) {
-                const px = x*cellSize - 4000, pz = z*cellSize - 4000;
+                const px = x*cellSize - mapOffset, pz = z*cellSize - mapOffset;
                 if(mapData.grid[z][x] === 1) {
                     const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 6000, cellSize), mats.build);
                     b.position.set(px, 3000, pz); levelGroup.add(b);
@@ -317,7 +282,7 @@
         }
 
         goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({color:0xffcc00, emissive:0xffcc00, emissiveIntensity:5}));
-        goalOrb.position.set(mapData.goal.x*cellSize - 4000, 300, mapData.goal.z*cellSize - 4000);
+        goalOrb.position.set(mapData.goal.x*cellSize - mapOffset, 300, mapData.goal.z*cellSize - mapOffset);
         levelGroup.add(goalOrb);
 
         document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
@@ -333,7 +298,7 @@
 
     function resetNiko() {
         const start = maps[currentLevel].start;
-        model.position.set(start.x*cellSize - 4000, 0, start.z*cellSize - 4000);
+        model.position.set(start.x*cellSize - mapOffset, 0, start.z*cellSize - mapOffset);
         model.rotation.y = 0;
         camYaw = 0;
     }
@@ -347,35 +312,50 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            if(keys['ArrowLeft']) camYaw += 0.05;
-            if(keys['ArrowRight']) camYaw -= 0.05;
-            if(keys['ArrowUp']) camDistance = Math.max(200, camDistance - 25);
-            if(keys['ArrowDown']) camDistance = Math.min(6000, camDistance + 25);
+            // Camera Controls
+            if(keys['arrowleft']) camYaw += 0.05;
+            if(keys['arrowright']) camYaw -= 0.05;
+            if(keys['arrowup']) camDistance = Math.max(200, camDistance - 25);
+            if(keys['arrowdown']) camDistance = Math.min(6000, camDistance + 25);
 
+            // Movement Inputs
             let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-            let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+            let inputZ = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
 
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
-                const moveAngle = Math.atan2(inputX, inputZ) + camYaw + Math.PI;
-                const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle);
-                model.quaternion.slerp(targetQuat, 0.15);
 
+                // Calculate move direction based on camera yaw
+                const angle = Math.atan2(inputX, inputZ) + camYaw;
                 const spd = keys.shift ? 75 : 40;
+
                 if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
 
-                const vx = Math.sin(moveAngle) * spd;
-                const vz = Math.cos(moveAngle) * spd;
+                const vx = Math.sin(angle) * spd;
+                const vz = Math.cos(angle) * spd;
 
                 const nX = model.position.x + vx;
                 const nZ = model.position.z + vz;
 
-                const gx = Math.round((nX + 4000) / cellSize);
-                const gz = Math.round((nZ + 4000) / cellSize);
-                if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx] === 0) {
-                    model.position.x = nX;
-                    model.position.z = nZ;
+                // Simple collision detection
+                const gx = Math.round((nX + mapOffset) / cellSize);
+                const gz = Math.round((nZ + mapOffset) / cellSize);
+
+                const currentGrid = maps[currentLevel].grid;
+                if(gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
+                    if(currentGrid[gz][gx] === 0) {
+                        model.position.x = nX;
+                        model.position.z = nZ;
+                    }
                 }
+
+                // Smooth rotation to face movement direction
+                const targetRotation = angle;
+                const currentRotation = model.rotation.y;
+                let diff = targetRotation - currentRotation;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                model.rotation.y += diff * 0.15;
 
                 if (keys.shift) fadeToAction('run');
                 else fadeToAction('walk');
@@ -390,6 +370,7 @@
                 }
             }
 
+            // Collectibles
             for (let i = shards.length - 1; i >= 0; i--) {
                 const s = shards[i];
                 s.rotation.y += 0.02;
@@ -402,13 +383,17 @@
                 }
             }
 
+            // Goal check
             if(model.position.distanceTo(goalOrb.position) < 450) {
                 currentLevel = currentLevel < 6 ? currentLevel + 1 : 1;
-                gameActive = false; document.getElementById('intro-overlay').classList.remove('hidden');
+                gameActive = false;
+                document.getElementById('intro-overlay').classList.remove('hidden');
                 document.getElementById('status-text').innerText = currentLevel === 1 ? "CHAMPION OF DIMENSIONS" : "OBJECTIVE SECURED";
-                buildLevel(currentLevel); resetNiko();
+                buildLevel(currentLevel);
+                resetNiko();
             }
 
+            // Camera follow logic
             shakeIntensity *= 0.9;
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
