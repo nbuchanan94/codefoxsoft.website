@@ -335,14 +335,17 @@
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
 
-                // Movement direction relative to current camera yaw
-                const moveAngle = Math.atan2(inputX, inputZ) + camYaw;
+                // FIXED: Movement direction calculation relative to camera.
+                // In Three.js, Math.atan2(x, z) gives angle where W is forward.
+                // We subtract camYaw so W is always "away from camera".
+                const moveAngle = Math.atan2(inputX, inputZ) + camYaw + Math.PI;
                 const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle);
                 model.quaternion.slerp(targetQuat, 0.15);
 
                 const spd = keys.shift ? 75 : 40;
                 if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
 
+                // Velocity based on the rotated model forward vector
                 const vx = Math.sin(moveAngle) * spd;
                 const vz = Math.cos(moveAngle) * spd;
 
