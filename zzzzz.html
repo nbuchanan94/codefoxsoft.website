@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: City Nightlife</title>
+    <title>Niko: City Lights & Textures</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.9); background: rgba(0,0,0,0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00ffcc; pointer-events: none; z-index: 100; }
@@ -31,47 +31,53 @@
 
     let scene, camera, renderer, mixer, clock, model, walkAction, goalOrb;
     let cameraMode = 'street', isSprinting = false, level = 1;
-    let camDistance = 700, camPitch = 25, camYaw = 0;
-    const keys = {}, buildingMeshes = [], cellSize = 1600;
+    let camDistance = 750, camPitch = 25, camYaw = 0;
+    const keys = {}, buildingMeshes = [], cellSize = 1800;
 
-    const maps = [
-        [
-            [1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,1],
-            [1,0,1,1,0,1,0,1],
-            [1,0,1,1,0,1,0,1],
-            [1,0,0,0,0,0,0,1],
-            [1,1,1,1,1,1,1,1]
-        ]
+    const map = [
+        [1,1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,0,1],
+        [1,0,1,1,0,1,0,1],
+        [1,0,1,1,0,1,0,1],
+        [1,0,0,0,0,0,0,1],
+        [1,1,1,1,1,1,1,1]
     ];
 
     init();
+
+    // --- PROCEDURAL GENERATORS ---
+    function createBuildingTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 1024;
+        const ctx = canvas.getContext('2d');
+
+        // Base Wall
+        ctx.fillStyle = '#222228';
+        ctx.fillRect(0, 0, 512, 1024);
+
+        // Window Grid
+        for(let y = 60; y < 1024; y += 100) {
+            for(let x = 40; x < 512; x += 110) {
+                if(Math.random() > 0.4) {
+                    const hue = Math.random() > 0.5 ? '#ffcc00' : '#44aaff';
+                    ctx.fillStyle = hue;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = hue;
+                    ctx.fillRect(x, y, 60, 45);
+                }
+            }
+        }
+        return new THREE.CanvasTexture(canvas);
+    }
 
     function createRoadTexture() {
         const canvas = document.createElement('canvas');
         canvas.width = 512; canvas.height = 512;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#333'; ctx.fillRect(0,0,512,512); // Sidewalk
-        ctx.fillStyle = '#151515'; ctx.fillRect(50, 0, 412, 512); // Asphalt
-        ctx.fillStyle = '#444';
-        for(let i=0; i<512; i+=64) ctx.fillRect(250, i, 12, 32); // Lines
-        return new THREE.CanvasTexture(canvas);
-    }
-
-    function createBuildingTexture() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512; canvas.height = 1024;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#1a1a20'; ctx.fillRect(0,0,512,1024);
-        for(let y=50; y<1024; y+=120) {
-            for(let x=30; x<512; x+=100) {
-                if(Math.random() > 0.4) {
-                    ctx.fillStyle = Math.random() > 0.5 ? '#ffcc00' : '#55aaff';
-                    ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
-                    ctx.fillRect(x, y, 60, 50);
-                }
-            }
-        }
+        ctx.fillStyle = '#3a3a3a'; ctx.fillRect(0,0,512,512); // Sidewalks
+        ctx.fillStyle = '#181818'; ctx.fillRect(60, 0, 392, 512); // Road
+        ctx.fillStyle = '#555'; // Dash lines
+        for(let i=0; i<512; i+=64) ctx.fillRect(250, i, 12, 32);
         return new THREE.CanvasTexture(canvas);
     }
 
@@ -79,21 +85,20 @@
         clock = new THREE.Clock();
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x020205);
-        scene.fog = new THREE.FogExp2(0x020205, 0.00025);
+        scene.fog = new THREE.FogExp2(0x020205, 0.0002);
 
         camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 30000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // --- ENHANCED LIGHTING ---
-        scene.add(new THREE.AmbientLight(0xffffff, 0.3)); // Soft ambient
-        const moon = new THREE.DirectionalLight(0x5566ff, 0.5); // "Moonlight" rim light
-        moon.position.set(500, 1000, 500);
-        scene.add(moon);
+        // --- GLOBAL LIGHTS ---
+        scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+        const rimLight = new THREE.DirectionalLight(0x4455ff, 0.4);
+        rimLight.position.set(500, 1000, -500);
+        scene.add(rimLight);
 
         buildLevel();
-        buildSkyline();
         loadNiko();
 
         window.addEventListener('keydown', (e) => {
@@ -106,65 +111,59 @@
 
     function createStreetLamp(x, z) {
         const group = new THREE.Group();
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(8, 12, 600), new THREE.MeshStandardMaterial({color: 0x111}));
-        pole.position.y = 300;
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(10, 15, 650), new THREE.MeshStandardMaterial({color: 0x111}));
+        pole.position.y = 325;
         group.add(pole);
 
-        const head = new THREE.Mesh(new THREE.BoxGeometry(100, 20, 40), new THREE.MeshStandardMaterial({color: 0x111}));
-        head.position.set(40, 600, 0);
+        const head = new THREE.Mesh(new THREE.BoxGeometry(110, 25, 45), new THREE.MeshStandardMaterial({color: 0x111}));
+        head.position.set(50, 650, 0);
         group.add(head);
 
-        const light = new THREE.SpotLight(0xfff0dd, 50000, 1500, Math.PI/3, 0.5, 1);
-        light.position.set(80, 600, 0);
-        light.target.position.set(80, 0, 0);
+        const light = new THREE.SpotLight(0xfff5ee, 60000, 1800, Math.PI/3.5, 0.4, 1);
+        light.position.set(100, 650, 0);
+        light.target.position.set(100, 0, 0);
         group.add(light);
         group.add(light.target);
 
-        // Volumetric Cone
-        const ray = new THREE.Mesh(new THREE.ConeGeometry(350, 600, 16), new THREE.MeshBasicMaterial({
-            color: 0xfff0dd, transparent: true, opacity: 0.08, depthWrite: false, blending: THREE.AdditiveBlending
-        }));
-        ray.position.set(80, 300, 0);
-        ray.rotation.z = Math.PI;
-        group.add(ray);
+        // Volumetric Light Cone
+        const cone = new THREE.Mesh(
+            new THREE.ConeGeometry(400, 650, 24),
+            new THREE.MeshBasicMaterial({ color: 0xfff5ee, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending })
+        );
+        cone.position.set(100, 325, 0);
+        cone.rotation.z = Math.PI;
+        group.add(cone);
 
         group.position.set(x, 0, z);
         scene.add(group);
-    }
-
-    function buildSkyline() {
-        const skyTex = createBuildingTexture();
-        for(let i=0; i<80; i++) {
-            const h = 3000 + Math.random() * 8000;
-            const b = new THREE.Mesh(new THREE.BoxGeometry(1000, h, 1000), new THREE.MeshStandardMaterial({map: skyTex, color: 0x111122}));
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 10000 + Math.random() * 5000;
-            b.position.set(Math.cos(angle)*dist, h/2 - 500, Math.sin(angle)*dist);
-            scene.add(b);
-        }
     }
 
     function buildLevel() {
         const buildTex = createBuildingTexture();
         const roadTex = createRoadTexture();
         roadTex.wrapS = roadTex.wrapT = THREE.RepeatWrapping;
-        const map = maps[0];
 
         for(let z = 0; z < map.length; z++) {
             for(let x = 0; x < map[z].length; x++) {
                 const px = x * cellSize - 4000, pz = z * cellSize - 4000;
 
                 if(map[z][x] === 1) {
-                    // Building
-                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize - 100, 4000, cellSize - 100), new THREE.MeshStandardMaterial({ map: buildTex, color: 0x888888 }));
-                    b.position.set(px, 2000, pz);
+                    // Actual Textured Building
+                    const b = new THREE.Mesh(
+                        new THREE.BoxGeometry(cellSize - 150, 4500, cellSize - 150),
+                        new THREE.MeshStandardMaterial({ map: buildTex, color: 0xffffff, roughness: 0.4 })
+                    );
+                    b.position.set(px, 2250, pz);
                     scene.add(b);
                     buildingMeshes.push(b);
 
-                    // DARK CREVICE FILLER (Makes the gaps between buildings pitch black)
-                    const filler = new THREE.Mesh(new THREE.BoxGeometry(cellSize + 10, 3900, cellSize + 10), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-                    filler.position.set(px, 1950, pz);
-                    filler.renderOrder = -1; // Render behind the actual building
+                    // BLACK "CREVICE" FILLER (Hidden block to keep alleys dark)
+                    const filler = new THREE.Mesh(
+                        new THREE.BoxGeometry(cellSize + 10, 4400, cellSize + 10),
+                        new THREE.MeshBasicMaterial({ color: 0x000000 })
+                    );
+                    filler.position.set(px, 2200, pz);
+                    filler.renderOrder = -1;
                     scene.add(filler);
                 } else {
                     const road = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), new THREE.MeshStandardMaterial({ map: roadTex }));
@@ -172,19 +171,12 @@
                     road.position.set(px, 1, pz);
                     scene.add(road);
 
-                    // Props
-                    if((x+z)%2===0) createStreetLamp(px - cellSize/2 + 80, pz);
-
-                    if(Math.random() > 0.85) {
-                        const dumpster = new THREE.Mesh(new THREE.BoxGeometry(150, 120, 250), new THREE.MeshStandardMaterial({color: 0x1a331a}));
-                        dumpster.position.set(px + cellSize/3, 60, pz + cellSize/3);
-                        scene.add(dumpster);
-                    }
+                    if((x+z)%2 === 0) createStreetLamp(px - cellSize/2 + 100, pz);
                 }
             }
         }
 
-        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(180), new THREE.MeshStandardMaterial({color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 2.5}));
+        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(200), new THREE.MeshStandardMaterial({color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 3}));
         goalOrb.position.set(cellSize * 6 - 4000, 200, cellSize * 1 - 4000);
         scene.add(goalOrb);
     }
@@ -195,7 +187,7 @@
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
             model.scale.setScalar(200 / (size.y || 1));
-            model.position.set(-2400, 0, -2400);
+            model.position.set(-2200, 0, -2200);
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
             if (fbx.animations.length > 0) {
@@ -215,7 +207,7 @@
         if (model) {
             isSprinting = keys.shift;
             let moveFwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
-            // FIXED A/D LOGIC AS REQUESTED
+            // FIXED A/D LOGIC: A = Left, D = Right
             let moveSide = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
 
             if (keys.arrowleft) camYaw += 0.04;
@@ -230,41 +222,38 @@
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 model.rotation.y += diff * 0.15;
 
-                const speed = isSprinting ? 38 : 16;
+                const speed = isSprinting ? 40 : 18;
                 if (walkAction) { walkAction.paused = false; walkAction.timeScale = isSprinting ? 2.2 : 1.0; }
 
                 const nextX = model.position.x + Math.sin(model.rotation.y) * speed;
                 const nextZ = model.position.z + Math.cos(model.rotation.y) * speed;
 
-                const gridX = Math.round((nextX + 4000) / cellSize);
-                const gridZ = Math.round((nextZ + 4000) / cellSize);
-                if (!(maps[0][gridZ] && maps[0][gridZ][gridX] === 1)) {
+                const gx = Math.round((nextX + 4000) / cellSize);
+                const gz = Math.round((nextZ + 4000) / cellSize);
+                if (!(map[gz] && map[gz][gx] === 1)) {
                     model.position.x = nextX;
                     model.position.z = nextZ;
                 }
             } else if (walkAction) { walkAction.paused = true; }
 
-            const playerHead = model.position.clone().add(new THREE.Vector3(0, 180, 0));
+            const playerPos = model.position.clone().add(new THREE.Vector3(0, 200, 0));
             const pitchRad = THREE.MathUtils.degToRad(camPitch);
             const idealOffset = new THREE.Vector3(
                 camDistance * Math.sin(camYaw) * Math.cos(pitchRad),
                 camDistance * Math.sin(pitchRad),
                 camDistance * Math.cos(camYaw) * Math.cos(pitchRad)
             );
-            camera.position.lerp(playerHead.clone().add(idealOffset), 0.1);
-            camera.lookAt(playerHead);
+            camera.position.lerp(playerPos.clone().add(idealOffset), 0.1);
+            camera.lookAt(playerPos);
         }
-        if(goalOrb) {
-            goalOrb.rotation.y += 0.05;
-            goalOrb.position.y = 200 + Math.sin(clock.getElapsedTime()*3)*30;
-        }
+        if(goalOrb) goalOrb.rotation.y += 0.05;
         renderer.render(scene, camera);
     }
 
     function toggleCamera() {
         cameraMode = cameraMode === 'street' ? 'tactical' : 'street';
-        camPitch = cameraMode === 'tactical' ? 80 : 25;
-        camDistance = cameraMode === 'tactical' ? 2400 : 700;
+        camPitch = cameraMode === 'tactical' ? 85 : 25;
+        camDistance = cameraMode === 'tactical' ? 2600 : 750;
     }
 </script>
 </body>
