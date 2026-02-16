@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Just Walk</title>
+    <title>Niko: Found You</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: monospace; }
-        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 10; }
+        body { margin: 0; background: #222; overflow: hidden; font-family: monospace; }
+        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px; }
     </style>
 </head>
 <body>
-    <div id="status">LOADING NIKO...</div>
+    <div id="status">SCANNING VOID FOR NIKO...</div>
 
 <script type="importmap">
     {
@@ -32,29 +32,43 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a0a);
+        scene.background = new THREE.Color(0x222222); // Gray background so we can see black models
 
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-        camera.position.set(200, 300, 600);
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 50000);
+        camera.position.set(500, 500, 500);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 2));
-        scene.add(new THREE.GridHelper(2000, 50, 0x333333, 0x222222));
+        // Max out the lights
+        scene.add(new THREE.AmbientLight(0xffffff, 3));
+        const sun = new THREE.DirectionalLight(0xffffff, 3);
+        sun.position.set(1000, 1000, 1000);
+        scene.add(sun);
+
+        scene.add(new THREE.GridHelper(5000, 50, 0x888888, 0x444444));
 
         const loader = new FBXLoader();
 
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
             scene.add(model);
+
+            // --- THE AUTO-FINDER ---
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+
+            // Move camera to see him perfectly
+            camera.position.set(center.x, center.y + (maxDim), center.z + (maxDim * 2));
+            camera.lookAt(center);
+
             mixer = new THREE.AnimationMixer(model);
 
             if (fbx.animations.length > 0) {
                 const clip = fbx.animations[0];
-                // Strip bone prefixes to ensure it plays
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
-
                 walkAction = mixer.clipAction(clip);
                 walkAction.play();
-                document.getElementById('status').innerHTML = "NIKO READY: LEAD THE WAY";
+                document.getElementById('status').innerHTML = `FOUND NIKO at scale: ${maxDim.toFixed(1)}`;
             }
         });
 
@@ -82,12 +96,16 @@
 
             const distance = model.position.distanceTo(targetPos);
 
-            if (distance > 40) {
-                walkAction.paused = false; // Keep walking
+            // Dynamic distance threshold based on model size
+            const box = new THREE.Box3().setFromObject(model);
+            const stopDist = box.getSize(new THREE.Vector3()).length() * 0.2;
+
+            if (distance > stopDist) {
+                walkAction.paused = false;
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(5);
+                model.translateZ(maxDim * 0.01); // Scale speed to model size
             } else {
-                walkAction.paused = true; // Stop walking when close
+                walkAction.paused = true;
             }
         }
         renderer.render(scene, camera);
