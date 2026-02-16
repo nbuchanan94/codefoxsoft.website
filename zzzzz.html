@@ -150,7 +150,7 @@
         const loader = new FBXLoader();
         const files = [
             { key: 'walk', path: 'catwalk.fbx' },
-            { key: 'idle', path: 'idle.fbx' },
+            { key: 'idle2', path: 'idle2.fbx' },
             { key: 'twerk', path: 'twerk.fbx' }
         ];
 
@@ -180,7 +180,7 @@
         });
 
         resetNiko();
-        if (actions['idle']) fadeToAction('idle');
+        if (actions['idle2']) fadeToAction('idle2');
 
         isReady = true;
         document.getElementById('status-text').innerText = "DONE";
@@ -253,11 +253,11 @@
                 }
             } else {
                 if (currentAction !== actions['twerk']) {
-                    fadeToAction('idle');
+                    fadeToAction('idle2');
                     idleTimer += delta;
                     if (idleTimer >= 5) { fadeToAction('twerk'); idleTimer = 0; }
                 } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
-                    fadeToAction('idle');
+                    fadeToAction('idle1');
                 }
             }
 
