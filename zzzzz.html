@@ -2,20 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: City Roam</title>
+    <title>Niko City: Pro Controller</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(0,0,0,0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00d2ff; pointer-events: none; user-select: none; }
-        b { color: #00d2ff; }
-        .mode { font-size: 0.8em; color: #aaa; margin-top: 5px; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(0,0,0,0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00ff88; pointer-events: none; }
+        b { color: #00ff88; }
     </style>
 </head>
 <body>
     <div id="ui">
-        <b>WASD</b> Move | <b>SHIFT</b> Sprint<br>
-        <b>MOUSE</b> Look | <b>SCROLL</b> Zoom<br>
-        <b>T</b> Toggle View Mode<br>
-        <div class="mode" id="viewModeText">CURRENT: STREET VIEW</div>
+        <b>WASD</b> Walk | <b>SHIFT</b> Sprint<br>
+        <b>ARROWS</b> Pan Camera | <b>T</b> View Mode<br>
+        <div id="viewModeText" style="font-size: 0.8em; color: #aaa; margin-top: 5px;">STREET VIEW</div>
     </div>
 
 <script type="importmap">
@@ -32,18 +30,17 @@
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
     let scene, camera, renderer, mixer, clock, model, walkAction;
-    let cameraMode = 'street'; // 'street' or 'tactical'
+    let cameraMode = 'street';
     let isSprinting = false;
 
-    // Camera Variables
-    let camDistance = 400;
-    let camPitch = 20; // Height angle
-    let camYaw = 0;    // Rotation around player
+    let camDistance = 500;
+    let camPitch = 25;
+    let camYaw = 0;
 
-    const keys = { w: false, a: false, s: false, d: false };
-    const cellSize = 1200; // HUGE city blocks
+    const keys = {};
+    const cellSize = 1200;
+    const buildingMeshes = [];
 
-    // Simple City Map (1=Building, 0=Road)
     const cityMap = [
         [1,1,1,1,1,1,1,1,1,1],
         [1,0,0,0,1,0,0,1,0,1],
@@ -57,119 +54,51 @@
 
     init();
 
-    function createBuildingTexture() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512; canvas.height = 1024;
-        const ctx = canvas.getContext('2d');
-
-        // Base concrete
-        ctx.fillStyle = '#2a2a2a';
-        ctx.fillRect(0,0,512,1024);
-
-        // Windows
-        ctx.fillStyle = '#111'; // Dark windows
-        for(let y=20; y<1024; y+=60) {
-            for(let x=20; x<512; x+=100) {
-                if(Math.random() > 0.3) { // Random lit windows
-                    ctx.fillStyle = Math.random() > 0.9 ? '#ffffaa' : '#050510';
-                    ctx.fillRect(x, y, 60, 40);
-                }
-            }
-        }
-        const tex = new THREE.CanvasTexture(canvas);
-        tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.RepeatWrapping;
-        return tex;
-    }
-
-    function createRoadTexture() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512; canvas.height = 512;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#1a1a1a'; // Asphalt
-        ctx.fillRect(0,0,512,512);
-
-        // Noise/Grit
-        for(let i=0; i<5000; i++) {
-            ctx.fillStyle = Math.random() > 0.5 ? '#222' : '#111';
-            ctx.fillRect(Math.random()*512, Math.random()*512, 2, 2);
-        }
-        const tex = new THREE.CanvasTexture(canvas);
-        tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(50, 50);
-        return tex;
-    }
-
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050510); // Night sky
-        scene.fog = new THREE.FogExp2(0x050510, 0.0003); // City smog
+        scene.background = new THREE.Color(0x050510);
+        scene.fog = new THREE.FogExp2(0x050510, 0.0004);
 
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 20000);
-
-        renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 20000);
+        renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
         document.body.appendChild(renderer.domElement);
 
-        // --- LIGHTING ---
-        const ambient = new THREE.AmbientLight(0x404060, 2); // Blueish night ambient
-        scene.add(ambient);
-
-        // Street lamps effect (Directional)
-        const moon = new THREE.DirectionalLight(0xaaccff, 0.5);
-        moon.position.set(1000, 2000, 1000);
+        scene.add(new THREE.AmbientLight(0x606080, 1.5));
+        const moon = new THREE.DirectionalLight(0xaaccff, 0.8);
+        moon.position.set(500, 2000, 500);
         scene.add(moon);
 
-        // --- CITY GENERATION ---
-        const roadMat = new THREE.MeshStandardMaterial({
-            map: createRoadTexture(),
-            roughness: 0.8
-        });
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(20000, 20000), roadMat);
+        // Ground (Asphalt & Sidewalk mix)
+        const floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(20000, 20000),
+            new THREE.MeshStandardMaterial({ color: 0x1a1a1a })
+        );
         floor.rotation.x = -Math.PI / 2;
-        floor.receiveShadow = true;
         scene.add(floor);
 
-        const buildingGeo = new THREE.BoxGeometry(cellSize - 100, 1, cellSize - 100);
-        const buildTex = createBuildingTexture();
+        // Buildings
+        const wallGeo = new THREE.BoxGeometry(cellSize - 150, 2000, cellSize - 150);
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x222233 });
 
         for(let z = 0; z < cityMap.length; z++) {
             for(let x = 0; x < cityMap[z].length; x++) {
                 if(cityMap[z][x] === 1) {
-                    // Random Heights for skyline
-                    const height = Math.random() * 2000 + 800;
-                    const mat = new THREE.MeshStandardMaterial({
-                        map: buildTex,
-                        color: new THREE.Color().setHSL(Math.random(), 0.1, 0.5)
-                    });
-
-                    const building = new THREE.Mesh(buildingGeo, mat);
-                    building.scale.y = height;
-                    building.position.set(x * cellSize - 4000, height/2, z * cellSize - 4000);
-                    scene.add(building);
+                    const b = new THREE.Mesh(wallGeo, wallMat);
+                    b.position.set(x * cellSize - 4000, 1000, z * cellSize - 4000);
+                    scene.add(b);
+                    buildingMeshes.push(b);
                 }
             }
         }
 
-        // --- CHARACTER ---
         new FBXLoader().load('catwalk.fbx', (fbx) => {
             model = fbx;
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
-            model.scale.setScalar(180 / (size.y || 1)); // Human scale (1.8m approx)
-
-            // Start in an open spot
+            model.scale.setScalar(180 / (size.y || 1));
             model.position.set(-1000, 0, -1000);
-
-            // Add a "flashlight" to player
-            const spot = new THREE.SpotLight(0xffffff, 100, 1500, 0.6, 0.5);
-            spot.position.set(0, 200, 100);
-            spot.target = model;
-            model.add(spot);
-
             scene.add(model);
 
             mixer = new THREE.AnimationMixer(model);
@@ -182,34 +111,17 @@
             }
         });
 
-        // Inputs
         window.addEventListener('keydown', (e) => {
-            const k = e.key.toLowerCase();
-            if (keys.hasOwnProperty(k)) keys[k] = true;
-            if (e.key === 'Shift') isSprinting = true;
-            if (k === 't') toggleCamera();
+            keys[e.key.toLowerCase()] = true;
+            if (e.shiftKey) isSprinting = true;
+            if (e.key.toLowerCase() === 't') toggleCamera();
         });
         window.addEventListener('keyup', (e) => {
-            const k = e.key.toLowerCase();
-            if (keys.hasOwnProperty(k)) keys[k] = false;
-            if (e.key === 'Shift') isSprinting = false;
+            keys[e.key.toLowerCase()] = false;
+            if (!e.shiftKey) isSprinting = false;
         });
-
-        // Mouse Look
-        let isDragging = false;
-        window.addEventListener('mousedown', () => isDragging = true);
-        window.addEventListener('mouseup', () => isDragging = false);
-        window.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                camYaw -= e.movementX * 0.005;
-                camPitch += e.movementY * 0.1;
-                camPitch = Math.max(10, Math.min(camPitch, 85)); // Limit vertical look
-            }
-        });
-
         window.addEventListener('wheel', (e) => {
-            camDistance += e.deltaY * 0.5;
-            camDistance = Math.max(200, Math.min(camDistance, 2000));
+            camDistance = Math.max(300, Math.min(camDistance + e.deltaY, 2000));
         });
 
         animate();
@@ -217,23 +129,15 @@
 
     function toggleCamera() {
         cameraMode = cameraMode === 'street' ? 'tactical' : 'street';
-        document.getElementById('viewModeText').innerText = "CURRENT: " + cameraMode.toUpperCase() + " VIEW";
-
-        if (cameraMode === 'tactical') {
-            camPitch = 60; // High angle
-            camDistance = 1500;
-        } else {
-            camPitch = 20; // Low angle
-            camDistance = 400;
-        }
+        document.getElementById('viewModeText').innerText = cameraMode.toUpperCase() + " VIEW";
+        camPitch = cameraMode === 'tactical' ? 70 : 25;
+        camDistance = cameraMode === 'tactical' ? 1800 : 500;
     }
 
-    function checkCollision(nextX, nextZ) {
-        // Simple Grid Collision
-        const gridX = Math.round((nextX + 4000) / cellSize);
-        const gridZ = Math.round((nextZ + 4000) / cellSize);
-        if (cityMap[gridZ] && cityMap[gridZ][gridX] === 1) return true;
-        return false;
+    function checkWall(pos) {
+        const gridX = Math.round((pos.x + 4000) / cellSize);
+        const gridZ = Math.round((pos.z + 4000) / cellSize);
+        return cityMap[gridZ] && cityMap[gridZ][gridX] === 1;
     }
 
     function animate() {
@@ -242,72 +146,69 @@
         if (mixer) mixer.update(delta);
 
         if (model) {
-            let moveFwd = 0;
-            let moveSide = 0;
-
+            let moveFwd = 0, moveSide = 0;
             if (keys.w) moveFwd = 1;
             if (keys.s) moveFwd = -1;
             if (keys.a) moveSide = -1;
             if (keys.d) moveSide = 1;
 
+            // Camera Panning with Arrows
+            if (keys.arrowleft) camYaw -= 0.04;
+            if (keys.arrowright) camYaw += 0.04;
+            if (keys.arrowup) camPitch = Math.min(camPitch + 1, 85);
+            if (keys.arrowdown) camPitch = Math.max(camPitch - 1, 10);
+
             const isMoving = moveFwd !== 0 || moveSide !== 0;
 
             if (isMoving) {
-                // Calculate Camera Direction (Ignore Y)
-                const camDir = new THREE.Vector3();
-                camera.getWorldDirection(camDir);
-                camDir.y = 0;
-                camDir.normalize();
+                // Direction based on Cam Yaw
+                const angle = camYaw + Math.atan2(moveSide, moveFwd);
+                const targetRot = angle + Math.PI;
 
-                // Calculate Side Vector
-                const sideDir = new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0), camDir).normalize(); // Left
+                let diff = targetRot - model.rotation.y;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                model.rotation.y += diff * 0.15;
 
-                // Combine vectors based on input
-                const moveVec = new THREE.Vector3();
-                moveVec.addScaledVector(camDir, moveFwd);
-                moveVec.addScaledVector(sideDir, -moveSide); // -1 because cross product is inverted for 'A'
-
-                if (moveVec.lengthSq() > 0) {
-                    moveVec.normalize();
-
-                    // Smooth Rotation towards move direction
-                    const targetRot = Math.atan2(moveVec.x, moveVec.z);
-                    let diff = targetRot - model.rotation.y;
-                    while (diff < -Math.PI) diff += Math.PI * 2;
-                    while (diff > Math.PI) diff -= Math.PI * 2;
-                    model.rotation.y += diff * 0.15;
-
-                    // Move
-                    const speed = isSprinting ? 25 : 12;
-                    if (walkAction) walkAction.timeScale = isSprinting ? 1.5 : 1.0;
-
-                    const nextX = model.position.x + Math.sin(model.rotation.y) * speed;
-                    const nextZ = model.position.z + Math.cos(model.rotation.y) * speed;
-
-                    if (!checkCollision(nextX, nextZ)) {
-                        model.position.x = nextX;
-                        model.position.z = nextZ;
-                    }
+                const speed = isSprinting ? 28 : 14;
+                if (walkAction) {
+                    walkAction.paused = false;
+                    walkAction.timeScale = isSprinting ? 1.8 : 1.0; // ANIMATION SPRINT FIX
                 }
+
+                const nextX = model.position.x + Math.sin(model.rotation.y) * speed;
+                const nextZ = model.position.z + Math.cos(model.rotation.y) * speed;
+
+                if (!checkWall({x: nextX, z: nextZ})) {
+                    model.position.x = nextX;
+                    model.position.z = nextZ;
+                }
+            } else if (walkAction) {
+                walkAction.paused = true;
             }
 
-            if (walkAction) walkAction.paused = !isMoving;
-
-            // --- CAMERA LOGIC ---
-            // Calculate desired camera position based on spherical coordinates
-            const offsetX = camDistance * Math.sin(camYaw) * Math.cos(THREE.MathUtils.degToRad(camPitch));
-            const offsetZ = camDistance * Math.cos(camYaw) * Math.cos(THREE.MathUtils.degToRad(camPitch));
-            const offsetY = camDistance * Math.sin(THREE.MathUtils.degToRad(camPitch));
-
-            const targetCamPos = new THREE.Vector3(
-                model.position.x - offsetX,
-                model.position.y + offsetY,
-                model.position.z - offsetZ
+            // --- CAMERA OCCLUSION (WALL CHECK) ---
+            const idealOffset = new THREE.Vector3(
+                camDistance * Math.sin(camYaw) * Math.cos(THREE.MathUtils.degToRad(camPitch)),
+                camDistance * Math.sin(THREE.MathUtils.degToRad(camPitch)),
+                camDistance * Math.cos(camYaw) * Math.cos(THREE.MathUtils.degToRad(camPitch))
             );
 
-            // Smooth Camera Follow
-            camera.position.lerp(targetCamPos, 0.1);
-            camera.lookAt(model.position.x, model.position.y + 150, model.position.z);
+            const playerHead = model.position.clone().add(new THREE.Vector3(0, 150, 0));
+            const desiredCamPos = playerHead.clone().add(idealOffset);
+
+            // Raycast from Niko to Camera to find walls
+            const rayDir = idealOffset.clone().normalize();
+            const raycaster = new THREE.Raycaster(playerHead, rayDir, 10, camDistance);
+            const hits = raycaster.intersectObjects(buildingMeshes);
+
+            if (hits.length > 0) {
+                camera.position.copy(hits[0].point.sub(rayDir.multiplyScalar(20))); // Stop 20 units before wall
+            } else {
+                camera.position.lerp(desiredCamPos, 0.1);
+            }
+
+            camera.lookAt(playerHead);
         }
         renderer.render(scene, camera);
     }
