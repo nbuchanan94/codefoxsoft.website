@@ -351,24 +351,25 @@
                     model.position.z = nZ;
                 }
 
-                // IMPROVED AUTO-FOLLOW BEHIND
-                // Only auto-follow if user isn't holding manual rotation keys
+                // IMPROVED AUTO-FOLLOW BEHIND (Niko's back)
                 if (!keys.q && !keys.e) {
+                    // Get the angle Niko is actually facing
                     const nikoRotation = model.rotation.y;
+
+                    // The camera should ideally be at nikoRotation + Math.PI (behind him)
+                    // But our coordinate system logic uses camYaw directly to calculate offset.
+                    // Let's find the difference between current camYaw and Niko's rotation.
                     let diff = nikoRotation - camYaw;
 
                     // Normalize angle difference to [-PI, PI]
                     while (diff < -Math.PI) diff += Math.PI * 2;
                     while (diff > Math.PI) diff -= Math.PI * 2;
 
-                    // Increased follow factor for snappier response (0.08)
-                    // If moving backwards (S), we flip the target to be behind Niko
-                    if (keys.s && !keys.w && !keys.a && !keys.d) {
-                         // When strictly moving back, we actually want the cam to stay put or flip
-                         // But usually, in games, cam snaps to face Niko's back.
-                    }
-
-                    camYaw += diff * 0.08;
+                    // SNAPPING LOGIC:
+                    // If moving back (S), we want the cam to rotate around to see his back.
+                    // If moving forward (W), it naturally follows.
+                    // We apply a faster lerp here (0.1) for high responsiveness.
+                    camYaw += diff * 0.1;
                 }
 
                 if (keys.shift) fadeToAction('run');
@@ -417,8 +418,8 @@
                 focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
             );
 
-            // Smoother camera position lerping
-            camera.position.lerp(tPos, 0.15);
+            // Snap camera position faster for responsive movement
+            camera.position.lerp(tPos, 0.2);
             camera.lookAt(focus);
         }
 
