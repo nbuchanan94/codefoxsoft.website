@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko's Meadow: Fixed</title>
+    <title>Niko's Meadow: Final Fix</title>
     <style>
         body { margin: 0; background: #87CEEB; overflow: hidden; font-family: monospace; }
-        #status { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; z-index: 10; background: rgba(0,0,0,0.3); padding: 5px; }
+        #status { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px; }
     </style>
 </head>
 <body>
-    <div id="status">LOCATING NIKO IN THE TALL GRASS...</div>
+    <div id="status">MEASURING NIKO...</div>
 
 <script type="importmap">
     {
@@ -33,24 +33,22 @@
         clock = new THREE.Clock();
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
-        scene.fog = new THREE.Fog(0x87CEEB, 500, 3000);
 
-        // High-angle camera to start
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-        camera.position.set(0, 500, 1000);
+        // Camera: Farther back to ensure we see the "Giant" if he's still huge
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 20000);
+        camera.position.set(0, 800, 2000);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 2));
+        scene.add(new THREE.AmbientLight(0xffffff, 3));
         const sun = new THREE.DirectionalLight(0xffffff, 2);
-        sun.position.set(100, 500, 100);
+        sun.position.set(500, 1000, 500);
         scene.add(sun);
 
-        // Green Grass Floor (The "Meadow")
+        // Ground
         const ground = new THREE.Mesh(
             new THREE.PlaneGeometry(10000, 10000),
             new THREE.MeshPhongMaterial({ color: 0x2d5a27 })
         );
         ground.rotation.x = -Math.PI / 2;
-        ground.position.y = -1; // Slightly below zero so Niko stands ON it
         scene.add(ground);
 
         const loader = new FBXLoader();
@@ -58,17 +56,23 @@
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
 
-            // --- THE VISIBILITY RESCUE ---
-            // 1. Force Scale (Boosted to 15 since he was microscopic)
-            model.scale.setScalar(15);
+            // --- THE MATHEMATICAL FIX ---
+            // 1. Calculate how big he actually is right now
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
 
-            // 2. Force Position (Stand him on the grass)
+            // 2. Force him to be exactly 200 units tall
+            const targetHeight = 200;
+            const currentHeight = size.y || 1;
+            const finalScale = targetHeight / currentHeight;
+
+            model.scale.setScalar(finalScale);
             model.position.set(0, 0, 0);
-
             scene.add(model);
 
-            // 3. Focus Camera on him
-            camera.lookAt(model.position);
+            // 3. Add a Helper so we can see his boundaries
+            const helper = new THREE.BoxHelper(model, 0xff0000);
+            scene.add(helper);
 
             mixer = new THREE.AnimationMixer(model);
 
@@ -77,7 +81,7 @@
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
                 walkAction = mixer.clipAction(clip);
                 walkAction.play();
-                document.getElementById('status').innerHTML = "NIKO IS ON THE GRASS";
+                document.getElementById('status').innerHTML = `NIKO HEIGHT: ${targetHeight} | SCALE MULTIPLIER: ${finalScale.toFixed(4)}`;
             }
         });
 
@@ -105,19 +109,15 @@
 
             const distance = model.position.distanceTo(targetPos);
 
-            // If mouse is far, walk to it
             if (distance > 50) {
                 walkAction.paused = false;
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(8);
-
-                // Dynamic Camera: follow the homie
-                camera.position.x += (model.position.x - camera.position.x) * 0.05;
-                camera.position.z += ((model.position.z + 800) - camera.position.z) * 0.05;
-                camera.lookAt(model.position);
+                model.translateZ(10);
             } else {
                 walkAction.paused = true;
             }
+            // Keep camera focused on the red box area
+            camera.lookAt(model.position);
         }
         renderer.render(scene, camera);
     }
