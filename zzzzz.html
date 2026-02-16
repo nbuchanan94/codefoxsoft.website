@@ -222,17 +222,24 @@
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
 
-            // Strip Root Motion from all loaded animations to prevent the "snapping" effect
+            // Strip Root Motion and set timing
             results.forEach(res => {
                 if (!res.error && res.fbx && res.fbx.animations.length > 0) {
                     const clip = res.fbx.animations[0];
-                    // Look for tracks that control the Root/Hips translation and nullify them
-                    // This forces the animation to play "in place"
                     clip.tracks = clip.tracks.filter(track => {
                         return !track.name.toLowerCase().includes('root.position') &&
                                !track.name.toLowerCase().includes('hips.position') &&
                                !track.name.toLowerCase().includes('basehumanoid.position');
                     });
+
+                    const action = mixer.clipAction(clip);
+                    if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
+                    if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
+
+                    // Speed up walk animation to match ground speed
+                    if (res.key === 'walk') action.setEffectiveTimeScale(1.5);
+
+                    actions[res.key] = action;
                 }
             });
         } else {
@@ -240,15 +247,6 @@
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
         }
-
-        results.forEach(res => {
-            if (!res.error && res.fbx && res.fbx.animations.length > 0) {
-                const action = mixer.clipAction(res.fbx.animations[0]);
-                if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
-                if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
-                actions[res.key] = action;
-            }
-        });
 
         resetNiko();
         if (actions['idle']) fadeToAction('idle');
@@ -325,7 +323,7 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            // Camera rotation keys
+            // Camera rotation keys (Restored/Checked)
             if(keys.q) camYaw += 0.04;
             if(keys.e) camYaw -= 0.04;
 
@@ -336,6 +334,7 @@
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
 
+                // Calculate movement relative to Camera Yaw
                 const moveAngle = Math.atan2(inputX, inputZ) + camYaw;
 
                 const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle);
