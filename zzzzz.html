@@ -221,6 +221,20 @@
             model.scale.setScalar(240 / size.y);
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
+
+            // Strip Root Motion from all loaded animations to prevent the "snapping" effect
+            results.forEach(res => {
+                if (!res.error && res.fbx && res.fbx.animations.length > 0) {
+                    const clip = res.fbx.animations[0];
+                    // Look for tracks that control the Root/Hips translation and nullify them
+                    // This forces the animation to play "in place"
+                    clip.tracks = clip.tracks.filter(track => {
+                        return !track.name.toLowerCase().includes('root.position') &&
+                               !track.name.toLowerCase().includes('hips.position') &&
+                               !track.name.toLowerCase().includes('basehumanoid.position');
+                    });
+                }
+            });
         } else {
             model = new THREE.Mesh(new THREE.BoxGeometry(100,240,100), new THREE.MeshStandardMaterial({color: 0x00ffcc}));
             scene.add(model);
@@ -316,29 +330,20 @@
             if(keys.e) camYaw -= 0.04;
 
             // Directional Logic
-            // W/S: Forward/Backward relative to camera
-            // A/D: Left/Right relative to camera
             let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
             let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
 
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
 
-                // Determine movement direction based on Camera Yaw
-                // The +Math.PI is removed/adjusted here to fix the moonwalking
                 const moveAngle = Math.atan2(inputX, inputZ) + camYaw;
 
-                // Rotation
-                // Niko should face exactly where he is moving
                 const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle);
                 model.quaternion.slerp(targetQuat, 0.15);
 
-                // Speed
-                const spd = keys.shift ? 65 : 35;
+                const spd = keys.shift ? 75 : 40;
                 if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
 
-                // Apply Velocity
-                // We calculate vx/vz based on the movement angle
                 const vx = Math.sin(moveAngle) * spd;
                 const vz = Math.cos(moveAngle) * spd;
 
