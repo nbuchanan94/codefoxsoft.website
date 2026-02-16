@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Neon Bronx</title>
+    <title>Niko: Neon City - 3 Level Master</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.9); background: rgba(0,0,0,0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00ffcc; pointer-events: none; z-index: 100; }
-        #level-text { font-weight: bold; color: #00ffcc; font-size: 1.2em; display: block; margin-bottom: 4px; }
+        #level-display { font-weight: bold; color: #00ffcc; font-size: 1.5em; display: block; }
     </style>
 </head>
 <body>
     <div id="ui">
-        <span id="level-text">LEVEL 1: THE BRONX</span>
+        <span id="level-display">LEVEL 1: THE BRONX</span>
         <b>WASD</b> Move | <b>SHIFT</b> Sprint<br>
-        <b>ARROWS</b> Orbit Cam | <b>T</b> Toggle View
+        <b>ARROWS</b> Orbit | <b>T</b> Toggle View
     </div>
 
 <script type="importmap">
@@ -30,88 +30,82 @@
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
     let scene, camera, renderer, mixer, clock, model, walkAction, goalOrb;
-    let cameraMode = 'street', level = 1;
+    let currentLevel = 1, isSprinting = false;
     let camDistance = 800, camPitch = 25, camYaw = 0;
-    const keys = {}, buildingMeshes = [], cellSize = 1800;
+    const keys = {}, cellSize = 1800;
 
-    const map = [
-        [1,1,1,1,1,1,1,1],
-        [1,0,0,0,0,0,0,1],
-        [1,0,1,1,0,1,0,1],
-        [1,0,1,1,0,1,0,1],
-        [1,0,0,0,0,0,0,1],
-        [1,1,1,1,1,1,1,1]
-    ];
+    // --- LEVEL DESIGNS (0 = Road, 1 = Building) ---
+    const levelMaps = {
+        1: [ [1,1,1,1,1], [1,0,0,0,1], [1,0,1,0,1], [1,0,0,0,1], [1,1,1,1,1] ],
+        2: [ [1,1,1,1,1,1], [1,0,0,1,0,1], [1,1,0,0,0,1], [1,0,0,1,0,1], [1,1,1,1,1,1] ],
+        3: [ [1,1,1,1,1,1,1], [1,0,0,0,0,0,1], [1,0,1,1,1,0,1], [1,0,0,0,0,0,1], [1,1,1,1,1,1,1] ]
+    };
 
-    init();
-
-    // --- PROCEDURAL TEXTURE GENERATORS ---
-    function createBuildingTexture(isEmissive = false) {
+    // --- TEXTURE CREATORS ---
+    function getBuildingMaterial() {
         const canvas = document.createElement('canvas');
         canvas.width = 512; canvas.height = 1024;
         const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#1a1a1c'; ctx.fillRect(0,0,512,1024);
+        const emitCanvas = document.createElement('canvas');
+        emitCanvas.width = 512; emitCanvas.height = 1024;
+        const eCtx = emitCanvas.getContext('2d');
+        eCtx.fillStyle = '#000'; eCtx.fillRect(0,0,512,1024);
 
-        // If this is the light-map, background is black. If it's the wall, it's dark gray.
-        ctx.fillStyle = isEmissive ? '#000000' : '#1a1a1c';
-        ctx.fillRect(0, 0, 512, 1024);
-
-        for(let y = 50; y < 1024; y += 120) {
-            for(let x = 40; x < 512; x += 110) {
+        for(let y=60; y<1024; y+=120) {
+            for(let x=40; x<512; x+=110) {
                 if(Math.random() > 0.4) {
                     const color = Math.random() > 0.5 ? '#ffaa00' : '#4488ff';
-                    ctx.fillStyle = color;
-                    if (!isEmissive) {
-                        ctx.globalAlpha = 0.2; // Dim on the actual wall texture
-                    } else {
-                        ctx.globalAlpha = 1.0;
-                        ctx.shadowBlur = 15;
-                        ctx.shadowColor = color;
-                    }
-                    ctx.fillRect(x, y, 65, 50);
+                    ctx.fillStyle = color; ctx.globalAlpha = 0.2; ctx.fillRect(x,y,65,50);
+                    eCtx.fillStyle = color; eCtx.shadowBlur = 15; eCtx.shadowColor = color; eCtx.fillRect(x,y,65,50);
                 }
             }
         }
-        return new THREE.CanvasTexture(canvas);
+        return new THREE.MeshStandardMaterial({
+            map: new THREE.CanvasTexture(canvas),
+            emissiveMap: new THREE.CanvasTexture(emitCanvas),
+            emissive: 0xffffff, emissiveIntensity: 1.2
+        });
     }
 
-    function createGraffitiTexture() {
+    function getRoadMaterial() {
         const canvas = document.createElement('canvas');
-        canvas.width = 256; canvas.height = 128;
+        canvas.width = 512; canvas.height = 512;
         const ctx = canvas.getContext('2d');
-        ctx.clearRect(0,0,256,128);
-
-        const colors = ['#ff00ff', '#00ffff', '#77ff00', '#ff3300'];
-        ctx.font = 'bold 40px "Courier New"';
-        ctx.fillStyle = colors[Math.floor(Math.random()*colors.length)];
-        ctx.textAlign = 'center';
-        ctx.shadowBlur = 5;
-        ctx.shadowColor = 'black';
-
-        const tags = ['BRONX', 'NIKO', 'CITY', '99', 'TAG'];
-        ctx.fillText(tags[Math.floor(Math.random()*tags.length)], 128, 80);
-
-        return new THREE.CanvasTexture(canvas);
+        ctx.fillStyle = '#333'; ctx.fillRect(0,0,512,512); // Sidewalk
+        ctx.fillStyle = '#111'; ctx.fillRect(60,0,392,512); // Asphalt
+        ctx.fillStyle = '#555'; // Road Lines
+        for(let i=0; i<512; i+=64) ctx.fillRect(250, i, 10, 30);
+        const tex = new THREE.CanvasTexture(canvas);
+        return new THREE.MeshStandardMaterial({ map: tex });
     }
 
+    // --- INITIALIZATION ---
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x020205);
-        scene.fog = new THREE.FogExp2(0x020205, 0.00015);
+        scene.fog = new THREE.FogExp2(0x020205, 0.00018);
 
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 30000);
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 30000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+        const moon = new THREE.DirectionalLight(0x4455ff, 0.3);
+        moon.position.set(500, 1000, 500);
+        scene.add(moon);
 
-        buildLevel();
+        loadLevel(currentLevel);
         loadNiko();
 
         window.addEventListener('keydown', (e) => {
             keys[e.key.toLowerCase()] = true;
-            if (e.key.toLowerCase() === 't') toggleCamera();
+            if (e.key.toLowerCase() === 't') {
+                camPitch = (camPitch === 25) ? 80 : 25;
+                camDistance = (camPitch === 80) ? 2500 : 800;
+            }
         });
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
         animate();
@@ -119,25 +113,21 @@
 
     function createStreetLamp(x, z) {
         const group = new THREE.Group();
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(8, 12, 700), new THREE.MeshStandardMaterial({color: 0x050505}));
-        pole.position.y = 350;
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(8, 12, 600), new THREE.MeshStandardMaterial({color: 0x050505}));
+        pole.position.y = 300;
         group.add(pole);
-
         const head = new THREE.Mesh(new THREE.BoxGeometry(100, 20, 40), new THREE.MeshStandardMaterial({color: 0x111}));
-        head.position.set(40, 700, 0);
+        head.position.set(40, 600, 0);
         group.add(head);
 
-        const light = new THREE.SpotLight(0xfff5ee, 80000, 1600, Math.PI/3.2, 0.5, 1);
-        light.position.set(80, 700, 0);
+        const light = new THREE.SpotLight(0xfff5ee, 70000, 1500, Math.PI/3.5, 0.5, 1);
+        light.position.set(80, 600, 0);
         light.target.position.set(80, 0, 0);
         group.add(light);
         group.add(light.target);
 
-        const cone = new THREE.Mesh(
-            new THREE.ConeGeometry(450, 700, 32),
-            new THREE.MeshBasicMaterial({ color: 0xfff5ee, transparent: true, opacity: 0.12, depthWrite: false, blending: THREE.AdditiveBlending })
-        );
-        cone.position.set(80, 350, 0);
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(400, 600, 24), new THREE.MeshBasicMaterial({ color: 0xfff5ee, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending }));
+        cone.position.set(80, 300, 0);
         cone.rotation.z = Math.PI;
         group.add(cone);
 
@@ -145,52 +135,42 @@
         scene.add(group);
     }
 
-    function buildLevel() {
-        const wallTex = createBuildingTexture(false);
-        const emitTex = createBuildingTexture(true); // The "Light" map
+    function loadLevel(num) {
+        // Clear old level
+        while(scene.children.length > 0){ scene.remove(scene.children[0]); }
+        scene.add(new THREE.AmbientLight(0xffffff, 0.25));
 
-        for(let z = 0; z < map.length; z++) {
-            for(let x = 0; x < map[z].length; x++) {
-                const px = x * cellSize - 4000, pz = z * cellSize - 4000;
+        const map = levelMaps[num];
+        const buildMat = getBuildingMaterial();
+        const roadMat = getRoadMaterial();
 
+        for(let z=0; z<map.length; z++) {
+            for(let x=0; x<map[z].length; x++) {
+                const px = x * cellSize - 2000, pz = z * cellSize - 2000;
                 if(map[z][x] === 1) {
-                    // Main Building
-                    const b = new THREE.Mesh(
-                        new THREE.BoxGeometry(cellSize - 200, 5000, cellSize - 200),
-                        new THREE.MeshStandardMaterial({
-                            map: wallTex,
-                            emissiveMap: emitTex,
-                            emissive: 0xffffff,
-                            emissiveIntensity: 1.2
-                        })
-                    );
-                    b.position.set(px, 2500, pz);
+                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize - 150, 4000, cellSize - 150), buildMat);
+                    b.position.set(px, 2000, pz);
                     scene.add(b);
-                    buildingMeshes.push(b);
-
-                    // Add Graffiti Decals to building faces
-                    if(Math.random() > 0.3) {
-                        const decalGeo = new THREE.PlaneGeometry(300, 150);
-                        const decalMat = new THREE.MeshBasicMaterial({ map: createGraffitiTexture(), transparent: true, polygonOffset: true, polygonOffsetFactor: -4 });
-                        const decal = new THREE.Mesh(decalGeo, decalMat);
-                        decal.position.set(px, 150, pz + (cellSize/2 - 95));
-                        scene.add(decal);
-                    }
+                    // Dark filler for alleys
+                    const f = new THREE.Mesh(new THREE.BoxGeometry(cellSize + 10, 3900, cellSize + 10), new THREE.MeshBasicMaterial({color: 0x000000}));
+                    f.position.set(px, 1950, pz);
+                    f.renderOrder = -1;
+                    scene.add(f);
                 } else {
-                    // Road
-                    const road = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), new THREE.MeshStandardMaterial({ color: 0x15151a }));
-                    road.rotation.x = -Math.PI / 2;
-                    road.position.set(px, 1, pz);
-                    scene.add(road);
-
-                    if((x+z)%2 === 0) createStreetLamp(px - cellSize/2 + 100, pz);
+                    const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), roadMat);
+                    r.rotation.x = -Math.PI/2;
+                    r.position.set(px, 0, pz);
+                    scene.add(r);
+                    if((x+z)%2===0) createStreetLamp(px - cellSize/2 + 100, pz);
                 }
             }
         }
 
         goalOrb = new THREE.Mesh(new THREE.SphereGeometry(200), new THREE.MeshStandardMaterial({color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 3}));
-        goalOrb.position.set(cellSize * 6 - 4000, 250, cellSize * 1 - 4000);
+        goalOrb.position.set(cellSize * (map[0].length-2) - 2000, 250, cellSize * (map.length-2) - 2000);
         scene.add(goalOrb);
+        if(model) scene.add(model);
+        document.getElementById('level-display').innerText = `LEVEL ${num}: ${num===1?'THE BRONX':num===2?'UPTOWN':'DOWNTOWN'}`;
     }
 
     function loadNiko() {
@@ -199,13 +179,11 @@
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
             model.scale.setScalar(200 / (size.y || 1));
-            model.position.set(-2200, 0, -2200);
+            model.position.set(-cellSize, 0, -cellSize);
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
             if (fbx.animations.length > 0) {
-                const clip = fbx.animations[0];
-                clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
-                walkAction = mixer.clipAction(clip);
+                walkAction = mixer.clipAction(fbx.animations[0]);
                 walkAction.play(); walkAction.paused = true;
             }
         });
@@ -215,56 +193,50 @@
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
         if (mixer) mixer.update(delta);
-
         if (model) {
-            const isSprinting = keys.shift;
+            isSprinting = keys.shift;
             let moveFwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
-            let moveSide = (keys.d ? 1 : 0) - (keys.a ? 1 : 0); // Corrected A/D logic
+            let moveSide = (keys.d ? 1 : 0) - (keys.a ? 1 : 0); // Corrected A/D
 
             if (keys.arrowleft) camYaw += 0.04;
             if (keys.arrowright) camYaw -= 0.04;
 
-            const isMoving = moveFwd !== 0 || moveSide !== 0;
-
-            if (isMoving) {
+            if (moveFwd !== 0 || moveSide !== 0) {
                 const moveAngle = camYaw + Math.atan2(moveSide, moveFwd);
                 let diff = (moveAngle + Math.PI) - model.rotation.y;
                 while (diff < -Math.PI) diff += Math.PI * 2;
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 model.rotation.y += diff * 0.15;
-
-                const speed = isSprinting ? 42 : 20;
+                const speed = isSprinting ? 45 : 22;
                 if (walkAction) { walkAction.paused = false; walkAction.timeScale = isSprinting ? 2.2 : 1.0; }
-
                 const nextX = model.position.x + Math.sin(model.rotation.y) * speed;
                 const nextZ = model.position.z + Math.cos(model.rotation.y) * speed;
 
-                const gx = Math.round((nextX + 4000) / cellSize);
-                const gz = Math.round((nextZ + 4000) / cellSize);
+                // Collision
+                const gx = Math.round((nextX + 2000) / cellSize);
+                const gz = Math.round((nextZ + 2000) / cellSize);
+                const map = levelMaps[currentLevel];
                 if (!(map[gz] && map[gz][gx] === 1)) {
-                    model.position.x = nextX;
-                    model.position.z = nextZ;
+                    model.position.x = nextX; model.position.z = nextZ;
                 }
             } else if (walkAction) { walkAction.paused = true; }
 
+            // Goal Check
+            if(model.position.distanceTo(goalOrb.position) < 300) {
+                currentLevel = currentLevel < 3 ? currentLevel + 1 : 1;
+                loadLevel(currentLevel);
+                model.position.set(-cellSize, 0, -cellSize);
+            }
+
             const playerPos = model.position.clone().add(new THREE.Vector3(0, 200, 0));
             const pitchRad = THREE.MathUtils.degToRad(camPitch);
-            const idealOffset = new THREE.Vector3(
-                camDistance * Math.sin(camYaw) * Math.cos(pitchRad),
-                camDistance * Math.sin(pitchRad),
-                camDistance * Math.cos(camYaw) * Math.cos(pitchRad)
-            );
-            camera.position.lerp(playerPos.clone().add(idealOffset), 0.1);
+            camera.position.lerp(playerPos.clone().add(new THREE.Vector3(camDistance * Math.sin(camYaw) * Math.cos(pitchRad), camDistance * Math.sin(pitchRad), camDistance * Math.cos(camYaw) * Math.cos(pitchRad))), 0.1);
             camera.lookAt(playerPos);
         }
         if(goalOrb) goalOrb.rotation.y += 0.05;
         renderer.render(scene, camera);
     }
-
-    function toggleCamera() {
-        camPitch = (camPitch === 25) ? 85 : 25;
-        camDistance = (camPitch === 85) ? 2800 : 800;
-    }
+    init();
 </script>
 </body>
 </html>
