@@ -2,14 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Walking Maze</title>
+    <title>Niko: Dungeon Maze</title>
     <style>
-        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: monospace; }
-        #ui { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; }
+        body { margin: 0; background: #050505; overflow: hidden; font-family: 'Courier New', monospace; }
+        #ui { position: absolute; top: 10px; left: 10px; color: #ffae00; text-shadow: 2px 2px black; background: rgba(0,0,0,0.7); padding: 10px; border: 1px solid #ffae00; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div id="ui"><b>WASD</b>: Walk | <b>ARROWS</b>: Spin Camera | <b>SCROLL</b>: Zoom</div>
+    <div id="ui">
+        <b>WASD</b>: Walk | <b>ARROWS</b>: Camera<br>
+        <b>+ / -</b>: Zoom | <b>P</b>: Pause
+    </div>
 
 <script type="importmap">
     {
@@ -26,8 +29,9 @@
 
     let scene, camera, renderer, mixer, clock, model, walkAction;
     let zoomDist = 1200, camAngle = 0;
+    let isPaused = false;
     const keys = {};
-    const cellSize = 400;
+    const cellSize = 500; // Wider halls
 
     const mazeMap = [
         [1,1,1,1,1,1,1,1,1,1],
@@ -46,69 +50,73 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87CEEB);
+        scene.background = new THREE.Color(0x050505);
+        scene.fog = new THREE.Fog(0x050505, 500, 4000);
 
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 15000);
 
         renderer = new THREE.WebGLRenderer({ antialias: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 2));
-        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-        sun.position.set(500, 1000, 500);
-        scene.add(sun);
+        // Dungeon Lighting
+        scene.add(new THREE.AmbientLight(0x404040, 1)); // Dim base light
+        const pointLight = new THREE.PointLight(0xffae00, 2, 2000); // Torch-like light
+        scene.add(pointLight);
 
-        // Floor
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), new THREE.MeshPhongMaterial({ color: 0x2d5a27 }));
+        // Dark Stone Floor
+        const floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(10000, 10000),
+            new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 })
+        );
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // Maze
-        const wallGeo = new THREE.BoxGeometry(cellSize, 400, cellSize);
-        const wallMat = new THREE.MeshLambertMaterial({ color: 0x666666 });
+        // Stone Walls
+        const wallGeo = new THREE.BoxGeometry(cellSize, 600, cellSize);
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 });
         for(let z = 0; z < mazeMap.length; z++) {
             for(let x = 0; x < mazeMap[z].length; x++) {
                 if(mazeMap[z][x] === 1) {
                     const wall = new THREE.Mesh(wallGeo, wallMat);
-                    wall.position.set(x * cellSize - 2000, 200, z * cellSize - 2000);
+                    wall.position.set(x * cellSize - 2500, 300, z * cellSize - 2500);
                     scene.add(wall);
                 }
             }
         }
 
-        // --- ANIMATION LOADING ---
         new FBXLoader().load('catwalk.fbx', (fbx) => {
             model = fbx;
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
             model.scale.setScalar(250 / (size.y || 1));
-            model.position.set(-1600, 0, -1600);
+            model.position.set(-2000, 0, -2000);
             scene.add(model);
 
             mixer = new THREE.AnimationMixer(model);
             if (fbx.animations.length > 0) {
                 const clip = fbx.animations[0];
-                // CRITICAL: Scrubber to fix T-pose issues
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
-
                 walkAction = mixer.clipAction(clip);
-                walkAction.setEffectiveWeight(1.0);
                 walkAction.play();
-                walkAction.paused = true; // Wait for WASD
+                walkAction.paused = true;
             }
         });
 
-        window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if(e.key === 'p') isPaused = !isPaused;
+            if(e.key === '+' || e.key === '=') zoomDist = Math.max(400, zoomDist - 100);
+            if(e.key === '-' || e.key === '_') zoomDist = Math.min(4000, zoomDist + 100);
+        });
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
-        window.addEventListener('wheel', (e) => zoomDist = Math.max(500, Math.min(zoomDist + e.deltaY, 3000)));
 
         animate();
     }
 
     function canMoveTo(x, z) {
-        const gridX = Math.round((x + 2000) / cellSize);
-        const gridZ = Math.round((z + 2000) / cellSize);
+        const gridX = Math.round((x + 2500) / cellSize);
+        const gridZ = Math.round((z + 2500) / cellSize);
         if(mazeMap[gridZ] && mazeMap[gridZ][gridX] === 1) return false;
         return true;
     }
@@ -116,26 +124,37 @@
     function animate() {
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
+        if (isPaused) return;
 
         if (mixer) mixer.update(delta);
 
         if (model) {
             let moving = false;
-            let dir = new THREE.Vector3();
+            let moveDir = new THREE.Vector3();
 
-            if (keys.w) dir.z -= 1;
-            if (keys.s) dir.z += 1;
-            if (keys.a) dir.x -= 1;
-            if (keys.d) dir.x += 1;
+            if (keys.w) moveDir.z -= 1;
+            if (keys.s) moveDir.z += 1;
+            if (keys.a) moveDir.x -= 1;
+            if (keys.d) moveDir.x += 1;
 
-            if (dir.length() > 0) {
+            if (moveDir.length() > 0) {
                 moving = true;
-                dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), camAngle);
-                const targetRot = Math.atan2(dir.x, dir.z);
-                model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, targetRot, 0.15);
+                // Rotate moveDir relative to camera
+                moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), camAngle);
 
-                const nextX = model.position.x + Math.sin(model.rotation.y) * 12;
-                const nextZ = model.position.z + Math.cos(model.rotation.y) * 12;
+                // PIVOT FIX: Calculate the exact target angle
+                const targetRot = Math.atan2(moveDir.x, moveDir.z);
+
+                // Faster lerp for rotation (0.3 instead of 0.15) makes him pivot faster
+                let diff = targetRot - model.rotation.y;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                model.rotation.y += diff * 0.3;
+
+                // Only move forward if we are roughly facing the right way
+                const speed = 14;
+                const nextX = model.position.x + Math.sin(model.rotation.y) * speed;
+                const nextZ = model.position.z + Math.cos(model.rotation.y) * speed;
 
                 if (canMoveTo(nextX, nextZ)) {
                     model.position.x = nextX;
@@ -143,15 +162,15 @@
                 }
             }
 
-            // Sync animation to movement
             if (walkAction) walkAction.paused = !moving;
 
-            if (keys.arrowleft) camAngle -= 0.04;
-            if (keys.arrowright) camAngle += 0.04;
+            // Camera Controls
+            if (keys.arrowleft) camAngle -= 0.05;
+            if (keys.arrowright) camAngle += 0.05;
 
             const camX = model.position.x + Math.sin(camAngle) * zoomDist;
             const camZ = model.position.z + Math.cos(camAngle) * zoomDist;
-            camera.position.set(camX, 800, camZ);
+            camera.position.set(camX, 700 + (zoomDist * 0.3), camZ);
             camera.lookAt(model.position.x, 150, model.position.z);
         }
         renderer.render(scene, camera);
