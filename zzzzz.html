@@ -48,6 +48,7 @@
     let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
     let actions = {}, currentAction, idleTimer = 0;
     let isReady = false;
+    let isTurning = false;
 
     // Camera Settings
     let camDistance = 450;
@@ -202,7 +203,10 @@
             if (!res.error && res.fbx && res.fbx.animations.length > 0) {
                 const action = mixer.clipAction(res.fbx.animations[0]);
                 if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
-                if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
+                if (res.key.includes('turn')) {
+                    action.setLoop(THREE.LoopOnce);
+                    action.clampWhenFinished = true;
+                }
                 actions[res.key] = action;
             }
         });
@@ -264,8 +268,6 @@
 
             // Screen-relative movement logic
             let fwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
-            // FIXED: 'a' now moves him left on screen (negative X in camera space)
-            // 'd' now moves him right on screen (positive X in camera space)
             let side = (keys.a ? 1 : 0) - (keys.d ? 1 : 0);
 
             if(keys.arrowleft || keys.q) camYaw += 0.05;
@@ -276,39 +278,50 @@
             if(isMoving) {
                 idleTimer = 0;
 
-                let moveAnim = keys.shift ? 'run' : 'walk';
-
-                // Animation Logic
-                if (keys.a && actions['leftturn'] && currentAction !== actions['leftturn']) {
+                // Animation Logic: Turn First, then Move
+                if (keys.a && !isTurning && currentAction !== actions['leftturn']) {
+                    isTurning = true;
                     fadeToAction('leftturn', 0.1);
-                } else if (keys.d && actions['rightturn'] && currentAction !== actions['rightturn']) {
+                } else if (keys.d && !isTurning && currentAction !== actions['rightturn']) {
+                    isTurning = true;
                     fadeToAction('rightturn', 0.1);
-                } else {
-                    const isTurning = currentAction === actions['leftturn'] || currentAction === actions['rightturn'];
-                    if (!isTurning || (currentAction.time >= currentAction.getClip().duration - 0.1)) {
-                        fadeToAction(moveAnim);
+                }
+
+                // If a turn is happening, check if it's finished before walking
+                if (isTurning) {
+                    const clipDuration = currentAction.getClip().duration;
+                    if (currentAction.time >= clipDuration - 0.1) {
+                        isTurning = false;
                     }
                 }
 
-                const spd = keys.shift ? 58 : 30;
+                // Only move and update walk animation if NOT in the middle of a turn
+                if (!isTurning) {
+                    let moveAnim = keys.shift ? 'run' : 'walk';
+                    fadeToAction(moveAnim);
 
-                // Calculate move direction relative to camera
-                const moveDirection = Math.atan2(side, fwd);
-                const targetRotation = camYaw + moveDirection + Math.PI;
+                    const spd = keys.shift ? 58 : 30;
 
-                model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, targetRotation, 0.2);
+                    // Calculate move direction relative to camera
+                    const moveDirection = Math.atan2(side, fwd);
+                    const targetRotation = camYaw + moveDirection + Math.PI;
 
-                const nX = model.position.x + Math.sin(model.rotation.y) * spd;
-                const nZ = model.position.z + Math.cos(model.rotation.y) * spd;
+                    model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, targetRotation, 0.2);
 
-                const gx = Math.round((nX + 4000) / cellSize);
-                const gz = Math.round((nZ + 4000) / cellSize);
+                    const nX = model.position.x + Math.sin(model.rotation.y) * spd;
+                    const nZ = model.position.z + Math.cos(model.rotation.y) * spd;
 
-                if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx] === 0) {
-                    model.position.x = nX;
-                    model.position.z = nZ;
+                    const gx = Math.round((nX + 4000) / cellSize);
+                    const gz = Math.round((nZ + 4000) / cellSize);
+
+                    if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx] === 0) {
+                        model.position.x = nX;
+                        model.position.z = nZ;
+                    }
                 }
             } else {
+                // Not moving
+                isTurning = false;
                 mixer.timeScale = 1.0;
                 if (currentAction !== actions['twerk']) {
                     fadeToAction('idle');
