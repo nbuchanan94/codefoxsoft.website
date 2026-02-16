@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Niko: Bone Fix Edition</title>
-    <style>body { margin: 0; background: #000; overflow: hidden; }</style>
+    <title>Niko: Final Check</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
+        #status { position: absolute; top: 50%; width: 100%; text-align: center; color: #0f0; transform: translateY(-50%); }
+    </style>
 </head>
 <body>
+    <div id="status">INITIATING NIKO...</div>
+
 <script type="importmap">
     {
         "imports": {
@@ -25,6 +30,8 @@
     let actions = {}, activeAction;
     let raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2(), targetPosition = new THREE.Vector3();
 
+    const statusEl = document.getElementById('status');
+
     init();
 
     function init() {
@@ -42,16 +49,22 @@
         const gltfLoader = new GLTFLoader();
         const fbxLoader = new FBXLoader();
 
+        // 1. Load GLB Model
         gltfLoader.load('niko.glb', (gltf) => {
             model = gltf.scene;
-            model.traverse(n => { if(n.isMesh) { n.material.side = THREE.FrontSide; n.material.depthWrite = true; } });
+            model.traverse(n => { if(n.isMesh) { n.material.side = THREE.FrontSide; n.material.depthWrite = true; n.material.transparent = false; } });
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
 
-            // Load animations and fix bone names
-            loadAnim(fbxLoader, 'walk.fbx', 'walk');
+            console.log("GLB Loaded");
+            statusEl.innerHTML = "GLB LOADED... FETCHING MOODS...";
+
+            // 2. Load Walk
+            loadAnim(fbxLoader, 'walk.fbx', 'walk', false);
+            // 3. Load Angry
             loadAnim(fbxLoader, 'angry.fbx', 'angry', true);
-        });
+
+        }, undefined, (e) => { statusEl.innerHTML = "ERROR: Could not find niko.glb"; console.error(e); });
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -65,22 +78,27 @@
         animate();
     }
 
-    function loadAnim(loader, url, name, isDefault = false) {
+    function loadAnim(loader, url, name, isDefault) {
         loader.load(url, (fbx) => {
             const clip = fbx.animations[0];
 
-            // --- THE FIX: Strip prefixes from bone tracks ---
+            // --- THE BONE FIXER ---
+            // This ensures "mixamorig_Hips" becomes "Hips" so it matches the GLB
             clip.tracks.forEach(track => {
-                // This converts "mixamorig_Hips.position" to "Hips.position"
-                // It also fixes internal FBX naming like "Object_0.bones[Hips].position"
-                track.name = track.name.replace(/.*[:_]/, "");
+                track.name = track.name.replace(/mixamorig[0-9]*_?|.*:/g, "");
             });
 
             actions[name] = mixer.clipAction(clip);
+            console.log(name + " animation ready");
+
             if (isDefault) {
                 activeAction = actions[name];
                 activeAction.play();
+                statusEl.style.display = 'none';
             }
+        }, undefined, (e) => {
+            statusEl.innerHTML = "ERROR: Failed to load " + url;
+            console.error(e);
         });
     }
 
@@ -102,9 +120,9 @@
             raycaster.ray.intersectPlane(plane, targetPosition);
 
             const lookTarget = new THREE.Vector3(targetPosition.x, model.position.y, targetPosition.z);
-            const distance = model.position.distanceTo(lookTarget);
+            const dist = model.position.distanceTo(lookTarget);
 
-            if (distance > 1.5) {
+            if (dist > 1.5) {
                 fadeTo('walk');
                 model.lookAt(lookTarget);
                 model.translateZ(0.08);
