@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: FBX Motion System</title>
+    <title>Niko: FBX Test</title>
     <style>
         body { margin: 0; background: #000; color: #0f0; font-family: monospace; overflow: hidden; }
-        #status { position: absolute; top: 10px; left: 10px; z-index: 100; pointer-events: none; }
+        #status { position: absolute; top: 10px; left: 10px; z-index: 100; }
     </style>
 </head>
 <body>
-    <div id="status">INITIALIZING FBX...</div>
+    <div id="status">ATTEMPTING TO LOAD CATWALK.FBX...</div>
 
 <script type="importmap">
     {
@@ -25,108 +25,76 @@
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
     let scene, camera, renderer, mixer, clock, model;
-    let actions = {}, activeAction;
-    let mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster(), targetPos = new THREE.Vector3();
-
     const statusEl = document.getElementById('status');
-    const log = (m) => { statusEl.innerHTML += `<br>> ${m}`; console.log(m); };
 
     init();
 
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050505);
+        scene.background = new THREE.Color(0x0a0a0a);
 
-        // FBX models from Accurig are often huge, so camera is set further back
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-        camera.position.set(300, 400, 600);
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 20000);
+        camera.position.set(500, 500, 500);
 
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 3));
-        scene.add(new THREE.GridHelper(2000, 50, 0x333333, 0x222222));
+        scene.add(new THREE.AmbientLight(0xffffff, 2));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+        dirLight.position.set(100, 200, 100);
+        scene.add(dirLight);
+        scene.add(new THREE.GridHelper(5000, 50, 0x444444, 0x222222));
 
         const loader = new FBXLoader();
 
-        log("Loading catwalk.fbx...");
         loader.load('catwalk.fbx', (fbx) => {
+            statusEl.innerHTML = "FILE LOADED. ANALYZING ANIMATION...";
             model = fbx;
             scene.add(model);
+
+            // 1. Auto-Center and Zoom Camera
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3()).length();
+            const center = box.getCenter(new THREE.Vector3());
+            camera.position.set(center.x, center.y + (size / 1.5), center.z + size);
+            camera.lookAt(center);
+
+            // 2. Setup Mixer
             mixer = new THREE.AnimationMixer(model);
 
             if (fbx.animations.length > 0) {
-                const walkClip = fbx.animations[0];
-                cleanBones(walkClip);
-                actions['walk'] = mixer.clipAction(walkClip);
-                log("Catwalk animation ready.");
+                const clip = fbx.animations[0];
+
+                // 3. The "Brute Force" Bone Fix
+                // This strips every possible prefix so the motion finds the bones
+                clip.tracks.forEach(track => {
+                    track.name = track.name.replace(/mixamorig[0-9]*_?|.*:/g, "");
+                });
+
+                const action = mixer.clipAction(clip);
+                action.play();
+                statusEl.innerHTML = "SUCCESS: ANIMATION PLAYING";
+            } else {
+                statusEl.innerHTML = "ERROR: NO ANIMATION TRACKS FOUND IN FBX";
             }
-
-            log("Loading idle.fbx...");
-            loader.load('idle.fbx', (idleFbx) => {
-                if (idleFbx.animations.length > 0) {
-                    const idleClip = idleFbx.animations[0];
-                    cleanBones(idleClip);
-                    actions['idle'] = mixer.clipAction(idleClip);
-
-                    activeAction = actions['idle'];
-                    activeAction.play();
-                    log("Idle animation ready.");
-                }
-                log("SYSTEM READY.");
-            }, undefined, (e) => log("ERROR: idle.fbx not found."));
 
         }, (xhr) => {
-            if (xhr.lengthComputable) {
-                statusEl.innerHTML = `LOADER: ${Math.round(xhr.loaded / xhr.total * 100)}%`;
-            }
-        }, (e) => log("ERROR: catwalk.fbx not found."));
+            const p = Math.round(xhr.loaded / xhr.total * 100);
+            statusEl.innerHTML = `LOADING: ${p}%`;
+        }, (err) => {
+            statusEl.innerHTML = "CRITICAL ERROR: COULD NOT FIND catwalk.fbx";
+            console.error(err);
+        });
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-        });
-
         animate();
-    }
-
-    // THE MAGIC FIX: Strips "mixamorig_" so different FBX files can share animations
-    function cleanBones(clip) {
-        clip.tracks.forEach(track => {
-            track.name = track.name.replace(/mixamorig[0-9]*_?|.*:/g, "");
-        });
-    }
-
-    function fadeTo(name) {
-        if (!actions[name] || activeAction === actions[name]) return;
-        actions[name].reset().fadeIn(0.5).play();
-        activeAction.fadeOut(0.5);
-        activeAction = actions[name];
     }
 
     function animate() {
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
         if (mixer) mixer.update(delta);
-
-        if (model && actions['walk'] && actions['idle']) {
-            raycaster.setFromCamera(mouse, camera);
-            const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-            raycaster.ray.intersectPlane(plane, targetPos);
-
-            const distance = model.position.distanceTo(targetPos);
-
-            // FBX units are usually larger (centimeters), hence the '50' threshold
-            if (distance > 50) {
-                fadeTo('walk');
-                model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(5);
-            } else {
-                fadeTo('idle');
-            }
-        }
         renderer.render(scene, camera);
     }
 </script>
