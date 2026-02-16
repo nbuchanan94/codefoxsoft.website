@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: FBX Restored</title>
+    <title>Niko: FBX Motion System</title>
     <style>
         body { margin: 0; background: #000; color: #0f0; font-family: monospace; overflow: hidden; }
         #status { position: absolute; top: 10px; left: 10px; z-index: 100; pointer-events: none; }
     </style>
 </head>
 <body>
-    <div id="status">INITIALIZING FBX SYSTEM...</div>
+    <div id="status">INITIALIZING FBX...</div>
 
 <script type="importmap">
     {
@@ -38,47 +38,45 @@
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x050505);
 
-        // Camera set wide because FBX models can be huge
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000);
-        camera.position.set(200, 300, 500);
+        // FBX models from Accurig are often huge, so camera is set further back
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+        camera.position.set(300, 400, 600);
 
         scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 3));
         scene.add(new THREE.GridHelper(2000, 50, 0x333333, 0x222222));
 
         const loader = new FBXLoader();
 
-        log("Loading catwalk.fbx (Body)...");
+        log("Loading catwalk.fbx...");
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
-            model.scale.setScalar(1); // Adjust if he is tiny or giant
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
 
             if (fbx.animations.length > 0) {
                 const walkClip = fbx.animations[0];
-                cleanAnimationNames(walkClip);
+                cleanBones(walkClip);
                 actions['walk'] = mixer.clipAction(walkClip);
-                log("Walk motion ready.");
+                log("Catwalk animation ready.");
             }
 
-            log("Loading idle.fbx (Motion)...");
+            log("Loading idle.fbx...");
             loader.load('idle.fbx', (idleFbx) => {
                 if (idleFbx.animations.length > 0) {
                     const idleClip = idleFbx.animations[0];
-                    cleanAnimationNames(idleClip);
+                    cleanBones(idleClip);
                     actions['idle'] = mixer.clipAction(idleClip);
 
                     activeAction = actions['idle'];
                     activeAction.play();
-                    log("Idle motion ready.");
+                    log("Idle animation ready.");
                 }
-                log("SYSTEM ONLINE. Move mouse.");
-            }, undefined, (e) => log("ERROR: idle.fbx missing or corrupted."));
+                log("SYSTEM READY.");
+            }, undefined, (e) => log("ERROR: idle.fbx not found."));
 
         }, (xhr) => {
             if (xhr.lengthComputable) {
-                const percent = Math.round(xhr.loaded / xhr.total * 100);
-                statusEl.innerHTML = `DOWNLOADING NIKO: ${percent}%`;
+                statusEl.innerHTML = `LOADER: ${Math.round(xhr.loaded / xhr.total * 100)}%`;
             }
         }, (e) => log("ERROR: catwalk.fbx not found."));
 
@@ -94,9 +92,8 @@
         animate();
     }
 
-    // THIS IS THE CRITICAL PART:
-    // It strips prefixes like "mixamorig:" so animations can find the bones
-    function cleanAnimationNames(clip) {
+    // THE MAGIC FIX: Strips "mixamorig_" so different FBX files can share animations
+    function cleanBones(clip) {
         clip.tracks.forEach(track => {
             track.name = track.name.replace(/mixamorig[0-9]*_?|.*:/g, "");
         });
@@ -121,10 +118,11 @@
 
             const distance = model.position.distanceTo(targetPos);
 
-            if (distance > 30) { // FBX units are usually larger
+            // FBX units are usually larger (centimeters), hence the '50' threshold
+            if (distance > 50) {
                 fadeTo('walk');
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(4); // Movement speed
+                model.translateZ(5);
             } else {
                 fadeTo('idle');
             }
