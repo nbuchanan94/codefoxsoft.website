@@ -57,7 +57,8 @@
     let shards = [];
 
     // Camera & Shake
-    let camDistance = 800;
+    // camDistance initialized to 400 (2 steps from 200 min at 100 per step)
+    let camDistance = 400;
     let camPitch = 25;
     let camYaw = 0;
     let shakeIntensity = 0;
@@ -169,7 +170,7 @@
 
             if(k === 't') {
                 camPitch = (camPitch < 40 ? 85 : 25);
-                camDistance = (camPitch === 85 ? 3500 : 800);
+                camDistance = (camPitch === 85 ? 3500 : 400);
             }
             if (e.key === '+' || e.key === '=') camDistance = Math.max(200, camDistance - 100);
             if (e.key === '-' || e.key === '_') camDistance = Math.min(4000, camDistance + 100);
