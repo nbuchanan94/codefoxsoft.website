@@ -2,19 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: City Lights Fixed</title>
+    <title>Niko: Neon City - Pro Edition</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.9); background: rgba(0,0,0,0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00ffcc; pointer-events: none; user-select: none; }
-        #level-text { font-weight: bold; color: #00ffcc; font-size: 1.2em; margin-bottom: 5px; display: block; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.9); background: rgba(0,0,0,0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00ffcc; pointer-events: none; z-index: 100; }
+        #level-text { font-weight: bold; color: #00ffcc; font-size: 1.2em; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
     <div id="ui">
         <span id="level-text">LEVEL 1: THE BRONX</span>
-        <b>WASD</b> Walk | <b>SHIFT</b> Sprint<br>
-        <b>ARROWS</b> Orbit Camera<br>
-        <b>T</b> Toggle View Mode
+        <b>WASD</b> Move | <b>SHIFT</b> Sprint<br>
+        <b>ARROWS</b> Orbit Cam | <b>T</b> Toggle View
     </div>
 
 <script type="importmap">
@@ -30,49 +29,50 @@
     import * as THREE from 'three';
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-    let scene, camera, renderer, mixer, clock, model, walkAction, goalOrb, nikoLight;
+    let scene, camera, renderer, mixer, clock, model, walkAction, goalOrb;
     let cameraMode = 'street', isSprinting = false, level = 1;
-    let camDistance = 600, camPitch = 25, camYaw = 0;
-    const keys = {}, buildingMeshes = [], cellSize = 1200;
+    let camDistance = 650, camPitch = 25, camYaw = 0;
+    const keys = {}, buildingMeshes = [], cellSize = 1400;
 
-    // --- MAP DATA ---
     const maps = [
         [
-            [1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,0,1],
-            [1,0,1,1,0,1,0,1],
-            [1,0,0,1,0,1,0,1],
-            [1,1,0,0,0,0,0,1],
-            [1,1,1,1,1,1,1,1]
-        ],
-        [ // Level 2 Map
-            [1,1,1,1,1,1,1,1],
-            [1,0,1,0,0,0,0,1],
-            [1,0,1,0,1,1,0,1],
-            [1,0,0,0,1,0,0,1],
-            [1,1,1,0,0,0,1,1],
-            [1,1,1,1,1,1,1,1]
+            [1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,1],
+            [1,0,1,1,0,1,1,0,1],
+            [1,0,1,1,0,1,1,0,1],
+            [1,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1]
         ]
     ];
 
     init();
 
+    // --- PROCEDURAL TEXTURES ---
+    function createRoadTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        // Sidewalks
+        ctx.fillStyle = '#444'; ctx.fillRect(0,0,512,512);
+        // Asphalt
+        ctx.fillStyle = '#111'; ctx.fillRect(60, 0, 392, 512);
+        // Road Markings
+        ctx.fillStyle = '#555';
+        for(let i=0; i<512; i+=60) ctx.fillRect(250, i, 12, 30);
+        return new THREE.CanvasTexture(canvas);
+    }
+
     function createBuildingTexture() {
         const canvas = document.createElement('canvas');
         canvas.width = 512; canvas.height = 1024;
         const ctx = canvas.getContext('2d');
-
-        // Dark Base
-        ctx.fillStyle = '#1a1a20';
-        ctx.fillRect(0,0,512,1024);
-
-        // Windows
-        for(let y=50; y<1024; y+=80) {
-            for(let x=20; x<512; x+=100) {
-                if(Math.random() > 0.6) {
-                    // Random Window Colors (Gold or Blue)
-                    ctx.fillStyle = Math.random() > 0.5 ? '#ffcc66' : '#66ccff';
-                    ctx.fillRect(x, y, 60, 45);
+        ctx.fillStyle = '#121216'; ctx.fillRect(0,0,512,1024);
+        for(let y=40; y<1024; y+=100) {
+            for(let x=20; x<512; x+=120) {
+                if(Math.random() > 0.5) {
+                    ctx.fillStyle = Math.random() > 0.5 ? '#ffcc00' : '#44aaff';
+                    ctx.shadowBlur = 10; ctx.shadowColor = ctx.fillStyle;
+                    ctx.fillRect(x, y, 70, 50);
                 }
             }
         }
@@ -82,104 +82,114 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050510);
-        // Reduced Fog density so you can see further
-        scene.fog = new THREE.FogExp2(0x050510, 0.00025);
+        scene.background = new THREE.Color(0x020205);
+        scene.fog = new THREE.FogExp2(0x020205, 0.0003);
 
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 20000);
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 30000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // --- LIGHTING FIXES ---
-        // 1. Stronger Ambient Light (Base visibility)
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-
-        // 2. Player Light (The "Lantern")
-        nikoLight = new THREE.PointLight(0xffffff, 2, 1200);
-        scene.add(nikoLight);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
         buildLevel();
+        buildSkyline();
         loadNiko();
 
-        // Input Listeners
         window.addEventListener('keydown', (e) => {
             keys[e.key.toLowerCase()] = true;
             if (e.key.toLowerCase() === 't') toggleCamera();
         });
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
-        window.addEventListener('wheel', (e) => camDistance = Math.max(300, Math.min(camDistance + e.deltaY, 2000)));
-
         animate();
     }
 
-    function buildLevel() {
-        // Cleanup old level
-        buildingMeshes.forEach(b => scene.remove(b));
-        buildingMeshes.length = 0;
-        if(goalOrb) scene.remove(goalOrb);
+    function createStreetLamp(x, z) {
+        const group = new THREE.Group();
+        // Pole
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(10, 15, 600), new THREE.MeshStandardMaterial({color: 0x222}));
+        pole.position.y = 300;
+        group.add(pole);
+        // Arm
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(150, 10, 10), new THREE.MeshStandardMaterial({color: 0x222}));
+        arm.position.set(60, 600, 0);
+        group.add(arm);
+        // Light Head
+        const head = new THREE.Mesh(new THREE.BoxGeometry(60, 20, 40), new THREE.MeshStandardMaterial({color: 0x333}));
+        head.position.set(130, 600, 0);
+        group.add(head);
 
+        // Actual Light
+        const light = new THREE.SpotLight(0xffddaa, 40000, 1200, Math.PI/4, 0.5, 1);
+        light.position.set(130, 600, 0);
+        light.target.position.set(130, 0, 0);
+        group.add(light);
+        group.add(light.target);
+
+        // Visual Ray (Cone)
+        const coneGeo = new THREE.ConeGeometry(300, 600, 32);
+        const coneMat = new THREE.MeshBasicMaterial({
+            color: 0xffddaa, transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending
+        });
+        const ray = new THREE.Mesh(coneGeo, coneMat);
+        ray.position.set(130, 300, 0);
+        ray.rotation.z = Math.PI;
+        group.add(ray);
+
+        group.position.set(x, 0, z);
+        scene.add(group);
+    }
+
+    function buildSkyline() {
+        const skyTex = createBuildingTexture();
+        for(let i=0; i<60; i++) {
+            const h = 2000 + Math.random() * 6000;
+            const b = new THREE.Mesh(new THREE.BoxGeometry(800, h, 800), new THREE.MeshStandardMaterial({map: skyTex, color: 0x222233}));
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 8000 + Math.random() * 4000;
+            b.position.set(Math.cos(angle)*dist, h/2 - 500, Math.sin(angle)*dist);
+            scene.add(b);
+        }
+    }
+
+    function buildLevel() {
         const currentMap = maps[(level - 1) % maps.length];
         const buildTex = createBuildingTexture();
-        buildTex.wrapS = buildTex.wrapT = THREE.RepeatWrapping;
-
-        const wallGeo = new THREE.BoxGeometry(cellSize - 200, 3000, cellSize - 200);
+        const roadTex = createRoadTexture();
+        roadTex.wrapS = roadTex.wrapT = THREE.RepeatWrapping;
+        roadTex.repeat.set(1, 1);
 
         for(let z = 0; z < currentMap.length; z++) {
             for(let x = 0; x < currentMap[z].length; x++) {
-                const px = x * cellSize - 3000;
-                const pz = z * cellSize - 3000;
+                const px = x * cellSize - 4000, pz = z * cellSize - 4000;
 
                 if(currentMap[z][x] === 1) {
-                    // Building
-                    const mat = new THREE.MeshStandardMaterial({ map: buildTex, roughness: 0.2 });
-                    const b = new THREE.Mesh(wallGeo, mat);
-                    b.position.set(px, 1500, pz);
+                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 3500, cellSize), new THREE.MeshStandardMaterial({ map: buildTex, color: 0x333 }));
+                    b.position.set(px, 1750, pz);
                     scene.add(b);
                     buildingMeshes.push(b);
-
-                    // Random Neon Sign
-                    if(Math.random() > 0.5) {
-                        const color = Math.random() > 0.5 ? 0xff00ff : 0x00ffff;
-                        const sign = new THREE.Mesh(
-                            new THREE.PlaneGeometry(300, 100),
-                            new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2 })
-                        );
-                        // Stick sign on building face
-                        sign.position.set(px, 600, pz + 505);
-                        scene.add(sign);
-                    }
                 } else {
-                    // Road Details (Lights & Trashcans)
-                    if(Math.random() > 0.8) {
-                        const lamp = new THREE.PointLight(0xffaa00, 10, 800);
-                        lamp.position.set(px, 600, pz);
-                        scene.add(lamp);
+                    // Road segment
+                    const road = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), new THREE.MeshStandardMaterial({ map: roadTex }));
+                    road.rotation.x = -Math.PI / 2;
+                    road.position.set(px, 1, pz);
+                    scene.add(road);
 
-                        const pole = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 600), new THREE.MeshStandardMaterial({color:0x333}));
-                        pole.position.set(px, 300, pz);
-                        scene.add(pole);
+                    if((x+z)%3 === 0) createStreetLamp(px - cellSize/2 + 100, pz);
+
+                    // Add Crates/Props
+                    if(Math.random() > 0.8) {
+                        const crate = new THREE.Mesh(new THREE.BoxGeometry(100, 100, 100), new THREE.MeshStandardMaterial({color: 0x443322}));
+                        crate.position.set(px + 300, 50, pz + 300);
+                        scene.add(crate);
                     }
                 }
             }
         }
 
-        // The Goal Orb
-        goalOrb = new THREE.Mesh(
-            new THREE.SphereGeometry(150),
-            new THREE.MeshStandardMaterial({color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 1.5})
-        );
-        // Place far away
-        goalOrb.position.set(cellSize * 2, 200, cellSize * 2);
+        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(150), new THREE.MeshStandardMaterial({color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 2}));
+        goalOrb.position.set(cellSize * 6 - 4000, 200, cellSize * 1 - 4000);
         scene.add(goalOrb);
-
-        // Floor
-        const floor = new THREE.Mesh(
-            new THREE.PlaneGeometry(20000, 20000),
-            new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 })
-        );
-        floor.rotation.x = -Math.PI / 2;
-        scene.add(floor);
     }
 
     function loadNiko() {
@@ -188,9 +198,8 @@
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
             model.scale.setScalar(200 / (size.y || 1));
-            model.position.set(-1800, 0, -1800);
+            model.position.set(-2600, 0, -2600);
             scene.add(model);
-
             mixer = new THREE.AnimationMixer(model);
             if (fbx.animations.length > 0) {
                 const clip = fbx.animations[0];
@@ -202,12 +211,6 @@
         });
     }
 
-    function toggleCamera() {
-        cameraMode = cameraMode === 'street' ? 'tactical' : 'street';
-        camPitch = cameraMode === 'tactical' ? 80 : 25;
-        camDistance = cameraMode === 'tactical' ? 2000 : 600;
-    }
-
     function animate() {
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
@@ -215,101 +218,63 @@
 
         if (model) {
             isSprinting = keys.shift;
-
-            // Movement Inputs
             let moveFwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
-            let moveSide = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+            // FIXED A/D LOGIC
+            let moveSide = (keys.a ? 1 : 0) - (keys.d ? 1 : 0);
 
-            // Camera Inputs
             if (keys.arrowleft) camYaw += 0.04;
             if (keys.arrowright) camYaw -= 0.04;
 
             const isMoving = moveFwd !== 0 || moveSide !== 0;
 
             if (isMoving) {
-                // Determine direction relative to camera look
                 const moveAngle = camYaw + Math.atan2(moveSide, moveFwd);
-
-                // Smooth Rotation
                 let diff = (moveAngle + Math.PI) - model.rotation.y;
                 while (diff < -Math.PI) diff += Math.PI * 2;
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 model.rotation.y += diff * 0.15;
 
-                // Move
-                const speed = isSprinting ? 35 : 16;
+                const speed = isSprinting ? 38 : 16;
                 if (walkAction) {
                     walkAction.paused = false;
-                    walkAction.timeScale = isSprinting ? 2.0 : 1.0;
+                    walkAction.timeScale = isSprinting ? 2.2 : 1.0;
                 }
 
                 const nextX = model.position.x + Math.sin(model.rotation.y) * speed;
                 const nextZ = model.position.z + Math.cos(model.rotation.y) * speed;
 
-                // Collision
-                const gridX = Math.round((nextX + 3000) / cellSize);
-                const gridZ = Math.round((nextZ + 3000) / cellSize);
-                const currentMap = maps[(level - 1) % maps.length];
+                const gridX = Math.round((nextX + 4000) / cellSize);
+                const gridZ = Math.round((nextZ + 4000) / cellSize);
+                const currentMap = maps[0];
 
-                // Safety check to prevent crashing if map undefined
-                if (currentMap[gridZ] && currentMap[gridZ][gridX] !== 1) {
+                if (!(currentMap[gridZ] && currentMap[gridZ][gridX] === 1)) {
                     model.position.x = nextX;
                     model.position.z = nextZ;
                 }
+            } else if (walkAction) { walkAction.paused = true; }
 
-                // Win Condition
-                if(goalOrb && model.position.distanceTo(goalOrb.position) < 300) {
-                    level++;
-                    document.getElementById('level-text').innerText = "LEVEL " + level + ": UPTOWN";
-                    model.position.set(-1800, 0, -1800); // Reset Player
-                    buildLevel(); // Rebuild World
-                }
-
-            } else {
-                if(walkAction) walkAction.paused = true;
-            }
-
-            // Update Niko's Lantern Position
-            nikoLight.position.set(model.position.x, 400, model.position.z);
-
-            // --- CAMERA LOGIC ---
-            // Sprint Effect (FOV)
-            const targetFOV = isSprinting ? 80 : 60;
-            camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.1);
-            camera.updateProjectionMatrix();
-
-            // Orbit Position
+            // Camera Smooth Follow
             const pitchRad = THREE.MathUtils.degToRad(camPitch);
             const idealOffset = new THREE.Vector3(
                 camDistance * Math.sin(camYaw) * Math.cos(pitchRad),
                 camDistance * Math.sin(pitchRad),
                 camDistance * Math.cos(camYaw) * Math.cos(pitchRad)
             );
-
             const playerHead = model.position.clone().add(new THREE.Vector3(0, 180, 0));
-            const desiredCamPos = playerHead.clone().add(idealOffset);
-
-            // Wall Clip Check (Raycaster)
-            const rayDir = idealOffset.clone().normalize();
-            const raycaster = new THREE.Raycaster(playerHead, rayDir, 0, camDistance);
-            const hits = raycaster.intersectObjects(buildingMeshes);
-
-            if (hits.length > 0) {
-                // If wall hit, pull camera in front of wall
-                camera.position.lerp(hits[0].point.sub(rayDir.multiplyScalar(50)), 0.2);
-            } else {
-                // Otherwise normal follow
-                camera.position.lerp(desiredCamPos, 0.1);
-            }
+            camera.position.lerp(playerHead.clone().add(idealOffset), 0.1);
             camera.lookAt(playerHead);
         }
-
         if(goalOrb) {
             goalOrb.rotation.y += 0.05;
-            goalOrb.position.y = 200 + Math.sin(clock.getElapsedTime() * 2) * 20; // Bobbing animation
+            goalOrb.position.y = 200 + Math.sin(clock.getElapsedTime()*3)*30;
         }
-
         renderer.render(scene, camera);
+    }
+
+    function toggleCamera() {
+        cameraMode = cameraMode === 'street' ? 'tactical' : 'street';
+        camPitch = cameraMode === 'tactical' ? 80 : 25;
+        camDistance = cameraMode === 'tactical' ? 2200 : 650;
     }
 </script>
 </body>
