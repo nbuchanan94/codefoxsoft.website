@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: The Emergency Reset</title>
+    <title>Niko: Smooth Meadow</title>
     <style>
-        body { margin: 0; background: #222; overflow: hidden; font-family: monospace; }
-        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 100; background: rgba(0,0,0,0.8); padding: 10px; }
+        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: monospace; }
+        #status { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; z-index: 10; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div id="status">LOCATING NIKO...</div>
+    <div id="status">SCROLL TO ZOOM | NIKO IS READY</div>
 
 <script type="importmap">
     {
@@ -26,54 +26,43 @@
 
     let scene, camera, renderer, mixer, clock, model, walkAction;
     let mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster(), targetPos = new THREE.Vector3();
+    let zoomDist = 1200; // Starting zoom distance
 
     init();
 
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87CEEB); // Blue Sky
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.Fog(0x87CEEB, 1000, 5000);
 
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 50000);
-        camera.position.set(0, 200, 500);
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 30000);
+        camera.position.set(0, 600, zoomDist);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 3));
-        const sun = new THREE.DirectionalLight(0xffffff, 3);
-        sun.position.set(500, 500, 500);
+        scene.add(new THREE.AmbientLight(0xffffff, 2.5));
+        const sun = new THREE.DirectionalLight(0xffffff, 2);
+        sun.position.set(500, 1000, 500);
         scene.add(sun);
 
-        // Green floor
+        // Meadow
         const floor = new THREE.Mesh(
-            new THREE.PlaneGeometry(10000, 10000),
+            new THREE.PlaneGeometry(20000, 20000),
             new THREE.MeshPhongMaterial({ color: 0x2d5a27 })
         );
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
         const loader = new FBXLoader();
-
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
-            scene.add(model);
 
-            // --- THE "FIX EVERYTHING" LOGIC ---
-            // 1. Find out where he is and how big he is
+            // Apply that massive 14869x scale factor automatically
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
-            const center = box.getCenter(new THREE.Vector3());
-
-            // 2. If he's tiny/broken, force him to be 200 units tall
-            const scaleFactor = 200 / (size.y || 1);
+            const scaleFactor = 250 / (size.y || 1);
             model.scale.setScalar(scaleFactor);
 
-            // 3. Move him to the center of the world
-            model.position.x += (model.position.x - center.x);
-            model.position.y = 0; // Feet on the ground
-            model.position.z += (model.position.z - center.z);
-
-            // 4. Force camera to look at him from a safe distance
-            camera.position.set(0, 200, 600);
-            camera.lookAt(0, 100, 0);
+            scene.add(model);
 
             mixer = new THREE.AnimationMixer(model);
             if (fbx.animations.length > 0) {
@@ -81,7 +70,7 @@
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
                 walkAction = mixer.clipAction(clip);
                 walkAction.play();
-                document.getElementById('status').innerHTML = "NIKO RESTORED. MOVE MOUSE.";
+                walkAction.paused = true; // Stay still until mouse moves
             }
         });
 
@@ -89,9 +78,15 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
+        // --- CONTROLS ---
         window.addEventListener('mousemove', (e) => {
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        window.addEventListener('wheel', (e) => {
+            zoomDist += e.deltaY * 0.5;
+            zoomDist = Math.max(300, Math.min(zoomDist, 5000)); // Clamp zoom
         });
 
         animate();
@@ -109,11 +104,22 @@
 
             const distance = model.position.distanceTo(targetPos);
 
-            if (distance > 40) {
+            if (distance > 30) {
                 walkAction.paused = false;
-                model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(5);
-                camera.lookAt(model.position.x, 100, model.position.z);
+
+                // 1. SMOOTH ROTATION (Look at target gradually)
+                const targetRotation = Math.atan2(targetPos.x - model.position.x, targetPos.z - model.position.z);
+                model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, targetRotation, 0.1);
+
+                // 2. SMOOTH MOVEMENT
+                model.translateZ(6);
+
+                // 3. SMOOTH CAMERA FOLLOW
+                const camTargetY = 400 + (zoomDist * 0.2);
+                camera.position.x = THREE.MathUtils.lerp(camera.position.x, model.position.x, 0.05);
+                camera.position.z = THREE.MathUtils.lerp(camera.position.z, model.position.z + zoomDist, 0.05);
+                camera.position.y = THREE.MathUtils.lerp(camera.position.y, camTargetY, 0.05);
+                camera.lookAt(model.position.x, 150, model.position.z);
             } else {
                 walkAction.paused = true;
             }
