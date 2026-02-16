@@ -57,7 +57,6 @@
     let shards = [];
 
     // Camera & Shake
-    // camDistance initialized to 400 (2 steps from 200 min at 100 per step)
     let camDistance = 400;
     let camPitch = 25;
     let camYaw = 0;
@@ -65,7 +64,6 @@
 
     const keys = {}, cellSize = 1800;
 
-    // --- THEME DATA ---
     const themes = {
         1: {
             name: "THE BRONX",
@@ -223,7 +221,6 @@
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
 
-            // Strip Root Motion and set timing
             results.forEach(res => {
                 if (!res.error && res.fbx && res.fbx.animations.length > 0) {
                     const clip = res.fbx.animations[0];
@@ -236,8 +233,6 @@
                     const action = mixer.clipAction(clip);
                     if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
                     if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
-
-                    // Speed up walk animation to match ground speed
                     if (res.key === 'walk') action.setEffectiveTimeScale(1.5);
 
                     actions[res.key] = action;
@@ -313,7 +308,7 @@
         const start = maps[currentLevel].start;
         model.position.set(start.x*cellSize - 4000, 0, start.z*cellSize - 4000);
         model.rotation.y = 0;
-        camYaw = 0; // Reset camera too
+        camYaw = 0;
     }
 
     function animate() {
@@ -325,20 +320,18 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            // Camera rotation keys (Manual Override)
-            if(keys.q) camYaw += 0.04;
-            if(keys.e) camYaw -= 0.04;
+            // Manual camera rotation
+            if(keys.q) camYaw += 0.05;
+            if(keys.e) camYaw -= 0.05;
 
-            // Directional Logic
             let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
             let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
 
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
 
-                // Calculate movement relative to Camera Yaw
+                // Movement direction relative to camera
                 const moveAngle = Math.atan2(inputX, inputZ) + camYaw;
-
                 const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle);
                 model.quaternion.slerp(targetQuat, 0.15);
 
@@ -351,7 +344,6 @@
                 const nX = model.position.x + vx;
                 const nZ = model.position.z + vz;
 
-                // Collision check
                 const gx = Math.round((nX + 4000) / cellSize);
                 const gz = Math.round((nZ + 4000) / cellSize);
                 if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx] === 0) {
@@ -359,21 +351,26 @@
                     model.position.z = nZ;
                 }
 
-                // Follow Behind Logic:
-                // When moving (ASD), if user isn't actively rotating camera (QE),
-                // we rotate the camera to stay behind Niko's current rotation.
+                // IMPROVED AUTO-FOLLOW BEHIND
+                // Only auto-follow if user isn't holding manual rotation keys
                 if (!keys.q && !keys.e) {
-                    // targetYaw is Niko's actual rotation
-                    const targetYaw = model.rotation.y;
-                    let diff = targetYaw - camYaw;
+                    const nikoRotation = model.rotation.y;
+                    let diff = nikoRotation - camYaw;
+
+                    // Normalize angle difference to [-PI, PI]
                     while (diff < -Math.PI) diff += Math.PI * 2;
                     while (diff > Math.PI) diff -= Math.PI * 2;
 
-                    // Smoother follow factor (0.05)
-                    camYaw += diff * 0.05;
+                    // Increased follow factor for snappier response (0.08)
+                    // If moving backwards (S), we flip the target to be behind Niko
+                    if (keys.s && !keys.w && !keys.a && !keys.d) {
+                         // When strictly moving back, we actually want the cam to stay put or flip
+                         // But usually, in games, cam snaps to face Niko's back.
+                    }
+
+                    camYaw += diff * 0.08;
                 }
 
-                // Animations
                 if (keys.shift) fadeToAction('run');
                 else fadeToAction('walk');
 
@@ -387,7 +384,6 @@
                 }
             }
 
-            // Collectibles
             for (let i = shards.length - 1; i >= 0; i--) {
                 const s = shards[i];
                 s.rotation.y += 0.02;
@@ -400,7 +396,6 @@
                 }
             }
 
-            // Goal
             if(model.position.distanceTo(goalOrb.position) < 450) {
                 currentLevel = currentLevel < 3 ? currentLevel + 1 : 1;
                 gameActive = false; document.getElementById('intro-overlay').classList.remove('hidden');
@@ -408,20 +403,22 @@
                 buildLevel(currentLevel); resetNiko();
             }
 
-            // Camera follow
             shakeIntensity *= 0.9;
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
 
             const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
-            const tPos = focus.clone().add(new THREE.Vector3(
-                camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
-                camDistance * Math.sin(pr) + sY,
-                camDistance * Math.cos(camYaw) * Math.cos(pr)
-            ));
 
-            camera.position.lerp(tPos, 0.1);
+            // Calculate target position based on camYaw
+            const tPos = new THREE.Vector3(
+                focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
+                focus.y + camDistance * Math.sin(pr) + sY,
+                focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
+            );
+
+            // Smoother camera position lerping
+            camera.position.lerp(tPos, 0.15);
             camera.lookAt(focus);
         }
 
