@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko's Real Maze</title>
+    <title>Niko: Walking Maze</title>
     <style>
         body { margin: 0; background: #87CEEB; overflow: hidden; font-family: monospace; }
         #ui { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div id="ui"><b>WASD</b> to Walk | <b>P</b> to Pause | <b>SCROLL</b> to Zoom</div>
+    <div id="ui"><b>WASD</b>: Walk | <b>ARROWS</b>: Spin Camera | <b>SCROLL</b>: Zoom</div>
 
 <script type="importmap">
     {
@@ -25,10 +25,21 @@
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
     let scene, camera, renderer, mixer, clock, model, walkAction;
-    let zoomDist = 1200;
-    let isPaused = false;
-    const keys = { w: false, a: false, s: false, d: false };
-    const walls = [];
+    let zoomDist = 1200, camAngle = 0;
+    const keys = {};
+    const cellSize = 400;
+
+    const mazeMap = [
+        [1,1,1,1,1,1,1,1,1,1],
+        [1,0,0,0,1,0,0,0,0,1],
+        [1,0,1,0,1,0,1,1,0,1],
+        [1,0,1,0,0,0,0,1,0,1],
+        [1,0,1,1,1,1,0,1,0,1],
+        [1,0,0,0,0,1,0,0,0,1],
+        [1,1,1,1,0,1,1,1,0,1],
+        [1,0,0,0,0,0,0,0,0,1],
+        [1,1,1,1,1,1,1,1,1,1]
+    ];
 
     init();
 
@@ -36,127 +47,111 @@
         clock = new THREE.Clock();
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
-        scene.fog = new THREE.Fog(0x87CEEB, 1000, 5000);
 
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 20000);
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 2.5));
-        const sun = new THREE.DirectionalLight(0xffffff, 2);
+        renderer = new THREE.WebGLRenderer({ antialias: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 2));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
         sun.position.set(500, 1000, 500);
         scene.add(sun);
 
-        // Grass
+        // Floor
         const floor = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), new THREE.MeshPhongMaterial({ color: 0x2d5a27 }));
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // --- THE MAZE DESIGN ---
-        const wallMat = new THREE.MeshPhongMaterial({ color: 0x555555 });
-        const wallGeo = new THREE.BoxGeometry(200, 350, 200);
-
-        // Simple Maze Layout (0 = Path, 1 = Wall)
-        const mazeMap = [
-            [1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,1,0,0,0,0,1],
-            [1,0,1,0,1,0,1,1,0,1],
-            [1,0,1,0,0,0,0,1,0,1],
-            [1,0,1,1,1,1,0,1,0,1],
-            [1,0,0,0,0,1,0,0,0,1],
-            [1,1,1,1,0,1,1,1,0,1],
-            [1,0,0,0,0,0,0,0,0,1],
-            [1,1,1,1,1,1,1,1,1,1]
-        ];
-
+        // Maze
+        const wallGeo = new THREE.BoxGeometry(cellSize, 400, cellSize);
+        const wallMat = new THREE.MeshLambertMaterial({ color: 0x666666 });
         for(let z = 0; z < mazeMap.length; z++) {
             for(let x = 0; x < mazeMap[z].length; x++) {
                 if(mazeMap[z][x] === 1) {
                     const wall = new THREE.Mesh(wallGeo, wallMat);
-                    wall.position.set(x * 200 - 1000, 175, z * 200 - 1000);
+                    wall.position.set(x * cellSize - 2000, 200, z * cellSize - 2000);
                     scene.add(wall);
-                    walls.push(new THREE.Box3().setFromObject(wall));
                 }
             }
         }
 
-        const loader = new FBXLoader();
-        loader.load('catwalk.fbx', (fbx) => {
+        // --- ANIMATION LOADING ---
+        new FBXLoader().load('catwalk.fbx', (fbx) => {
             model = fbx;
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
             model.scale.setScalar(250 / (size.y || 1));
-            model.position.set(-800, 0, -800); // Start position
+            model.position.set(-1600, 0, -1600);
             scene.add(model);
 
             mixer = new THREE.AnimationMixer(model);
             if (fbx.animations.length > 0) {
-                walkAction = mixer.clipAction(fbx.animations[0]);
-                // Fix potential bone naming issues
-                fbx.animations[0].tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
+                const clip = fbx.animations[0];
+                // CRITICAL: Scrubber to fix T-pose issues
+                clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
+
+                walkAction = mixer.clipAction(clip);
+                walkAction.setEffectiveWeight(1.0);
                 walkAction.play();
-                walkAction.paused = true;
+                walkAction.paused = true; // Wait for WASD
             }
         });
 
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        window.addEventListener('keydown', (e) => {
-            const k = e.key.toLowerCase();
-            if(k in keys) keys[k] = true;
-            if(k === 'p') isPaused = !isPaused;
-        });
-        window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
-        window.addEventListener('wheel', (e) => { zoomDist = Math.max(400, Math.min(zoomDist + e.deltaY, 4000)); });
+        window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
+        window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+        window.addEventListener('wheel', (e) => zoomDist = Math.max(500, Math.min(zoomDist + e.deltaY, 3000)));
 
         animate();
     }
 
-    function checkCollision(pos) {
-        const playerBox = new THREE.Box3().setFromCenterAndSize(pos, new THREE.Vector3(50, 100, 50));
-        for(let wallBox of walls) {
-            if(playerBox.intersectsBox(wallBox)) return true;
-        }
-        return false;
+    function canMoveTo(x, z) {
+        const gridX = Math.round((x + 2000) / cellSize);
+        const gridZ = Math.round((z + 2000) / cellSize);
+        if(mazeMap[gridZ] && mazeMap[gridZ][gridX] === 1) return false;
+        return true;
     }
 
     function animate() {
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
-        if (isPaused) return;
 
         if (mixer) mixer.update(delta);
 
         if (model) {
             let moving = false;
-            let dirX = 0, dirZ = 0;
+            let dir = new THREE.Vector3();
 
-            if (keys.w) dirZ = -1;
-            if (keys.s) dirZ = 1;
-            if (keys.a) dirX = -1;
-            if (keys.d) dirX = 1;
+            if (keys.w) dir.z -= 1;
+            if (keys.s) dir.z += 1;
+            if (keys.a) dir.x -= 1;
+            if (keys.d) dir.x += 1;
 
-            if (dirX !== 0 || dirZ !== 0) {
+            if (dir.length() > 0) {
                 moving = true;
-                const targetRot = Math.atan2(dirX, dirZ);
+                dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), camAngle);
+                const targetRot = Math.atan2(dir.x, dir.z);
                 model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, targetRot, 0.15);
 
-                // Collision-safe movement
-                const speed = 10;
-                const nextPos = model.position.clone();
-                nextPos.x += Math.sin(model.rotation.y) * speed;
-                nextPos.z += Math.cos(model.rotation.y) * speed;
+                const nextX = model.position.x + Math.sin(model.rotation.y) * 12;
+                const nextZ = model.position.z + Math.cos(model.rotation.y) * 12;
 
-                if (!checkCollision(nextPos)) {
-                    model.position.copy(nextPos);
+                if (canMoveTo(nextX, nextZ)) {
+                    model.position.x = nextX;
+                    model.position.z = nextZ;
                 }
             }
 
+            // Sync animation to movement
             if (walkAction) walkAction.paused = !moving;
 
-            camera.position.x = THREE.MathUtils.lerp(camera.position.x, model.position.x, 0.05);
-            camera.position.z = THREE.MathUtils.lerp(camera.position.z, model.position.z + zoomDist, 0.05);
-            camera.position.y = THREE.MathUtils.lerp(camera.position.y, 600 + (zoomDist * 0.2), 0.05);
+            if (keys.arrowleft) camAngle -= 0.04;
+            if (keys.arrowright) camAngle += 0.04;
+
+            const camX = model.position.x + Math.sin(camAngle) * zoomDist;
+            const camZ = model.position.z + Math.cos(camAngle) * zoomDist;
+            camera.position.set(camX, 800, camZ);
             camera.lookAt(model.position.x, 150, model.position.z);
         }
         renderer.render(scene, camera);
