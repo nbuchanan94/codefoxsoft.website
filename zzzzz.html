@@ -312,6 +312,7 @@
         const start = maps[currentLevel].start;
         model.position.set(start.x*cellSize - 4000, 0, start.z*cellSize - 4000);
         model.rotation.y = 0;
+        camYaw = 0; // Reset camera too
     }
 
     function animate() {
@@ -323,7 +324,7 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            // Camera rotation keys (Restored/Checked)
+            // Camera rotation keys (Manual)
             if(keys.q) camYaw += 0.04;
             if(keys.e) camYaw -= 0.04;
 
@@ -349,12 +350,25 @@
                 const nX = model.position.x + vx;
                 const nZ = model.position.z + vz;
 
-                // Collision
+                // Collision check
                 const gx = Math.round((nX + 4000) / cellSize);
                 const gz = Math.round((nZ + 4000) / cellSize);
                 if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx] === 0) {
                     model.position.x = nX;
                     model.position.z = nZ;
+                }
+
+                // GTA-style Auto-Follow:
+                // Only snap camera if 'W' is pressed (moving forward) and no manual cam rotation is active
+                if (keys.w && !keys.q && !keys.e) {
+                    // We want camYaw to match the model rotation over time
+                    // We normalize the angles to ensure the interpolation takes the shortest path
+                    const targetYaw = model.rotation.y;
+                    let diff = targetYaw - camYaw;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+
+                    camYaw += diff * 0.05; // Smoothing factor
                 }
 
                 // Animations
