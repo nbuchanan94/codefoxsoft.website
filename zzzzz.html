@@ -2,22 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Niko: Final Debug</title>
+    <title>Niko: Final Attempt</title>
     <style>
-        body { margin: 0; background: #050505; color: #0f0; font-family: 'Courier New', monospace; overflow: hidden; }
-        #overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.8); z-index: 10;
-        }
-        .error { color: #ff4444; font-weight: bold; }
+        body { margin: 0; background: #000; color: #0f0; font-family: monospace; overflow: hidden; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        .log { color: #888; font-size: 12px; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div id="overlay">
-        <div id="loader-text">INITIALIZING SYSTEM...</div>
-        <div id="error-log"></div>
+        <div id="status">CONNECTING TO NIKO...</div>
+        <div id="log-box" class="log"></div>
     </div>
 
 <script type="importmap">
@@ -37,13 +32,22 @@
     let actions = {}, activeAction;
     let mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster(), targetPos = new THREE.Vector3();
 
-    const status = document.getElementById('loader-text');
-    const errorLog = document.getElementById('error-log');
+    const status = document.getElementById('status');
+    const logBox = document.getElementById('log-box');
 
-    function logError(msg) {
-        errorLog.innerHTML += `<p class="error">>> ${msg}</p>`;
-        console.error(msg);
-    }
+    function addLog(msg) { logBox.innerHTML += `> ${msg}<br>`; }
+
+    // 1. Loading Manager
+    const manager = new THREE.LoadingManager();
+    manager.onStart = (url) => addLog(`Loading: ${url}`);
+    manager.onLoad = () => {
+        addLog("All files parsed successfully.");
+        document.getElementById('overlay').style.display = 'none';
+    };
+    manager.onError = (url) => {
+        status.innerHTML = "<span style='color:red'>LOAD FAILED</span>";
+        addLog(`FAILED TO READ: ${url}. (Check if Binary FBX)`);
+    };
 
     init();
 
@@ -56,18 +60,13 @@
         camera.position.set(200, 300, 500);
 
         scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 3));
-        const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-        dirLight.position.set(0, 200, 100);
-        scene.add(dirLight);
         scene.add(new THREE.GridHelper(2000, 50, 0x333333, 0x222222));
 
-        const loader = new FBXLoader();
+        const loader = new FBXLoader(manager);
 
-        // 1. Load Catwalk
-        status.innerText = "LOADING CATWALK.FBX...";
+        // Load Catwalk First
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
-            model.scale.setScalar(1);
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
 
@@ -75,8 +74,7 @@
             fixTracks(walkClip);
             actions['walk'] = mixer.clipAction(walkClip);
 
-            // 2. Load Idle
-            status.innerText = "LOADING IDLE.FBX...";
+            // Load Idle Second
             loader.load('idle.fbx', (idleFbx) => {
                 const idleClip = idleFbx.animations[0];
                 fixTracks(idleClip);
@@ -84,14 +82,8 @@
 
                 activeAction = actions['idle'];
                 activeAction.play();
-
-                document.getElementById('overlay').style.display = 'none';
-            }, undefined, (err) => logError("IDLE.FBX NOT FOUND OR CORRUPT"));
-        }, (xhr) => {
-            if (xhr.lengthComputable) {
-                status.innerText = `DOWNLOADING: ${Math.round(xhr.loaded / xhr.total * 100)}%`;
-            }
-        }, (err) => logError("CATWALK.FBX NOT FOUND OR CORRUPT"));
+            });
+        });
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -108,8 +100,8 @@
     function fixTracks(clip) {
         if (!clip) return;
         clip.tracks.forEach(track => {
-            // Strips "mixamorig_" or "Object01:" prefixes so bones match
-            track.name = track.name.replace(/.*[:_]/, "");
+            // This is the "Zombie Fix" - it strips mixamorig prefixes
+            track.name = track.name.replace(/mixamorig[0-9]*_?|.*:/g, "");
         });
     }
 
@@ -133,10 +125,10 @@
             const lookTarget = new THREE.Vector3(targetPos.x, model.position.y, targetPos.z);
             const distance = model.position.distanceTo(lookTarget);
 
-            if (distance > 30) { // If mouse is far, catwalk
+            if (distance > 40) { // Check if distance is too small for FBX units
                 fadeTo('walk');
                 model.lookAt(lookTarget);
-                model.translateZ(4); // Movement speed
+                model.translateZ(5);
             } else {
                 fadeTo('idle');
             }
