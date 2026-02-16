@@ -359,16 +359,18 @@
                     model.position.z = nZ;
                 }
 
-                // GTA-style Auto-Follow:
-                // Snap camera if moving (any WASD) and no manual cam rotation is actively being held
+                // Follow Behind Logic:
+                // When moving (ASD), if user isn't actively rotating camera (QE),
+                // we rotate the camera to stay behind Niko's current rotation.
                 if (!keys.q && !keys.e) {
-                    // We want camYaw to match the model rotation over time
+                    // targetYaw is Niko's actual rotation
                     const targetYaw = model.rotation.y;
                     let diff = targetYaw - camYaw;
                     while (diff < -Math.PI) diff += Math.PI * 2;
                     while (diff > Math.PI) diff -= Math.PI * 2;
 
-                    camYaw += diff * 0.05; // Smoothing factor
+                    // Smoother follow factor (0.05)
+                    camYaw += diff * 0.05;
                 }
 
                 // Animations
