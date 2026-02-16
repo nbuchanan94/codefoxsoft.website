@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Maze Master - Debug Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Niko: Maze Master - Fixed Lighting</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
         #ui { position: absolute; top: 20px; left: 20px; color: #fff; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 4px; border-left: 4px solid #00ffcc; z-index: 100; pointer-events: none; }
@@ -10,7 +11,7 @@
         #intro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: #00ffcc; text-align: center; cursor: pointer;}
         #load-bar-container { width: 300px; height: 10px; background: #222; margin-top: 20px; border-radius: 5px; overflow: hidden; }
         #load-bar { width: 0%; height: 100%; background: #00ffcc; transition: width 0.1s; }
-        #debug-log { position: absolute; bottom: 20px; left: 20px; color: #aaa; font-size: 10px; z-index: 300; pointer-events: none; text-align: left; background: rgba(0,0,0,0.5); padding: 5px; }
+        #debug-log { position: absolute; bottom: 20px; left: 20px; color: #aaa; font-size: 10px; z-index: 300; pointer-events: none; text-align: left; background: rgba(0,0,0,0.5); padding: 5px; max-height: 150px; overflow-y: auto; width: 280px; border: 1px solid #333;}
         .success { color: #00ffcc; }
         .error { color: #ff4444; }
         .hidden { opacity: 0; pointer-events: none; }
@@ -25,7 +26,7 @@
     <div id="debug-log">DEBUG CONSOLE:<br></div>
     <div id="intro-overlay">
         <h1 id="intro-title">THE BRONX</h1>
-        <p id="status-text" style="color:white">INITIALIZING SYSTEMS...</p>
+        <p id="status-text" style="color:white">CONNECTING TO CODEFOXSOFT...</p>
         <div id="load-bar-container"><div id="load-bar"></div></div>
         <p id="click-prompt" style="color:#00ffcc; margin-top:20px; display:none;">[ CLICK TO START ]</p>
     </div>
@@ -33,8 +34,8 @@
 <script type="importmap">
     {
         "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
         }
     }
 </script>
@@ -47,7 +48,10 @@
     let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
     let actions = {}, currentAction, idleTimer = 0;
     let isReady = false;
-    let camDistance = 950, camPitch = 35, camYaw = 0;
+
+    let camDistance = 550;
+    let camPitch = 25;
+    let camYaw = 0;
     const keys = {}, cellSize = 1800;
 
     const maps = {
@@ -62,27 +66,27 @@
         span.className = type;
         span.innerHTML = `> ${msg}`;
         div.appendChild(span);
-        console.log(msg);
+        div.scrollTop = div.scrollHeight;
     }
 
     function createCityTextures() {
         const rC = document.createElement('canvas'); rC.width = 512; rC.height = 512;
         const rCtx = rC.getContext('2d');
-        rCtx.fillStyle = '#222'; rCtx.fillRect(0,0,512,512);
-        rCtx.fillStyle = '#080808'; rCtx.fillRect(60,0,392,512);
-        rCtx.fillStyle = '#333'; for(let i=0; i<512; i+=64) rCtx.fillRect(250, i, 10, 30);
+        rCtx.fillStyle = '#1a1a1a'; rCtx.fillRect(0,0,512,512);
+        rCtx.fillStyle = '#050505'; rCtx.fillRect(60,0,392,512);
+        rCtx.fillStyle = '#444'; for(let i=0; i<512; i+=64) rCtx.fillRect(250, i, 12, 32);
 
         const bC = document.createElement('canvas'); bC.width = 512; bC.height = 1024;
-        const bCtx = bC.getContext('2d'); bCtx.fillStyle = '#111'; bCtx.fillRect(0,0,512,1024);
+        const bCtx = bC.getContext('2d'); bCtx.fillStyle = '#0a0a0c'; bCtx.fillRect(0,0,512,1024);
         const eC = document.createElement('canvas'); eC.width = 512; eC.height = 1024;
         const eCtx = eC.getContext('2d'); eCtx.fillStyle = '#000'; eCtx.fillRect(0,0,512,1024);
 
         for(let y=40; y<1024; y+=120) {
             for(let x=30; x<512; x+=100) {
                 if(Math.random() > 0.4) {
-                    const col = Math.random() > 0.5 ? '#ff9900' : '#0099ff';
-                    bCtx.fillStyle = col; bCtx.globalAlpha = 0.2; bCtx.fillRect(x,y,65,45);
-                    eCtx.fillStyle = col; eCtx.shadowBlur = 15; eCtx.shadowColor = col; eCtx.fillRect(x,y,65,45);
+                    const col = Math.random() > 0.5 ? '#ffaa00' : '#00aaff';
+                    bCtx.fillStyle = col; bCtx.globalAlpha = 0.15; bCtx.fillRect(x,y,65,45);
+                    eCtx.fillStyle = col; eCtx.shadowBlur = 25; eCtx.shadowColor = col; eCtx.fillRect(x,y,65,45);
                 }
             }
         }
@@ -91,7 +95,7 @@
             build: new THREE.MeshStandardMaterial({
                 map: new THREE.CanvasTexture(bC),
                 emissiveMap: new THREE.CanvasTexture(eC),
-                emissive: 0xffffff, emissiveIntensity: 2.2
+                emissive: 0xffffff, emissiveIntensity: 3.5
             })
         };
     }
@@ -101,13 +105,20 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x010102);
-        scene.fog = new THREE.FogExp2(0x010102, 0.00012);
+        scene.background = new THREE.Color(0x000005);
+        scene.fog = new THREE.FogExp2(0x000005, 0.00018);
 
         camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 60000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
+
+        // Persistent Global Lighting (Prevents black screen)
+        const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambient);
+        const sun = new THREE.DirectionalLight(0x4455ff, 1.2);
+        sun.position.set(2000, 4000, 1000);
+        scene.add(sun);
 
         levelGroup = new THREE.Group();
         scene.add(levelGroup);
@@ -120,7 +131,14 @@
             }
         };
 
-        window.addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; startAction(); });
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            startAction();
+            if(e.key.toLowerCase()==='t') {
+                camPitch = (camPitch < 80 ? 85 : 25);
+                camDistance = (camPitch === 85 ? 3500 : 550);
+            }
+        });
         window.addEventListener('mousedown', startAction);
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
 
@@ -131,15 +149,15 @@
 
     async function loadFile(loader, key, path) {
         return new Promise((resolve) => {
-            log(`Loading ${key}...`);
+            log(`Fetching ${key}...`);
             loader.load(path,
                 (fbx) => {
-                    log(`${key} SUCCESS`, 'success');
+                    log(`${key} LOADED`, 'success');
                     resolve({ key, fbx });
                 },
                 undefined,
                 (err) => {
-                    log(`${key} FAILED: ${path}`, 'error');
+                    log(`${key} FAILED (CORS/404)`, 'error');
                     resolve({ key, error: true });
                 }
             );
@@ -148,10 +166,11 @@
 
     async function loadAllAssets() {
         const loader = new FBXLoader();
+        const baseUrl = 'https://www.codefoxsoft.com/';
         const files = [
-            { key: 'walk', path: 'catwalk.fbx' },
-            { key: 'idle2', path: 'idle2.fbx' },
-            { key: 'twerk', path: 'twerk.fbx' }
+            { key: 'walk', path: baseUrl + 'catwalk.fbx' },
+            { key: 'idle', path: baseUrl + 'idle2.fbx' }, // Updated to idle2
+            { key: 'twerk', path: baseUrl + 'twerk.fbx' }
         ];
 
         const results = await Promise.all(files.map(f => loadFile(loader, f.key, f.path)));
@@ -165,7 +184,7 @@
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
         } else {
-            log("Critical: No Model. Using Placeholder.", "error");
+            log("Critical: Walk failed. Using Cube.", "error");
             model = new THREE.Mesh(new THREE.BoxGeometry(100,240,100), new THREE.MeshStandardMaterial({color: 0x00ffcc, emissive: 0x00ffcc}));
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
@@ -180,10 +199,10 @@
         });
 
         resetNiko();
-        if (actions['idle2']) fadeToAction('idle2');
+        if (actions['idle']) fadeToAction('idle');
 
         isReady = true;
-        document.getElementById('status-text').innerText = "DONE";
+        document.getElementById('status-text').innerText = "ASSETS SYNCED";
         document.getElementById('click-prompt').style.display = "block";
     }
 
@@ -198,11 +217,10 @@
     }
 
     function buildLevel(num) {
+        // Clear old geometry but NOT global lights
         while(levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
+
         const mapData = maps[num];
-        levelGroup.add(new THREE.AmbientLight(0xffffff, 0.4));
-        const sun = new THREE.DirectionalLight(0x4455ff, 0.5); sun.position.set(2000,4000,1000);
-        levelGroup.add(sun);
 
         for(let z=0; z<mapData.grid.length; z++) {
             for(let x=0; x<mapData.grid[z].length; x++) {
@@ -216,7 +234,7 @@
                 }
             }
         }
-        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({color:0xffcc00, emissive:0xffcc00, emissiveIntensity:6}));
+        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({color:0xffcc00, emissive:0xffcc00, emissiveIntensity:8}));
         goalOrb.position.set(mapData.goal.x*cellSize - 4000, 300, mapData.goal.z*cellSize - 4000);
         levelGroup.add(goalOrb);
         document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${mapData.name}`;
@@ -237,27 +255,31 @@
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
             let fwd = (keys.w?1:0)-(keys.s?1:0), side = (keys.d?1:0)-(keys.a?1:0);
-            if(keys.arrowleft) camYaw += 0.05; if(keys.arrowright) camYaw -= 0.05;
+            if(keys.arrowleft || keys.q) camYaw += 0.05;
+            if(keys.arrowright || keys.e) camYaw -= 0.05;
 
             const isMoving = fwd !== 0 || side !== 0;
 
             if(isMoving) {
                 idleTimer = 0;
                 fadeToAction('walk');
+                const spd = keys.shift ? 58 : 30;
+                mixer.timeScale = keys.shift ? 1.8 : 1.0;
+
                 model.rotation.y = THREE.MathUtils.lerp(model.rotation.y, camYaw + Math.atan2(side, fwd) + Math.PI, 0.2);
-                const spd = keys.shift ? 55 : 28;
                 const nX = model.position.x + Math.sin(model.rotation.y)*spd, nZ = model.position.z + Math.cos(model.rotation.y)*spd;
                 const gx = Math.round((nX+4000)/cellSize), gz = Math.round((nZ+4000)/cellSize);
-                if(maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx]===0) {
+                if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx]===0) {
                     model.position.x=nX; model.position.z=nZ;
                 }
             } else {
+                mixer.timeScale = 1.0;
                 if (currentAction !== actions['twerk']) {
-                    fadeToAction('idle2');
+                    fadeToAction('idle');
                     idleTimer += delta;
                     if (idleTimer >= 5) { fadeToAction('twerk'); idleTimer = 0; }
                 } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
-                    fadeToAction('idle1');
+                    fadeToAction('idle');
                 }
             }
 
@@ -269,7 +291,12 @@
 
             const p = model.position.clone().add(new THREE.Vector3(0,250,0));
             const pr = THREE.MathUtils.degToRad(camPitch);
-            camera.position.lerp(p.clone().add(new THREE.Vector3(camDistance*Math.sin(camYaw)*Math.cos(pr), camDistance*Math.sin(pr), camDistance*Math.cos(camYaw)*Math.cos(pr))), 0.1);
+            const targetPos = p.clone().add(new THREE.Vector3(
+                camDistance * Math.sin(camYaw) * Math.cos(pr),
+                camDistance * Math.sin(pr),
+                camDistance * Math.cos(camYaw) * Math.cos(pr)
+            ));
+            camera.position.lerp(targetPos, 0.15);
             camera.lookAt(p);
         }
         renderer.render(scene, camera);
