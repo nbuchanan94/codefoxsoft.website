@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Found You</title>
+    <title>Niko: Final Scale Fix</title>
     <style>
-        body { margin: 0; background: #111; overflow: hidden; font-family: monospace; }
-        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 10; background: rgba(0,0,0,0.8); padding: 8px; border: 1px solid #0f0; }
+        body { margin: 0; background: #1a1a1a; overflow: hidden; font-family: monospace; }
+        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 10; background: rgba(0,0,0,0.7); padding: 5px; }
     </style>
 </head>
 <body>
-    <div id="status">SCANNING THE VOID...</div>
+    <div id="status">FORCING RESCALE...</div>
 
 <script type="importmap">
     {
@@ -26,52 +26,46 @@
 
     let scene, camera, renderer, mixer, clock, model, walkAction;
     let mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster(), targetPos = new THREE.Vector3();
-    let modelSize = 1;
 
     init();
 
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x111111);
+        scene.background = new THREE.Color(0x1a1a1a);
 
-        // Extreme far-plane so we don't lose him if he's giant
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100000);
-        camera.position.set(500, 500, 500);
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+        camera.position.set(0, 300, 600);
 
-        // Brightest possible lights to avoid black-on-black
         scene.add(new THREE.AmbientLight(0xffffff, 3));
         const sun = new THREE.DirectionalLight(0xffffff, 3);
-        sun.position.set(1000, 1000, 1000);
+        sun.position.set(500, 500, 500);
         scene.add(sun);
 
-        scene.add(new THREE.GridHelper(5000, 50, 0x444444, 0x222222));
+        scene.add(new THREE.GridHelper(2000, 50, 0x555555, 0x333333));
 
         const loader = new FBXLoader();
 
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
-            scene.add(model);
 
-            // --- THE HOMIE FINDER ---
+            // --- THE SCALE RESCUE ---
+            // Force the model to be 150 units tall regardless of export settings
             const box = new THREE.Box3().setFromObject(model);
-            const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
-            modelSize = size.length();
+            const scaleFactor = 150 / (size.y || 1);
+            model.scale.setScalar(scaleFactor);
 
-            // Reposition camera based on his actual size
-            camera.position.set(center.x, center.y + (modelSize * 0.5), center.z + (modelSize * 1.5));
-            camera.lookAt(center);
+            scene.add(model);
 
             mixer = new THREE.AnimationMixer(model);
 
             if (fbx.animations.length > 0) {
                 const clip = fbx.animations[0];
-                // Force bone names to match
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
                 walkAction = mixer.clipAction(clip);
                 walkAction.play();
-                document.getElementById('status').innerHTML = `FOUND NIKO | Scale: ${Math.round(modelSize)} units`;
+                document.getElementById('status').innerHTML = "NIKO RESCALED & READY";
             }
         });
 
@@ -99,14 +93,10 @@
 
             const distance = model.position.distanceTo(targetPos);
 
-            // Move speed scales automatically to his size
-            const moveThreshold = modelSize * 0.1;
-            const moveSpeed = modelSize * 0.01;
-
-            if (distance > moveThreshold) {
+            if (distance > 30) {
                 walkAction.paused = false;
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(moveSpeed);
+                model.translateZ(4);
             } else {
                 walkAction.paused = true;
             }
