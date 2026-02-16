@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: The Rescue</title>
+    <title>Niko's Meadow</title>
     <style>
-        body { margin: 0; background: #1a1a1a; overflow: hidden; font-family: monospace; }
-        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 100; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid #0f0; }
+        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: 'Courier New', monospace; }
+        #status { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; z-index: 10; }
     </style>
 </head>
 <body>
-    <div id="status">RESCUING NIKO FROM THE VOID...</div>
+    <div id="status">CREATING THE WORLD...</div>
 
 <script type="importmap">
     {
@@ -32,44 +32,49 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a1a);
 
-        // Wide camera view
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 20000);
-        camera.position.set(0, 400, 800);
-        camera.lookAt(0, 0, 0);
+        // 1. THE SKY (Light Blue)
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.Fog(0x87CEEB, 200, 1000);
 
-        // Blasting lights
-        scene.add(new THREE.AmbientLight(0xffffff, 4));
-        const sun = new THREE.DirectionalLight(0xffffff, 4);
-        sun.position.set(500, 1000, 500);
+        // 2. THE CAMERA (Lower and closer)
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000);
+        camera.position.set(0, 150, 400);
+
+        // 3. LIGHTING (Sunny Day)
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 3);
+        scene.add(hemiLight);
+        const sun = new THREE.DirectionalLight(0xffffff, 2);
+        sun.position.set(100, 200, 100);
         scene.add(sun);
 
-        // Large grid to help us spot him
-        scene.add(new THREE.GridHelper(5000, 100, 0x00ff00, 0x444444));
+        // 4. THE GRASS (A big green circle)
+        const groundGeo = new THREE.CircleGeometry(2000, 32);
+        const groundMat = new THREE.MeshPhongMaterial({ color: 0x228B22 });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        scene.add(ground);
+
+        // 5. THE CLOUDS (Simple white blobs)
+        for(let i=0; i<20; i++) {
+            const cloudGeo = new THREE.SphereGeometry(Math.random()*50 + 20, 8, 8);
+            const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
+            const cloud = new THREE.Mesh(cloudGeo, cloudMat);
+            cloud.position.set(Math.random()*2000-1000, Math.random()*200+300, Math.random()*2000-1000);
+            scene.add(cloud);
+        }
 
         const loader = new FBXLoader();
 
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
 
-            // --- THE ABSOLUTE SCALE FORCE ---
-            // If scale is 0, we force it to 1. If it's too small, we boost it.
-            const box = new THREE.Box3().setFromObject(model);
-            const size = box.getSize(new THREE.Vector3());
+            // --- THE SCALE FIX ---
+            // If he's tiny, we force him to a solid size.
+            // Adjust this number (currently 5) if he's still too small!
+            model.scale.setScalar(5);
 
-            // If the model reports 0 height, we force a massive scale multiplier
-            let forceScale = 1;
-            if (size.y < 0.1) {
-                forceScale = 100; // Assuming it's microscopic
-            } else {
-                forceScale = 200 / size.y; // Standardize to 200 units tall
-            }
-
-            model.scale.setScalar(forceScale);
-            model.position.set(0, 0, 0); // Force him to the center of the grid
             scene.add(model);
-
             mixer = new THREE.AnimationMixer(model);
 
             if (fbx.animations.length > 0) {
@@ -77,12 +82,8 @@
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
                 walkAction = mixer.clipAction(clip);
                 walkAction.play();
-                document.getElementById('status').innerHTML = "NIKO IS BACK. LEAD HIM.";
+                document.getElementById('status').innerHTML = "NIKO IS OUTDOORS";
             }
-        }, (xhr) => {
-            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-        }, (err) => {
-            document.getElementById('status').innerHTML = "ERROR: CATWALK.FBX FAILED";
         });
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -109,10 +110,13 @@
 
             const distance = model.position.distanceTo(targetPos);
 
-            if (distance > 50) {
+            if (distance > 20) {
                 walkAction.paused = false;
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(6);
+                model.translateZ(3); // Walking speed
+
+                // Camera follows Niko slightly
+                camera.lookAt(model.position);
             } else {
                 walkAction.paused = true;
             }
