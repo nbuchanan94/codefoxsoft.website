@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Final Scale Fix</title>
+    <title>Niko: The Rescue</title>
     <style>
         body { margin: 0; background: #1a1a1a; overflow: hidden; font-family: monospace; }
-        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 10; background: rgba(0,0,0,0.7); padding: 5px; }
+        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 100; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid #0f0; }
     </style>
 </head>
 <body>
-    <div id="status">FORCING RESCALE...</div>
+    <div id="status">RESCUING NIKO FROM THE VOID...</div>
 
 <script type="importmap">
     {
@@ -34,28 +34,40 @@
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1a1a1a);
 
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-        camera.position.set(0, 300, 600);
+        // Wide camera view
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 20000);
+        camera.position.set(0, 400, 800);
+        camera.lookAt(0, 0, 0);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 3));
-        const sun = new THREE.DirectionalLight(0xffffff, 3);
-        sun.position.set(500, 500, 500);
+        // Blasting lights
+        scene.add(new THREE.AmbientLight(0xffffff, 4));
+        const sun = new THREE.DirectionalLight(0xffffff, 4);
+        sun.position.set(500, 1000, 500);
         scene.add(sun);
 
-        scene.add(new THREE.GridHelper(2000, 50, 0x555555, 0x333333));
+        // Large grid to help us spot him
+        scene.add(new THREE.GridHelper(5000, 100, 0x00ff00, 0x444444));
 
         const loader = new FBXLoader();
 
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
 
-            // --- THE SCALE RESCUE ---
-            // Force the model to be 150 units tall regardless of export settings
+            // --- THE ABSOLUTE SCALE FORCE ---
+            // If scale is 0, we force it to 1. If it's too small, we boost it.
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
-            const scaleFactor = 150 / (size.y || 1);
-            model.scale.setScalar(scaleFactor);
 
+            // If the model reports 0 height, we force a massive scale multiplier
+            let forceScale = 1;
+            if (size.y < 0.1) {
+                forceScale = 100; // Assuming it's microscopic
+            } else {
+                forceScale = 200 / size.y; // Standardize to 200 units tall
+            }
+
+            model.scale.setScalar(forceScale);
+            model.position.set(0, 0, 0); // Force him to the center of the grid
             scene.add(model);
 
             mixer = new THREE.AnimationMixer(model);
@@ -65,8 +77,12 @@
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
                 walkAction = mixer.clipAction(clip);
                 walkAction.play();
-                document.getElementById('status').innerHTML = "NIKO RESCALED & READY";
+                document.getElementById('status').innerHTML = "NIKO IS BACK. LEAD HIM.";
             }
+        }, (xhr) => {
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+        }, (err) => {
+            document.getElementById('status').innerHTML = "ERROR: CATWALK.FBX FAILED";
         });
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -93,10 +109,10 @@
 
             const distance = model.position.distanceTo(targetPos);
 
-            if (distance > 30) {
+            if (distance > 50) {
                 walkAction.paused = false;
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(4);
+                model.translateZ(6);
             } else {
                 walkAction.paused = true;
             }
