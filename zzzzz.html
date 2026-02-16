@@ -164,7 +164,6 @@
         window.addEventListener('keydown', (e) => {
             const k = e.key.toLowerCase();
             keys[k] = true;
-            // Handle arrow keys separately since e.key is descriptive
             if (e.key.startsWith('Arrow')) keys[e.key] = true;
 
             startAction();
@@ -324,11 +323,11 @@
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
 
-            // Manual camera rotation and zoom with Arrow Keys
+            // Camera controls with Arrow Keys
             if(keys['ArrowLeft']) camYaw += 0.05;
             if(keys['ArrowRight']) camYaw -= 0.05;
-            if(keys['ArrowUp']) camDistance = Math.max(200, camDistance - 15);
-            if(keys['ArrowDown']) camDistance = Math.min(4000, camDistance + 15);
+            if(keys['ArrowUp']) camDistance = Math.max(200, camDistance - 25);
+            if(keys['ArrowDown']) camDistance = Math.min(6000, camDistance + 25);
 
             let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
             let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
@@ -336,7 +335,7 @@
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
 
-                // Movement direction relative to camera
+                // Movement direction relative to current camera yaw
                 const moveAngle = Math.atan2(inputX, inputZ) + camYaw;
                 const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle);
                 model.quaternion.slerp(targetQuat, 0.15);
@@ -355,15 +354,6 @@
                 if(gx >= 0 && gz >= 0 && maps[currentLevel].grid[gz] && maps[currentLevel].grid[gz][gx] === 0) {
                     model.position.x = nX;
                     model.position.z = nZ;
-                }
-
-                // AUTO-FOLLOW BEHIND LOGIC (Only if not manually rotating)
-                if (!keys['ArrowLeft'] && !keys['ArrowRight']) {
-                    const nikoRotation = model.rotation.y;
-                    let diff = nikoRotation - camYaw;
-                    while (diff < -Math.PI) diff += Math.PI * 2;
-                    while (diff > Math.PI) diff -= Math.PI * 2;
-                    camYaw += diff * 0.08;
                 }
 
                 if (keys.shift) fadeToAction('run');
