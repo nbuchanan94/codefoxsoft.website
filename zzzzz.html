@@ -3,15 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Niko: Catwalk & Rage</title>
-    <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
-        #status { position: absolute; bottom: 20px; width: 100%; text-align: center; color: #00ff00; pointer-events: none; text-shadow: 2px 2px #000; }
-    </style>
+    <title>Niko: Bone Fix Edition</title>
+    <style>body { margin: 0; background: #000; overflow: hidden; }</style>
 </head>
 <body>
-    <div id="status">Loading Niko and his moods...</div>
-
 <script type="importmap">
     {
         "imports": {
@@ -27,18 +22,14 @@
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
     let scene, camera, renderer, mixer, clock, model;
-    let actions = {};
-    let activeAction;
-    let raycaster = new THREE.Raycaster();
-    let mouse = new THREE.Vector2();
-    let targetPosition = new THREE.Vector3();
+    let actions = {}, activeAction;
+    let raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2(), targetPosition = new THREE.Vector3();
 
     init();
 
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5, 12);
 
@@ -51,41 +42,15 @@
         const gltfLoader = new GLTFLoader();
         const fbxLoader = new FBXLoader();
 
-        // 1. Load the textured Niko
         gltfLoader.load('niko.glb', (gltf) => {
             model = gltf.scene;
-
-            // Fix transparency/depth issues from before
-            model.traverse(n => {
-                if(n.isMesh) {
-                    n.material.side = THREE.FrontSide;
-                    n.material.transparent = false;
-                    n.material.depthWrite = true;
-                }
-            });
-
+            model.traverse(n => { if(n.isMesh) { n.material.side = THREE.FrontSide; n.material.depthWrite = true; } });
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
 
-            // 2. Load the "Motion-Only" Walk
-            fbxLoader.load('walk.fbx', (anim) => {
-                const clip = anim.animations[0];
-                clip.name = "walk";
-                actions['walk'] = mixer.clipAction(clip);
-                console.log("Walk animation loaded");
-            });
-
-            // 3. Load the "Motion-Only" Angry
-            fbxLoader.load('angry.fbx', (anim) => {
-                const clip = anim.animations[0];
-                clip.name = "angry";
-                actions['angry'] = mixer.clipAction(clip);
-
-                // Start in Angry state
-                activeAction = actions['angry'];
-                activeAction.play();
-                document.getElementById('status').innerHTML = "LEAD NIKO WITH YOUR CURSOR";
-            });
+            // Load animations and fix bone names
+            loadAnim(fbxLoader, 'walk.fbx', 'walk');
+            loadAnim(fbxLoader, 'angry.fbx', 'angry', true);
         });
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -100,14 +65,30 @@
         animate();
     }
 
-    // Smoothly transitions between animations
+    function loadAnim(loader, url, name, isDefault = false) {
+        loader.load(url, (fbx) => {
+            const clip = fbx.animations[0];
+
+            // --- THE FIX: Strip prefixes from bone tracks ---
+            clip.tracks.forEach(track => {
+                // This converts "mixamorig_Hips.position" to "Hips.position"
+                // It also fixes internal FBX naming like "Object_0.bones[Hips].position"
+                track.name = track.name.replace(/.*[:_]/, "");
+            });
+
+            actions[name] = mixer.clipAction(clip);
+            if (isDefault) {
+                activeAction = actions[name];
+                activeAction.play();
+            }
+        });
+    }
+
     function fadeTo(name) {
         if (!actions[name] || activeAction === actions[name]) return;
-
-        const nextAction = actions[name];
-        nextAction.reset().fadeIn(0.5).play();
+        actions[name].reset().fadeIn(0.5).play();
         activeAction.fadeOut(0.5);
-        activeAction = nextAction;
+        activeAction = actions[name];
     }
 
     function animate() {
@@ -123,19 +104,11 @@
             const lookTarget = new THREE.Vector3(targetPosition.x, model.position.y, targetPosition.z);
             const distance = model.position.distanceTo(lookTarget);
 
-            if (distance > 1.2) {
-                // Too far? Walk towards cursor
+            if (distance > 1.5) {
                 fadeTo('walk');
-
-                // Smooth rotation
-                const dummy = new THREE.Object3D();
-                dummy.position.copy(model.position);
-                dummy.lookAt(lookTarget);
-                model.quaternion.slerp(dummy.quaternion, 0.1);
-
-                model.translateZ(0.08); // Walk speed
+                model.lookAt(lookTarget);
+                model.translateZ(0.08);
             } else {
-                // Close enough? Get angry
                 fadeTo('angry');
             }
         }
