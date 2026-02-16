@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Self-Healing Loader</title>
+    <title>Niko: FBX Restored</title>
     <style>
         body { margin: 0; background: #000; color: #0f0; font-family: monospace; overflow: hidden; }
         #status { position: absolute; top: 10px; left: 10px; z-index: 100; pointer-events: none; }
     </style>
 </head>
 <body>
-    <div id="status">CHECKING FILES...</div>
+    <div id="status">INITIALIZING FBX SYSTEM...</div>
 
 <script type="importmap">
     {
@@ -22,7 +22,7 @@
 
 <script type="module">
     import * as THREE from 'three';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
     let scene, camera, renderer, mixer, clock, model;
     let actions = {}, activeAction;
@@ -36,46 +36,51 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x111111);
+        scene.background = new THREE.Color(0x050505);
 
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 5, 12);
+        // Camera set wide because FBX models can be huge
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000);
+        camera.position.set(200, 300, 500);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 2));
-        scene.add(new THREE.GridHelper(100, 50, 0x333333, 0x222222));
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 3));
+        scene.add(new THREE.GridHelper(2000, 50, 0x333333, 0x222222));
 
-        const loader = new GLTFLoader();
+        const loader = new FBXLoader();
 
-        log("Loading catwalk.glb...");
-        loader.load('catwalk.glb', (gltf) => {
-            model = gltf.scene;
+        log("Loading catwalk.fbx (Body)...");
+        loader.load('catwalk.fbx', (fbx) => {
+            model = fbx;
+            model.scale.setScalar(1); // Adjust if he is tiny or giant
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
 
-            if (gltf.animations.length > 0) {
-                actions['walk'] = mixer.clipAction(gltf.animations[0]);
-                log("Walk animation found.");
-            } else {
-                log("WARN: No animation in catwalk.glb");
+            if (fbx.animations.length > 0) {
+                const walkClip = fbx.animations[0];
+                cleanAnimationNames(walkClip);
+                actions['walk'] = mixer.clipAction(walkClip);
+                log("Walk motion ready.");
             }
 
-            log("Loading idle.glb...");
-            loader.load('idle.glb', (idleGltf) => {
-                if (idleGltf.animations.length > 0) {
-                    actions['idle'] = mixer.clipAction(idleGltf.animations[0]);
-                    log("Idle animation found.");
+            log("Loading idle.fbx (Motion)...");
+            loader.load('idle.fbx', (idleFbx) => {
+                if (idleFbx.animations.length > 0) {
+                    const idleClip = idleFbx.animations[0];
+                    cleanAnimationNames(idleClip);
+                    actions['idle'] = mixer.clipAction(idleClip);
+
                     activeAction = actions['idle'];
                     activeAction.play();
-                } else {
-                    log("WARN: No animation in idle.glb");
-                    // Fallback to walk if idle is missing
-                    if(actions['walk']) { activeAction = actions['walk']; activeAction.play(); }
+                    log("Idle motion ready.");
                 }
-                log("READY. Move mouse to walk.");
-                setTimeout(() => { statusEl.style.opacity = "0.3"; }, 3000);
-            }, undefined, (e) => log("ERROR: idle.glb failed to load."));
+                log("SYSTEM ONLINE. Move mouse.");
+            }, undefined, (e) => log("ERROR: idle.fbx missing or corrupted."));
 
-        }, undefined, (e) => log("ERROR: catwalk.glb failed to load. Check file names."));
+        }, (xhr) => {
+            if (xhr.lengthComputable) {
+                const percent = Math.round(xhr.loaded / xhr.total * 100);
+                statusEl.innerHTML = `DOWNLOADING NIKO: ${percent}%`;
+            }
+        }, (e) => log("ERROR: catwalk.fbx not found."));
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -87,6 +92,14 @@
         });
 
         animate();
+    }
+
+    // THIS IS THE CRITICAL PART:
+    // It strips prefixes like "mixamorig:" so animations can find the bones
+    function cleanAnimationNames(clip) {
+        clip.tracks.forEach(track => {
+            track.name = track.name.replace(/mixamorig[0-9]*_?|.*:/g, "");
+        });
     }
 
     function fadeTo(name) {
@@ -101,18 +114,18 @@
         const delta = clock.getDelta();
         if (mixer) mixer.update(delta);
 
-        if (model) {
+        if (model && actions['walk'] && actions['idle']) {
             raycaster.setFromCamera(mouse, camera);
             const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
             raycaster.ray.intersectPlane(plane, targetPos);
 
             const distance = model.position.distanceTo(targetPos);
 
-            if (distance > 1.0 && actions['walk']) {
+            if (distance > 30) { // FBX units are usually larger
                 fadeTo('walk');
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(0.1);
-            } else if (actions['idle']) {
+                model.translateZ(4); // Movement speed
+            } else {
                 fadeTo('idle');
             }
         }
