@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko's Meadow: Final Fix</title>
+    <title>Niko: The Emergency Reset</title>
     <style>
-        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: monospace; }
-        #status { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px black; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px; }
+        body { margin: 0; background: #222; overflow: hidden; font-family: monospace; }
+        #status { position: absolute; top: 10px; left: 10px; color: #0f0; z-index: 100; background: rgba(0,0,0,0.8); padding: 10px; }
     </style>
 </head>
 <body>
-    <div id="status">MEASURING NIKO...</div>
+    <div id="status">LOCATING NIKO...</div>
 
 <script type="importmap">
     {
@@ -32,56 +32,56 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87CEEB);
+        scene.background = new THREE.Color(0x87CEEB); // Blue Sky
 
-        // Camera: Farther back to ensure we see the "Giant" if he's still huge
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 20000);
-        camera.position.set(0, 800, 2000);
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 50000);
+        camera.position.set(0, 200, 500);
 
         scene.add(new THREE.AmbientLight(0xffffff, 3));
-        const sun = new THREE.DirectionalLight(0xffffff, 2);
-        sun.position.set(500, 1000, 500);
+        const sun = new THREE.DirectionalLight(0xffffff, 3);
+        sun.position.set(500, 500, 500);
         scene.add(sun);
 
-        // Ground
-        const ground = new THREE.Mesh(
+        // Green floor
+        const floor = new THREE.Mesh(
             new THREE.PlaneGeometry(10000, 10000),
             new THREE.MeshPhongMaterial({ color: 0x2d5a27 })
         );
-        ground.rotation.x = -Math.PI / 2;
-        scene.add(ground);
+        floor.rotation.x = -Math.PI / 2;
+        scene.add(floor);
 
         const loader = new FBXLoader();
 
         loader.load('catwalk.fbx', (fbx) => {
             model = fbx;
-
-            // --- THE MATHEMATICAL FIX ---
-            // 1. Calculate how big he actually is right now
-            const box = new THREE.Box3().setFromObject(model);
-            const size = box.getSize(new THREE.Vector3());
-
-            // 2. Force him to be exactly 200 units tall
-            const targetHeight = 200;
-            const currentHeight = size.y || 1;
-            const finalScale = targetHeight / currentHeight;
-
-            model.scale.setScalar(finalScale);
-            model.position.set(0, 0, 0);
             scene.add(model);
 
-            // 3. Add a Helper so we can see his boundaries
-            const helper = new THREE.BoxHelper(model, 0xff0000);
-            scene.add(helper);
+            // --- THE "FIX EVERYTHING" LOGIC ---
+            // 1. Find out where he is and how big he is
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+
+            // 2. If he's tiny/broken, force him to be 200 units tall
+            const scaleFactor = 200 / (size.y || 1);
+            model.scale.setScalar(scaleFactor);
+
+            // 3. Move him to the center of the world
+            model.position.x += (model.position.x - center.x);
+            model.position.y = 0; // Feet on the ground
+            model.position.z += (model.position.z - center.z);
+
+            // 4. Force camera to look at him from a safe distance
+            camera.position.set(0, 200, 600);
+            camera.lookAt(0, 100, 0);
 
             mixer = new THREE.AnimationMixer(model);
-
             if (fbx.animations.length > 0) {
                 const clip = fbx.animations[0];
                 clip.tracks.forEach(t => t.name = t.name.replace(/.*[:_]/, ""));
                 walkAction = mixer.clipAction(clip);
                 walkAction.play();
-                document.getElementById('status').innerHTML = `NIKO HEIGHT: ${targetHeight} | SCALE MULTIPLIER: ${finalScale.toFixed(4)}`;
+                document.getElementById('status').innerHTML = "NIKO RESTORED. MOVE MOUSE.";
             }
         });
 
@@ -109,15 +109,14 @@
 
             const distance = model.position.distanceTo(targetPos);
 
-            if (distance > 50) {
+            if (distance > 40) {
                 walkAction.paused = false;
                 model.lookAt(targetPos.x, model.position.y, targetPos.z);
-                model.translateZ(10);
+                model.translateZ(5);
+                camera.lookAt(model.position.x, 100, model.position.z);
             } else {
                 walkAction.paused = true;
             }
-            // Keep camera focused on the red box area
-            camera.lookAt(model.position);
         }
         renderer.render(scene, camera);
     }
