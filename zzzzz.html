@@ -116,3 +116,31 @@
         if (mixer) mixer.update(delta);
 
         if (model && actions['walk'] && actions['angry']) {
+            raycaster.setFromCamera(mouse, camera);
+            const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+            raycaster.ray.intersectPlane(plane, targetPosition);
+
+            const lookTarget = new THREE.Vector3(targetPosition.x, model.position.y, targetPosition.z);
+            const distance = model.position.distanceTo(lookTarget);
+
+            if (distance > 1.2) {
+                // Too far? Walk towards cursor
+                fadeTo('walk');
+
+                // Smooth rotation
+                const dummy = new THREE.Object3D();
+                dummy.position.copy(model.position);
+                dummy.lookAt(lookTarget);
+                model.quaternion.slerp(dummy.quaternion, 0.1);
+
+                model.translateZ(0.08); // Walk speed
+            } else {
+                // Close enough? Get angry
+                fadeTo('angry');
+            }
+        }
+        renderer.render(scene, camera);
+    }
+</script>
+</body>
+</html>
