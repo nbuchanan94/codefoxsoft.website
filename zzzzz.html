@@ -57,7 +57,9 @@
     let shards = [];
 
     // Camera & Shake
-    let camDistance = 800;
+    // Min distance (max closeness) is 200, zoom step is 25.
+    // Setting default to one unit away from max closeness (225) so he's big in the frame.
+    let camDistance = 225;
     let camPitch = 25;
     let camYaw = 0;
     let shakeIntensity = 0;
@@ -335,9 +337,7 @@
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
 
-                // FIXED: Movement direction calculation relative to camera.
-                // In Three.js, Math.atan2(x, z) gives angle where W is forward.
-                // We subtract camYaw so W is always "away from camera".
+                // Movement direction calculation relative to camera.
                 const moveAngle = Math.atan2(inputX, inputZ) + camYaw + Math.PI;
                 const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), moveAngle);
                 model.quaternion.slerp(targetQuat, 0.15);
