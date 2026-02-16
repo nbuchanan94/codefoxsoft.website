@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Niko: Neon City Fixed</title>
+    <title>Niko: City Lights Fixed</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(0,0,0,0.7); padding: 15px; border-radius: 8px; border-left: 4px solid #00ffcc; pointer-events: none; z-index: 100; }
-        #level-text { font-weight: bold; color: #00ffcc; font-size: 1.2em; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.9); background: rgba(0,0,0,0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00ffcc; pointer-events: none; user-select: none; }
+        #level-text { font-weight: bold; color: #00ffcc; font-size: 1.2em; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
     <div id="ui">
-        <div id="level-text">LEVEL 1: THE BRONX</div>
+        <span id="level-text">LEVEL 1: THE BRONX</span>
         <b>WASD</b> Walk | <b>SHIFT</b> Sprint<br>
-        <b>ARROWS</b> Orbit | <b>T</b> View Mode<br>
-        Find the <b>GOLDEN ORB</b> to advance.
+        <b>ARROWS</b> Orbit Camera<br>
+        <b>T</b> Toggle View Mode
     </div>
 
 <script type="importmap">
@@ -35,6 +35,7 @@
     let camDistance = 600, camPitch = 25, camYaw = 0;
     const keys = {}, buildingMeshes = [], cellSize = 1200;
 
+    // --- MAP DATA ---
     const maps = [
         [
             [1,1,1,1,1,1,1,1],
@@ -44,7 +45,7 @@
             [1,1,0,0,0,0,0,1],
             [1,1,1,1,1,1,1,1]
         ],
-        [
+        [ // Level 2 Map
             [1,1,1,1,1,1,1,1],
             [1,0,1,0,0,0,0,1],
             [1,0,1,0,1,1,0,1],
@@ -60,13 +61,18 @@
         const canvas = document.createElement('canvas');
         canvas.width = 512; canvas.height = 1024;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#15151a';
+
+        // Dark Base
+        ctx.fillStyle = '#1a1a20';
         ctx.fillRect(0,0,512,1024);
-        for(let y=40; y<1024; y+=80) {
+
+        // Windows
+        for(let y=50; y<1024; y+=80) {
             for(let x=20; x<512; x+=100) {
-                if(Math.random() > 0.7) {
-                    ctx.fillStyle = Math.random() > 0.5 ? '#ffcc00' : '#44aaff';
-                    ctx.fillRect(x, y, 60, 40);
+                if(Math.random() > 0.6) {
+                    // Random Window Colors (Gold or Blue)
+                    ctx.fillStyle = Math.random() > 0.5 ? '#ffcc66' : '#66ccff';
+                    ctx.fillRect(x, y, 60, 45);
                 }
             }
         }
@@ -76,23 +82,27 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050508);
-        scene.fog = new THREE.FogExp2(0x050508, 0.0003); // Lightened fog density
+        scene.background = new THREE.Color(0x050510);
+        // Reduced Fog density so you can see further
+        scene.fog = new THREE.FogExp2(0x050510, 0.00025);
 
         camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 20000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // --- GLOBAL LIGHTING (The Fix) ---
-        scene.add(new THREE.AmbientLight(0xffffff, 0.5)); // Brighter base light
+        // --- LIGHTING FIXES ---
+        // 1. Stronger Ambient Light (Base visibility)
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-        nikoLight = new THREE.PointLight(0xffffff, 20, 1500); // Light attached to Niko
+        // 2. Player Light (The "Lantern")
+        nikoLight = new THREE.PointLight(0xffffff, 2, 1200);
         scene.add(nikoLight);
 
         buildLevel();
         loadNiko();
 
+        // Input Listeners
         window.addEventListener('keydown', (e) => {
             keys[e.key.toLowerCase()] = true;
             if (e.key.toLowerCase() === 't') toggleCamera();
@@ -104,6 +114,7 @@
     }
 
     function buildLevel() {
+        // Cleanup old level
         buildingMeshes.forEach(b => scene.remove(b));
         buildingMeshes.length = 0;
         if(goalOrb) scene.remove(goalOrb);
@@ -111,47 +122,62 @@
         const currentMap = maps[(level - 1) % maps.length];
         const buildTex = createBuildingTexture();
         buildTex.wrapS = buildTex.wrapT = THREE.RepeatWrapping;
-        const wallGeo = new THREE.BoxGeometry(cellSize - 150, 3000, cellSize - 150);
+
+        const wallGeo = new THREE.BoxGeometry(cellSize - 200, 3000, cellSize - 200);
 
         for(let z = 0; z < currentMap.length; z++) {
             for(let x = 0; x < currentMap[z].length; x++) {
-                const px = x * cellSize - 3000, pz = z * cellSize - 3000;
+                const px = x * cellSize - 3000;
+                const pz = z * cellSize - 3000;
 
                 if(currentMap[z][x] === 1) {
-                    const b = new THREE.Mesh(wallGeo, new THREE.MeshStandardMaterial({ map: buildTex, color: 0x444444 }));
+                    // Building
+                    const mat = new THREE.MeshStandardMaterial({ map: buildTex, roughness: 0.2 });
+                    const b = new THREE.Mesh(wallGeo, mat);
                     b.position.set(px, 1500, pz);
                     scene.add(b);
                     buildingMeshes.push(b);
 
                     // Random Neon Sign
                     if(Math.random() > 0.5) {
-                        const sign = new THREE.Mesh(new THREE.PlaneGeometry(300, 100), new THREE.MeshStandardMaterial({
-                            color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 3
-                        }));
-                        sign.position.set(px, 500, pz + 530);
+                        const color = Math.random() > 0.5 ? 0xff00ff : 0x00ffff;
+                        const sign = new THREE.Mesh(
+                            new THREE.PlaneGeometry(300, 100),
+                            new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2 })
+                        );
+                        // Stick sign on building face
+                        sign.position.set(px, 600, pz + 505);
                         scene.add(sign);
                     }
                 } else {
-                    // Streetlight and Trashcan
+                    // Road Details (Lights & Trashcans)
                     if(Math.random() > 0.8) {
-                        const lamp = new THREE.PointLight(0x00ffff, 10, 1000);
-                        lamp.position.set(px, 500, pz);
+                        const lamp = new THREE.PointLight(0xffaa00, 10, 800);
+                        lamp.position.set(px, 600, pz);
                         scene.add(lamp);
 
-                        const bin = new THREE.Mesh(new THREE.CylinderGeometry(40, 40, 100), new THREE.MeshStandardMaterial({color: 0x222222}));
-                        bin.position.set(px + 300, 50, pz + 300);
-                        scene.add(bin);
+                        const pole = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 600), new THREE.MeshStandardMaterial({color:0x333}));
+                        pole.position.set(px, 300, pz);
+                        scene.add(pole);
                     }
                 }
             }
         }
 
-        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(150), new THREE.MeshStandardMaterial({color: 0xffd700, emissive: 0xffd700}));
-        goalOrb.position.set(cellSize * 4 - 3000, 200, cellSize * 1 - 3000);
+        // The Goal Orb
+        goalOrb = new THREE.Mesh(
+            new THREE.SphereGeometry(150),
+            new THREE.MeshStandardMaterial({color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 1.5})
+        );
+        // Place far away
+        goalOrb.position.set(cellSize * 2, 200, cellSize * 2);
         scene.add(goalOrb);
 
-        const roadMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(20000, 20000), roadMat);
+        // Floor
+        const floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(20000, 20000),
+            new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 })
+        );
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
     }
@@ -164,6 +190,7 @@
             model.scale.setScalar(200 / (size.y || 1));
             model.position.set(-1800, 0, -1800);
             scene.add(model);
+
             mixer = new THREE.AnimationMixer(model);
             if (fbx.animations.length > 0) {
                 const clip = fbx.animations[0];
@@ -175,6 +202,12 @@
         });
     }
 
+    function toggleCamera() {
+        cameraMode = cameraMode === 'street' ? 'tactical' : 'street';
+        camPitch = cameraMode === 'tactical' ? 80 : 25;
+        camDistance = cameraMode === 'tactical' ? 2000 : 600;
+    }
+
     function animate() {
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
@@ -182,71 +215,101 @@
 
         if (model) {
             isSprinting = keys.shift;
+
+            // Movement Inputs
             let moveFwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
             let moveSide = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
 
+            // Camera Inputs
             if (keys.arrowleft) camYaw += 0.04;
             if (keys.arrowright) camYaw -= 0.04;
 
             const isMoving = moveFwd !== 0 || moveSide !== 0;
 
             if (isMoving) {
+                // Determine direction relative to camera look
                 const moveAngle = camYaw + Math.atan2(moveSide, moveFwd);
+
+                // Smooth Rotation
                 let diff = (moveAngle + Math.PI) - model.rotation.y;
                 while (diff < -Math.PI) diff += Math.PI * 2;
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 model.rotation.y += diff * 0.15;
 
+                // Move
                 const speed = isSprinting ? 35 : 16;
                 if (walkAction) {
                     walkAction.paused = false;
-                    walkAction.timeScale = isSprinting ? 2.2 : 1.0;
+                    walkAction.timeScale = isSprinting ? 2.0 : 1.0;
                 }
 
                 const nextX = model.position.x + Math.sin(model.rotation.y) * speed;
                 const nextZ = model.position.z + Math.cos(model.rotation.y) * speed;
 
+                // Collision
                 const gridX = Math.round((nextX + 3000) / cellSize);
                 const gridZ = Math.round((nextZ + 3000) / cellSize);
                 const currentMap = maps[(level - 1) % maps.length];
 
-                if (!(currentMap[gridZ] && currentMap[gridZ][gridX] === 1)) {
+                // Safety check to prevent crashing if map undefined
+                if (currentMap[gridZ] && currentMap[gridZ][gridX] !== 1) {
                     model.position.x = nextX;
                     model.position.z = nextZ;
                 }
 
-                if(model.position.distanceTo(goalOrb.position) < 300) {
+                // Win Condition
+                if(goalOrb && model.position.distanceTo(goalOrb.position) < 300) {
                     level++;
                     document.getElementById('level-text').innerText = "LEVEL " + level + ": UPTOWN";
-                    model.position.set(-1800, 0, -1800);
-                    buildLevel();
+                    model.position.set(-1800, 0, -1800); // Reset Player
+                    buildLevel(); // Rebuild World
                 }
-            } else if (walkAction) { walkAction.paused = true; }
 
-            nikoLight.position.set(model.position.x, 300, model.position.z);
+            } else {
+                if(walkAction) walkAction.paused = true;
+            }
 
-            const targetFOV = isSprinting ? 75 : 60;
+            // Update Niko's Lantern Position
+            nikoLight.position.set(model.position.x, 400, model.position.z);
+
+            // --- CAMERA LOGIC ---
+            // Sprint Effect (FOV)
+            const targetFOV = isSprinting ? 80 : 60;
             camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.1);
             camera.updateProjectionMatrix();
 
+            // Orbit Position
             const pitchRad = THREE.MathUtils.degToRad(camPitch);
             const idealOffset = new THREE.Vector3(
                 camDistance * Math.sin(camYaw) * Math.cos(pitchRad),
                 camDistance * Math.sin(pitchRad),
                 camDistance * Math.cos(camYaw) * Math.cos(pitchRad)
             );
-            const playerHead = model.position.clone().add(new THREE.Vector3(0, 160, 0));
-            camera.position.lerp(playerHead.clone().add(idealOffset), 0.1);
+
+            const playerHead = model.position.clone().add(new THREE.Vector3(0, 180, 0));
+            const desiredCamPos = playerHead.clone().add(idealOffset);
+
+            // Wall Clip Check (Raycaster)
+            const rayDir = idealOffset.clone().normalize();
+            const raycaster = new THREE.Raycaster(playerHead, rayDir, 0, camDistance);
+            const hits = raycaster.intersectObjects(buildingMeshes);
+
+            if (hits.length > 0) {
+                // If wall hit, pull camera in front of wall
+                camera.position.lerp(hits[0].point.sub(rayDir.multiplyScalar(50)), 0.2);
+            } else {
+                // Otherwise normal follow
+                camera.position.lerp(desiredCamPos, 0.1);
+            }
             camera.lookAt(playerHead);
         }
-        if(goalOrb) goalOrb.rotation.y += 0.05;
-        renderer.render(scene, camera);
-    }
 
-    function toggleCamera() {
-        cameraMode = cameraMode === 'street' ? 'tactical' : 'street';
-        camPitch = cameraMode === 'tactical' ? 75 : 25;
-        camDistance = cameraMode === 'tactical' ? 1800 : 600;
+        if(goalOrb) {
+            goalOrb.rotation.y += 0.05;
+            goalOrb.position.y = 200 + Math.sin(clock.getElapsedTime() * 2) * 20; // Bobbing animation
+        }
+
+        renderer.render(scene, camera);
     }
 </script>
 </body>
