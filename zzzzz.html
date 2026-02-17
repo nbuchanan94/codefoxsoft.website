@@ -49,7 +49,7 @@
     import * as THREE from 'three';
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-    let scene, camera, renderer, mixer, clock, model, goalOrb, nikoLight;
+    let scene, camera, renderer, mixer, clock, model, goalOrb;
     let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
     let actions = {}, currentAction, idleTimer = 0;
     let isReady = false;
@@ -57,7 +57,7 @@
     let shards = [];
 
     // Camera settings
-    let camDistance = 800; // Increased default to match the "walking" feel you liked
+    let camDistance = 800;
     let camPitch = 25;
     let camYaw = 0;
     let shakeIntensity = 0;
@@ -67,8 +67,8 @@
 
     const themes = {
         1: { name: "THE BRONX", sky: 0x050510, fog: 0x050510, fogDens: 0.00018, roadColor: '#1a1a1a', sidewalkColor: '#333', buildColor: '#15151a', win1: '#ffaa00', win2: '#00aaff', lightColor: 0xffaa00, ambient: 0.6 },
-        2: { name: "NEON DISTRICT", sky: 0x000510, fog: 0x000510, fogDens: 0.00025, roadColor: '#0a0a15', sidewalkColor: '#111', buildColor: '#050510', win1: '#ff00ff', win2: '#00ffff', lightColor: 0x00ffff, ambient: 0.7 },
-        3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.9 }, // Boosted ambient significantly for Level 3
+        2: { name: "NEON DISTRICT", sky: 0x000510, fog: 0x000510, fogDens: 0.00025, roadColor: '#0a0a15', sidewalkColor: '#111', buildColor: '#050510', win1: '#ff00ff', win2: '#00ffff', lightColor: 0x00ffff, ambient: 0.5 },
+        3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.4 },
         4: { name: "THE GRID", sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002, roadColor: '#001a1a', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ffffff', lightColor: 0x00ffff, ambient: 0.6 },
         5: { name: "VOID JUNCTION", sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022, roadColor: '#1a001a', sidewalkColor: '#2a002a', buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00', lightColor: 0xff00ff, ambient: 0.5 },
         6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 }
@@ -118,7 +118,7 @@
             build: new THREE.MeshStandardMaterial({
                 map: new THREE.CanvasTexture(bC),
                 emissiveMap: new THREE.CanvasTexture(eC),
-                emissive: 0xffffff, emissiveIntensity: currentLevel === 3 ? 4.5 : 2.5 // Brighter windows in Level 3
+                emissive: 0xffffff, emissiveIntensity: 2.5
             }),
             lightColor: theme.lightColor
         };
@@ -138,10 +138,6 @@
         const sun = new THREE.DirectionalLight(0xffffff, 0.5);
         sun.position.set(2000, 4000, 1000);
         scene.add(sun);
-
-        // Character rim light to ensure Niko is always visible regardless of ambient theme
-        nikoLight = new THREE.PointLight(0xffffff, 50, 1000);
-        scene.add(nikoLight);
 
         levelGroup = new THREE.Group();
         scene.add(levelGroup);
@@ -163,7 +159,7 @@
 
             if(k === 't') {
                 camPitch = (camPitch < 40 ? 85 : 25);
-                camDistance = (camPitch === 85 ? 3500 : 800); // Updated: Return to new default distance
+                camDistance = (camPitch === 85 ? 3500 : 800);
             }
         });
         window.addEventListener('mousedown', startAction);
@@ -229,10 +225,7 @@
                     const action = mixer.clipAction(clip);
                     if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
                     if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
-
-                    // Adjusted walk animation timescale to match movement speed better
-                    if (res.key === 'walk') action.setEffectiveTimeScale(2.2); // Increased from 1.5
-                    if (res.key === 'run') action.setEffectiveTimeScale(1.0);
+                    if (res.key === 'walk') action.setEffectiveTimeScale(1.5);
 
                     actions[res.key] = action;
                 }
@@ -271,13 +264,6 @@
 
         scene.background = new THREE.Color(theme.sky);
         scene.fog = new THREE.FogExp2(theme.fog, theme.fogDens);
-
-        // Update Global Ambient Lighting based on theme
-        const ambLight = scene.children.find(l => l instanceof THREE.AmbientLight);
-        if(ambLight) ambLight.intensity = theme.ambient;
-
-        // Update Niko's personal light color based on theme
-        if(nikoLight) nikoLight.color.set(theme.lightColor);
 
         for(let z=0; z<mapData.grid.length; z++) {
             for(let x=0; x<mapData.grid[z].length; x++) {
@@ -334,10 +320,12 @@
 
             // Movement Inputs
             let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-            let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+            let inputZ = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
 
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
+
+                // Calculate move direction based on camera yaw
                 const angle = Math.atan2(inputX, inputZ) + camYaw;
                 const spd = keys.shift ? 75 : 40;
 
@@ -349,6 +337,7 @@
                 const nX = model.position.x + vx;
                 const nZ = model.position.z + vz;
 
+                // Simple collision detection
                 const gx = Math.round((nX + mapOffset) / cellSize);
                 const gz = Math.round((nZ + mapOffset) / cellSize);
 
@@ -360,6 +349,7 @@
                     }
                 }
 
+                // Smooth rotation to face movement direction
                 const targetRotation = angle;
                 const currentRotation = model.rotation.y;
                 let diff = targetRotation - currentRotation;
@@ -378,11 +368,6 @@
                 } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
                     fadeToAction('idle');
                 }
-            }
-
-            // Update Niko's Rim Light Position
-            if(nikoLight) {
-                nikoLight.position.set(model.position.x, model.position.y + 300, model.position.z);
             }
 
             // Collectibles
@@ -422,7 +407,6 @@
                 focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
             );
 
-            // The magic is here: .lerp(tPos, 0.2)
             camera.position.lerp(tPos, 0.2);
             camera.lookAt(focus);
         }
