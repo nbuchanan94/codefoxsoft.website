@@ -57,7 +57,7 @@
     let shards = [];
 
     // Camera settings
-    let camDistance = 200; // Updated: Now defaults to the minimum distance (MAX CLOSE)
+    let camDistance = 800; // Increased default to match the "walking" feel you liked
     let camPitch = 25;
     let camYaw = 0;
     let shakeIntensity = 0;
@@ -163,7 +163,7 @@
 
             if(k === 't') {
                 camPitch = (camPitch < 40 ? 85 : 25);
-                camDistance = (camPitch === 85 ? 3500 : 200);
+                camDistance = (camPitch === 85 ? 3500 : 800); // Updated: Return to new default distance
             }
         });
         window.addEventListener('mousedown', startAction);
@@ -229,7 +229,10 @@
                     const action = mixer.clipAction(clip);
                     if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
                     if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
-                    if (res.key === 'walk') action.setEffectiveTimeScale(1.5);
+
+                    // Adjusted walk animation timescale to match movement speed better
+                    if (res.key === 'walk') action.setEffectiveTimeScale(2.2); // Increased from 1.5
+                    if (res.key === 'run') action.setEffectiveTimeScale(1.0);
 
                     actions[res.key] = action;
                 }
@@ -419,6 +422,7 @@
                 focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
             );
 
+            // The magic is here: .lerp(tPos, 0.2)
             camera.position.lerp(tPos, 0.2);
             camera.lookAt(focus);
         }
