@@ -10,13 +10,23 @@
         #score-display { position: absolute; top: 20px; right: 20px; text-align: right; z-index: 100; pointer-events: none; }
         #timer { color: #ffcc00; font-size: 2em; font-weight: bold; text-shadow: 0 0 10px #ffaa00; }
         #score { color: #00ffcc; font-size: 1.5em; margin-top: 5px; }
+
         #intro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: #00ffcc; text-align: center; cursor: pointer;}
         #load-bar-container { width: 300px; height: 10px; background: #222; margin-top: 20px; border-radius: 5px; overflow: hidden; }
         #load-bar { width: 0%; height: 100%; background: #00ffcc; transition: width 0.1s; }
+
+        #victory-screen { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 400; color: #00ffcc; text-align: center; }
+        .stats-table { width: 80%; max-width: 500px; margin: 20px 0; border-collapse: collapse; }
+        .stats-table th, .stats-table td { border-bottom: 1px solid #333; padding: 10px; text-align: left; }
+        .best-time { color: #ffcc00; }
+
         #debug-log { position: absolute; bottom: 20px; left: 20px; color: #aaa; font-size: 10px; z-index: 300; pointer-events: none; text-align: left; background: rgba(0,0,0,0.5); padding: 5px; max-height: 150px; overflow-y: auto; width: 280px; border: 1px solid #333;}
         .success { color: #00ffcc; }
         .error { color: #ff4444; }
         .hidden { opacity: 0; pointer-events: none; }
+
+        button { background: #00ffcc; color: #000; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; font-family: inherit; margin-top: 20px; }
+        button:hover { background: #fff; }
     </style>
 </head>
 <body>
@@ -29,11 +39,26 @@
         <div id="score">SHARDS: 0</div>
     </div>
     <div id="debug-log">DEBUG CONSOLE:<br></div>
+
     <div id="intro-overlay">
         <h1 id="intro-title">THE BRONX</h1>
         <p id="status-text" style="color:white">CONNECTING TO CODEFOXSOFT...</p>
         <div id="load-bar-container"><div id="load-bar"></div></div>
         <p id="click-prompt" style="color:#00ffcc; margin-top:20px; display:none;">[ CLICK TO START ]</p>
+    </div>
+
+    <div id="victory-screen">
+        <h1>DIMENSION CLEAR</h1>
+        <p>ALL NODES SECURED. BEST TIMES SAVED TO LOCAL STORAGE.</p>
+        <table class="stats-table" id="best-times-table">
+            <thead>
+                <tr><th>LEVEL</th><th>BEST TIME</th></tr>
+            </thead>
+            <tbody>
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+        <button onclick="restartGame()">REBOOT CYCLE</button>
     </div>
 
 <script type="importmap">
@@ -57,7 +82,7 @@
     let shards = [];
 
     // Camera settings
-    let camDistance = 800; // Increased default to match the "walking" feel you liked
+    let camDistance = 800;
     let camPitch = 25;
     let camYaw = 0;
     let shakeIntensity = 0;
@@ -68,19 +93,20 @@
     const themes = {
         1: { name: "THE BRONX", sky: 0x050510, fog: 0x050510, fogDens: 0.00018, roadColor: '#1a1a1a', sidewalkColor: '#333', buildColor: '#15151a', win1: '#ffaa00', win2: '#00aaff', lightColor: 0xffaa00, ambient: 0.6 },
         2: { name: "NEON DISTRICT", sky: 0x000510, fog: 0x000510, fogDens: 0.00025, roadColor: '#0a0a15', sidewalkColor: '#111', buildColor: '#050510', win1: '#ff00ff', win2: '#00ffff', lightColor: 0x00ffff, ambient: 0.7 },
-        3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.9 }, // Boosted ambient significantly for Level 3
+        3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.9 },
         4: { name: "THE GRID", sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002, roadColor: '#001a1a', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ffffff', lightColor: 0x00ffff, ambient: 0.6 },
         5: { name: "VOID JUNCTION", sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022, roadColor: '#1a001a', sidewalkColor: '#2a002a', buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00', lightColor: 0xff00ff, ambient: 0.5 },
         6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 }
     };
 
+    // FIXED: Corrected Goal Positions for 3-6 to ensure they are on Road (0) and accessible
     const maps = {
         1: { grid: [[1,1,1,1,1,1,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,0,1,1,1,1,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:5} },
         2: { grid: [[1,1,1,1,1,1,1],[1,0,1,0,0,0,1],[1,0,1,0,1,0,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:1} },
-        3: { grid: [[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,1,0,0,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,1,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:4, z:4} },
-        4: { grid: [[1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,1],[1,0,1,1,1,1,0,1],[1,0,1,0,0,1,0,1],[1,0,1,0,0,1,0,1],[1,0,1,1,0,1,0,1],[1,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:4, z:4} },
-        5: { grid: [[1,1,1,1,1,1,1,1,1],[1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,0,1,0,1,1,1],[1,0,0,0,1,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:7, z:7} },
-        6: { grid: [[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,1,0,0,0,0,0,1],[1,0,1,0,1,0,1,1,1,0,1],[1,0,1,0,0,0,0,0,1,0,1],[1,0,1,1,1,1,1,0,1,0,1],[1,0,0,0,0,0,1,0,0,0,1],[1,0,1,1,1,0,1,1,1,0,1],[1,0,0,0,1,0,0,0,1,0,1],[1,1,1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:9, z:7} }
+        3: { grid: [[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,1,0,0,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,1,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:7, z:1} },
+        4: { grid: [[1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,1],[1,0,1,1,1,1,0,1],[1,0,1,0,0,1,0,1],[1,0,1,0,0,1,0,1],[1,0,1,1,0,1,0,1],[1,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:6, z:6} },
+        5: { grid: [[1,1,1,1,1,1,1,1,1],[1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,0,1,0,1,1,1],[1,0,0,0,1,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:1, z:7} },
+        6: { grid: [[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,1,0,0,0,0,0,1],[1,0,1,0,1,0,1,1,1,0,1],[1,0,1,0,0,0,0,0,1,0,1],[1,0,1,1,1,1,1,0,1,0,1],[1,0,0,0,0,0,1,0,0,0,1],[1,0,1,1,1,0,1,1,1,0,1],[1,0,0,0,1,0,0,0,1,0,1],[1,1,1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:9, z:1} }
     };
 
     function log(msg, type = 'info') {
@@ -91,6 +117,50 @@
         div.appendChild(span);
         div.scrollTop = div.scrollHeight;
     }
+
+    // SCORING & STORAGE
+    function getBestTimes() {
+        const data = localStorage.getItem('niko_best_times');
+        return data ? JSON.parse(data) : {};
+    }
+
+    function saveBestTime(level, time) {
+        const times = getBestTimes();
+        if (!times[level] || time < times[level]) {
+            times[level] = time;
+            localStorage.setItem('niko_best_times', JSON.stringify(times));
+            return true;
+        }
+        return false;
+    }
+
+    function formatTime(seconds) {
+        if (seconds === "...") return "...";
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function updateVictoryScreen() {
+        const bests = getBestTimes();
+        const tbody = document.querySelector('#best-times-table tbody');
+        tbody.innerHTML = '';
+        for (let i = 1; i <= 6; i++) {
+            const time = bests[i] ? formatTime(bests[i]) : "...";
+            tbody.innerHTML += `<tr><td>LEVEL ${i}: ${themes[i].name}</td><td class="best-time">${time}</td></tr>`;
+        }
+        document.getElementById('victory-screen').style.display = 'flex';
+    }
+
+    window.restartGame = () => {
+        currentLevel = 1;
+        score = 0;
+        document.getElementById('score').innerText = `SHARDS: 0`;
+        document.getElementById('victory-screen').style.display = 'none';
+        document.getElementById('intro-overlay').classList.remove('hidden');
+        buildLevel(currentLevel);
+        resetNiko();
+    };
 
     function createThemeMaterials(theme) {
         const rC = document.createElement('canvas'); rC.width = 512; rC.height = 512;
@@ -118,7 +188,7 @@
             build: new THREE.MeshStandardMaterial({
                 map: new THREE.CanvasTexture(bC),
                 emissiveMap: new THREE.CanvasTexture(eC),
-                emissive: 0xffffff, emissiveIntensity: currentLevel === 3 ? 4.5 : 2.5 // Brighter windows in Level 3
+                emissive: 0xffffff, emissiveIntensity: currentLevel === 3 ? 4.5 : 2.5
             }),
             lightColor: theme.lightColor
         };
@@ -139,7 +209,6 @@
         sun.position.set(2000, 4000, 1000);
         scene.add(sun);
 
-        // Character rim light to ensure Niko is always visible regardless of ambient theme
         nikoLight = new THREE.PointLight(0xffffff, 50, 1000);
         scene.add(nikoLight);
 
@@ -147,7 +216,7 @@
         scene.add(levelGroup);
 
         const startAction = () => {
-            if(isReady && !gameActive) {
+            if(isReady && !gameActive && document.getElementById('victory-screen').style.display !== 'flex') {
                 gameActive = true;
                 startTime = Date.now();
                 document.getElementById('intro-overlay').classList.add('hidden');
@@ -158,12 +227,10 @@
             const k = e.key.toLowerCase();
             keys[k] = true;
             if (e.key.startsWith('Arrow')) keys[e.key] = true;
-
             startAction();
-
             if(k === 't') {
                 camPitch = (camPitch < 40 ? 85 : 25);
-                camDistance = (camPitch === 85 ? 3500 : 800); // Updated: Return to new default distance
+                camDistance = (camPitch === 85 ? 3500 : 800);
             }
         });
         window.addEventListener('mousedown', startAction);
@@ -179,17 +246,10 @@
 
     async function loadFile(loader, key, path) {
         return new Promise((resolve) => {
-            log(`Fetching ${key}...`);
             loader.load(path,
-                (fbx) => {
-                    log(`${key} LOADED`, 'success');
-                    resolve({ key, fbx });
-                },
+                (fbx) => resolve({ key, fbx }),
                 undefined,
-                (err) => {
-                    log(`${key} FAILED`, 'error');
-                    resolve({ key, error: true });
-                }
+                (err) => resolve({ key, error: true })
             );
         });
     }
@@ -201,9 +261,7 @@
             { key: 'walk', path: baseUrl + 'catwalk.fbx' },
             { key: 'idle', path: baseUrl + 'idle2.fbx' },
             { key: 'twerk', path: baseUrl + 'twerk.fbx' },
-            { key: 'run', path: baseUrl + 'run.fbx' },
-            { key: 'leftturn', path: baseUrl + 'leftturn.fbx' },
-            { key: 'rightturn', path: baseUrl + 'rightturn.fbx' }
+            { key: 'run', path: baseUrl + 'run.fbx' }
         ];
 
         const results = await Promise.all(files.map(f => loadFile(loader, f.key, f.path)));
@@ -221,31 +279,18 @@
                 if (!res.error && res.fbx && res.fbx.animations.length > 0) {
                     const clip = res.fbx.animations[0];
                     clip.tracks = clip.tracks.filter(track => {
-                        return !track.name.toLowerCase().includes('root.position') &&
-                               !track.name.toLowerCase().includes('hips.position') &&
-                               !track.name.toLowerCase().includes('basehumanoid.position');
+                        return !track.name.toLowerCase().includes('position');
                     });
 
                     const action = mixer.clipAction(clip);
                     if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
-                    if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
-
-                    // Adjusted walk animation timescale to match movement speed better
-                    if (res.key === 'walk') action.setEffectiveTimeScale(2.2); // Increased from 1.5
-                    if (res.key === 'run') action.setEffectiveTimeScale(1.0);
-
+                    if (res.key === 'walk') action.setEffectiveTimeScale(2.2);
                     actions[res.key] = action;
                 }
             });
-        } else {
-            model = new THREE.Mesh(new THREE.BoxGeometry(100,240,100), new THREE.MeshStandardMaterial({color: 0x00ffcc}));
-            scene.add(model);
-            mixer = new THREE.AnimationMixer(model);
         }
-
         resetNiko();
         if (actions['idle']) fadeToAction('idle');
-
         isReady = true;
         document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
         document.getElementById('click-prompt').style.display = "block";
@@ -271,12 +316,8 @@
 
         scene.background = new THREE.Color(theme.sky);
         scene.fog = new THREE.FogExp2(theme.fog, theme.fogDens);
-
-        // Update Global Ambient Lighting based on theme
         const ambLight = scene.children.find(l => l instanceof THREE.AmbientLight);
         if(ambLight) ambLight.intensity = theme.ambient;
-
-        // Update Niko's personal light color based on theme
         if(nikoLight) nikoLight.color.set(theme.lightColor);
 
         for(let z=0; z<mapData.grid.length; z++) {
@@ -324,15 +365,11 @@
 
         if(gameActive && isReady) {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
+            document.getElementById('timer').innerText = formatTime(elapsed);
 
-            // Camera Controls
             if(keys['arrowleft']) camYaw += 0.05;
             if(keys['arrowright']) camYaw -= 0.05;
-            if(keys['arrowup']) camDistance = Math.max(200, camDistance - 25);
-            if(keys['arrowdown']) camDistance = Math.min(6000, camDistance + 25);
 
-            // Movement Inputs
             let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
             let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
 
@@ -340,26 +377,19 @@
                 idleTimer = 0;
                 const angle = Math.atan2(inputX, inputZ) + camYaw;
                 const spd = keys.shift ? 75 : 40;
-
                 if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
 
                 const vx = Math.sin(angle) * spd;
                 const vz = Math.cos(angle) * spd;
+                const nX = model.position.x + vx, nZ = model.position.z + vz;
+                const gx = Math.round((nX + mapOffset) / cellSize), gz = Math.round((nZ + mapOffset) / cellSize);
 
-                const nX = model.position.x + vx;
-                const nZ = model.position.z + vz;
-
-                const gx = Math.round((nX + mapOffset) / cellSize);
-                const gz = Math.round((nZ + mapOffset) / cellSize);
-
-                const currentGrid = maps[currentLevel].grid;
-                if(gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
-                    if(currentGrid[gz][gx] === 0) {
+                if(gz >= 0 && gz < maps[currentLevel].grid.length && gx >= 0 && gx < maps[currentLevel].grid[0].length) {
+                    if(maps[currentLevel].grid[gz][gx] === 0) {
                         model.position.x = nX;
                         model.position.z = nZ;
                     }
                 }
-
                 const targetRotation = angle;
                 const currentRotation = model.rotation.y;
                 let diff = targetRotation - currentRotation;
@@ -367,9 +397,7 @@
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 model.rotation.y += diff * 0.15;
 
-                if (keys.shift) fadeToAction('run');
-                else fadeToAction('walk');
-
+                if (keys.shift) fadeToAction('run'); else fadeToAction('walk');
             } else {
                 if (currentAction !== actions['twerk']) {
                     fadeToAction('idle');
@@ -380,49 +408,44 @@
                 }
             }
 
-            // Update Niko's Rim Light Position
-            if(nikoLight) {
-                nikoLight.position.set(model.position.x, model.position.y + 300, model.position.z);
-            }
+            if(nikoLight) nikoLight.position.set(model.position.x, model.position.y + 300, model.position.z);
 
-            // Collectibles
             for (let i = shards.length - 1; i >= 0; i--) {
-                const s = shards[i];
-                s.rotation.y += 0.02;
+                const s = shards[i]; s.rotation.y += 0.02;
                 if (model.position.distanceTo(s.position) < 250) {
                     score += 100;
                     document.getElementById('score').innerText = `SHARDS: ${score}`;
-                    levelGroup.remove(s);
-                    shards.splice(i, 1);
+                    levelGroup.remove(s); shards.splice(i, 1);
                     shakeIntensity = 15;
                 }
             }
 
-            // Goal check
             if(model.position.distanceTo(goalOrb.position) < 450) {
-                currentLevel = currentLevel < 6 ? currentLevel + 1 : 1;
-                gameActive = false;
-                document.getElementById('intro-overlay').classList.remove('hidden');
-                document.getElementById('status-text').innerText = currentLevel === 1 ? "CHAMPION OF DIMENSIONS" : "OBJECTIVE SECURED";
-                buildLevel(currentLevel);
-                resetNiko();
+                // Save time before transitioning
+                saveBestTime(currentLevel, elapsed);
+
+                if (currentLevel < 6) {
+                    currentLevel++;
+                    gameActive = false;
+                    document.getElementById('intro-overlay').classList.remove('hidden');
+                    document.getElementById('status-text').innerText = "OBJECTIVE SECURED";
+                    buildLevel(currentLevel);
+                    resetNiko();
+                } else {
+                    // FINISHED GAME
+                    gameActive = false;
+                    updateVictoryScreen();
+                }
             }
 
-            // Camera follow logic
             shakeIntensity *= 0.9;
-            const sX = (Math.random() - 0.5) * shakeIntensity;
-            const sY = (Math.random() - 0.5) * shakeIntensity;
-
             const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
-
             const tPos = new THREE.Vector3(
-                focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
-                focus.y + camDistance * Math.sin(pr) + sY,
+                focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + (Math.random()-0.5)*shakeIntensity,
+                focus.y + camDistance * Math.sin(pr) + (Math.random()-0.5)*shakeIntensity,
                 focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
             );
-
-            // The magic is here: .lerp(tPos, 0.2)
             camera.position.lerp(tPos, 0.2);
             camera.lookAt(focus);
         }
@@ -432,7 +455,6 @@
             const sc = 1 + Math.sin(clock.getElapsedTime()*4)*0.15;
             goalOrb.scale.set(sc, sc, sc);
         }
-
         renderer.render(scene, camera);
     }
     init();
