@@ -80,9 +80,9 @@
     let score = 0;
     let shards = [];
 
-    // Camera settings
-    let camDistance = 800;
-    let camPitch = 25;
+    // Camera settings - Defaulting to .5 of closest proximity
+    let camDistance = 400; // Adjusted: Closest is 200, so 400 is a close follow mode
+    let camPitch = 18;     // Adjusted: Lower pitch for tighter camera
     let camYaw = 0;
     let shakeIntensity = 0;
 
@@ -116,7 +116,6 @@
         div.scrollTop = div.scrollHeight;
     }
 
-    // Storage Logic
     function saveBestTime(lvl, time) {
         let records = JSON.parse(localStorage.getItem('niko_records') || '{}');
         if (!records[lvl] || time < records[lvl]) {
@@ -209,8 +208,8 @@
             startAction();
 
             if(k === 't') {
-                camPitch = (camPitch < 40 ? 85 : 25);
-                camDistance = (camPitch === 85 ? 3500 : 800);
+                camPitch = (camPitch < 40 ? 85 : 18);
+                camDistance = (camPitch === 85 ? 3500 : 400);
             }
         });
         window.addEventListener('mousedown', startAction);
@@ -226,17 +225,10 @@
 
     async function loadFile(loader, key, path) {
         return new Promise((resolve) => {
-            log(`Fetching ${key}...`);
             loader.load(path,
-                (fbx) => {
-                    log(`${key} LOADED`, 'success');
-                    resolve({ key, fbx });
-                },
+                (fbx) => { resolve({ key, fbx }); },
                 undefined,
-                (err) => {
-                    log(`${key} FAILED`, 'error');
-                    resolve({ key, error: true });
-                }
+                (err) => { resolve({ key, error: true }); }
             );
         });
     }
