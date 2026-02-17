@@ -16,23 +16,21 @@
         #load-bar { width: 0%; height: 100%; background: #00ffcc; transition: width 0.1s; }
 
         #victory-screen { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 400; color: #00ffcc; text-align: center; }
-        .stats-table { width: 80%; max-width: 500px; margin: 20px 0; border-collapse: collapse; }
-        .stats-table th, .stats-table td { border-bottom: 1px solid #333; padding: 10px; text-align: left; }
-        .best-time { color: #ffcc00; }
+        .stats-table { width: 80%; max-width: 500px; margin: 20px 0; border-collapse: collapse; background: rgba(0,255,204,0.05); }
+        .stats-table th, .stats-table td { border: 1px solid #00ffcc33; padding: 12px; text-align: left; }
+        .best-time { color: #ffcc00; font-weight: bold; }
 
         #debug-log { position: absolute; bottom: 20px; left: 20px; color: #aaa; font-size: 10px; z-index: 300; pointer-events: none; text-align: left; background: rgba(0,0,0,0.5); padding: 5px; max-height: 150px; overflow-y: auto; width: 280px; border: 1px solid #333;}
-        .success { color: #00ffcc; }
-        .error { color: #ff4444; }
         .hidden { opacity: 0; pointer-events: none; }
 
         button { background: #00ffcc; color: #000; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; font-family: inherit; margin-top: 20px; }
-        button:hover { background: #fff; }
+        button:hover { background: #fff; transform: scale(1.05); }
     </style>
 </head>
 <body>
     <div id="ui">
         <b id="lvl-name">LEVEL 1: THE BRONX</b><br>
-        WASD: Move | SHIFT: Sprint | ARROWS: Rotate/Zoom Cam | T: Toggle Birds-eye
+        WASD: Move | SHIFT: Sprint | ARROWS: Rotate Cam | T: Toggle View
     </div>
     <div id="score-display">
         <div id="timer">00:00</div>
@@ -42,23 +40,21 @@
 
     <div id="intro-overlay">
         <h1 id="intro-title">THE BRONX</h1>
-        <p id="status-text" style="color:white">CONNECTING TO CODEFOXSOFT...</p>
+        <p id="status-text" style="color:white">SYNCHRONIZING DIMENSIONS...</p>
         <div id="load-bar-container"><div id="load-bar"></div></div>
-        <p id="click-prompt" style="color:#00ffcc; margin-top:20px; display:none;">[ CLICK TO START ]</p>
+        <p id="click-prompt" style="color:#00ffcc; margin-top:20px; display:none;">[ CLICK TO INITIALIZE ]</p>
     </div>
 
     <div id="victory-screen">
-        <h1>DIMENSION CLEAR</h1>
-        <p>ALL NODES SECURED. BEST TIMES SAVED TO LOCAL STORAGE.</p>
+        <h1 style="font-size: 3em; letter-spacing: 5px;">MISSION COMPLETE</h1>
+        <p>BEST TIMES RECORDED IN LOCAL BROWSER CACHE:</p>
         <table class="stats-table" id="best-times-table">
             <thead>
-                <tr><th>LEVEL</th><th>BEST TIME</th></tr>
+                <tr><th>DIMENSION</th><th>RECORD</th></tr>
             </thead>
-            <tbody>
-                <!-- Populated by JS -->
-            </tbody>
+            <tbody></tbody>
         </table>
-        <button onclick="restartGame()">REBOOT CYCLE</button>
+        <button onclick="restartGame()">RESTART LOOP</button>
     </div>
 
 <script type="importmap">
@@ -77,12 +73,10 @@
     let scene, camera, renderer, mixer, clock, model, goalOrb, nikoLight;
     let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
     let actions = {}, currentAction, idleTimer = 0;
-    let isReady = false;
-    let score = 0;
-    let shards = [];
+    let isReady = false, score = 0, shards = [];
 
-    // Camera settings
-    let camDistance = 800;
+    // Fixed Camera State
+    let camDistance = 1200;
     let camPitch = 25;
     let camYaw = 0;
     let shakeIntensity = 0;
@@ -99,7 +93,6 @@
         6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 }
     };
 
-    // FIXED: Corrected Goal Positions for 3-6 to ensure they are on Road (0) and accessible
     const maps = {
         1: { grid: [[1,1,1,1,1,1,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,0,1,1,1,1,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:5} },
         2: { grid: [[1,1,1,1,1,1,1],[1,0,1,0,0,0,1],[1,0,1,0,1,0,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:1} },
@@ -109,233 +102,84 @@
         6: { grid: [[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,1,0,0,0,0,0,1],[1,0,1,0,1,0,1,1,1,0,1],[1,0,1,0,0,0,0,0,1,0,1],[1,0,1,1,1,1,1,0,1,0,1],[1,0,0,0,0,0,1,0,0,0,1],[1,0,1,1,1,0,1,1,1,0,1],[1,0,0,0,1,0,0,0,1,0,1],[1,1,1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:9, z:1} }
     };
 
-    function log(msg, type = 'info') {
-        const div = document.getElementById('debug-log');
-        const span = document.createElement('div');
-        span.className = type;
-        span.innerHTML = `> ${msg}`;
-        div.appendChild(span);
-        div.scrollTop = div.scrollHeight;
-    }
-
-    // SCORING & STORAGE
-    function getBestTimes() {
-        const data = localStorage.getItem('niko_best_times');
-        return data ? JSON.parse(data) : {};
-    }
-
     function saveBestTime(level, time) {
-        const times = getBestTimes();
+        let times = JSON.parse(localStorage.getItem('niko_records') || '{}');
         if (!times[level] || time < times[level]) {
             times[level] = time;
-            localStorage.setItem('niko_best_times', JSON.stringify(times));
-            return true;
+            localStorage.setItem('niko_records', JSON.stringify(times));
         }
-        return false;
     }
 
     function formatTime(seconds) {
-        if (seconds === "...") return "...";
         const m = Math.floor(seconds / 60).toString().padStart(2, '0');
         const s = (seconds % 60).toString().padStart(2, '0');
         return `${m}:${s}`;
     }
 
-    function updateVictoryScreen() {
-        const bests = getBestTimes();
+    function showVictory() {
+        const records = JSON.parse(localStorage.getItem('niko_records') || '{}');
         const tbody = document.querySelector('#best-times-table tbody');
         tbody.innerHTML = '';
         for (let i = 1; i <= 6; i++) {
-            const time = bests[i] ? formatTime(bests[i]) : "...";
-            tbody.innerHTML += `<tr><td>LEVEL ${i}: ${themes[i].name}</td><td class="best-time">${time}</td></tr>`;
+            const time = records[i] ? formatTime(records[i]) : "...";
+            tbody.innerHTML += `<tr><td>L${i}: ${themes[i].name}</td><td class="best-time">${time}</td></tr>`;
         }
         document.getElementById('victory-screen').style.display = 'flex';
     }
 
     window.restartGame = () => {
-        currentLevel = 1;
-        score = 0;
-        document.getElementById('score').innerText = `SHARDS: 0`;
-        document.getElementById('victory-screen').style.display = 'none';
-        document.getElementById('intro-overlay').classList.remove('hidden');
-        buildLevel(currentLevel);
-        resetNiko();
+        location.reload();
     };
-
-    function createThemeMaterials(theme) {
-        const rC = document.createElement('canvas'); rC.width = 512; rC.height = 512;
-        const rCtx = rC.getContext('2d');
-        rCtx.fillStyle = theme.sidewalkColor; rCtx.fillRect(0,0,512,512);
-        rCtx.fillStyle = theme.roadColor; rCtx.fillRect(60,0,392,512);
-        rCtx.fillStyle = '#444'; for(let i=0; i<512; i+=64) rCtx.fillRect(250, i, 12, 32);
-
-        const bC = document.createElement('canvas'); bC.width = 512; bC.height = 1024;
-        const bCtx = bC.getContext('2d'); bCtx.fillStyle = theme.buildColor; bCtx.fillRect(0,0,512,1024);
-        const eC = document.createElement('canvas'); eC.width = 512; eC.height = 1024;
-        const eCtx = eC.getContext('2d'); eCtx.fillStyle = '#000'; eCtx.fillRect(0,0,512,1024);
-
-        for(let y=40; y<1024; y+=120) {
-            for(let x=30; x<512; x+=100) {
-                if(Math.random() > 0.4) {
-                    const col = Math.random() > 0.5 ? theme.win1 : theme.win2;
-                    bCtx.fillStyle = col; bCtx.globalAlpha = 0.15; bCtx.fillRect(x,y,65,45);
-                    eCtx.fillStyle = col; eCtx.shadowBlur = 25; eCtx.shadowColor = col; eCtx.fillRect(x,y,65,45);
-                }
-            }
-        }
-        return {
-            road: new THREE.MeshStandardMaterial({map: new THREE.CanvasTexture(rC)}),
-            build: new THREE.MeshStandardMaterial({
-                map: new THREE.CanvasTexture(bC),
-                emissiveMap: new THREE.CanvasTexture(eC),
-                emissive: 0xffffff, emissiveIntensity: currentLevel === 3 ? 4.5 : 2.5
-            }),
-            lightColor: theme.lightColor
-        };
-    }
-
-    function init() {
-        clock = new THREE.Clock();
-        scene = new THREE.Scene();
-
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 60000);
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambient);
-        const sun = new THREE.DirectionalLight(0xffffff, 0.5);
-        sun.position.set(2000, 4000, 1000);
-        scene.add(sun);
-
-        nikoLight = new THREE.PointLight(0xffffff, 50, 1000);
-        scene.add(nikoLight);
-
-        levelGroup = new THREE.Group();
-        scene.add(levelGroup);
-
-        const startAction = () => {
-            if(isReady && !gameActive && document.getElementById('victory-screen').style.display !== 'flex') {
-                gameActive = true;
-                startTime = Date.now();
-                document.getElementById('intro-overlay').classList.add('hidden');
-            }
-        };
-
-        window.addEventListener('keydown', (e) => {
-            const k = e.key.toLowerCase();
-            keys[k] = true;
-            if (e.key.startsWith('Arrow')) keys[e.key] = true;
-            startAction();
-            if(k === 't') {
-                camPitch = (camPitch < 40 ? 85 : 25);
-                camDistance = (camPitch === 85 ? 3500 : 800);
-            }
-        });
-        window.addEventListener('mousedown', startAction);
-        window.addEventListener('keyup', (e) => {
-            keys[e.key.toLowerCase()] = false;
-            if (e.key.startsWith('Arrow')) keys[e.key] = false;
-        });
-
-        buildLevel(currentLevel);
-        loadAllAssets();
-        animate();
-    }
-
-    async function loadFile(loader, key, path) {
-        return new Promise((resolve) => {
-            loader.load(path,
-                (fbx) => resolve({ key, fbx }),
-                undefined,
-                (err) => resolve({ key, error: true })
-            );
-        });
-    }
-
-    async function loadAllAssets() {
-        const loader = new FBXLoader();
-        const baseUrl = 'https://www.codefoxsoft.com/';
-        const files = [
-            { key: 'walk', path: baseUrl + 'catwalk.fbx' },
-            { key: 'idle', path: baseUrl + 'idle2.fbx' },
-            { key: 'twerk', path: baseUrl + 'twerk.fbx' },
-            { key: 'run', path: baseUrl + 'run.fbx' }
-        ];
-
-        const results = await Promise.all(files.map(f => loadFile(loader, f.key, f.path)));
-        document.getElementById('load-bar').style.width = "100%";
-
-        const walkRes = results.find(r => r.key === 'walk');
-        if (walkRes && !walkRes.error) {
-            model = walkRes.fbx;
-            const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
-            model.scale.setScalar(240 / size.y);
-            scene.add(model);
-            mixer = new THREE.AnimationMixer(model);
-
-            results.forEach(res => {
-                if (!res.error && res.fbx && res.fbx.animations.length > 0) {
-                    const clip = res.fbx.animations[0];
-                    clip.tracks = clip.tracks.filter(track => {
-                        return !track.name.toLowerCase().includes('position');
-                    });
-
-                    const action = mixer.clipAction(clip);
-                    if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
-                    if (res.key === 'walk') action.setEffectiveTimeScale(2.2);
-                    actions[res.key] = action;
-                }
-            });
-        }
-        resetNiko();
-        if (actions['idle']) fadeToAction('idle');
-        isReady = true;
-        document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
-        document.getElementById('click-prompt').style.display = "block";
-    }
-
-    function fadeToAction(name, duration = 0.2) {
-        if (!actions[name]) return;
-        const prev = currentAction;
-        currentAction = actions[name];
-        if (prev !== currentAction) {
-            if (prev) prev.fadeOut(duration);
-            currentAction.reset().fadeIn(duration).play();
-        }
-    }
 
     function buildLevel(num) {
         while(levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
         shards = [];
-
         const theme = themes[num];
         const mapData = maps[num];
-        const mats = createThemeMaterials(theme);
 
         scene.background = new THREE.Color(theme.sky);
         scene.fog = new THREE.FogExp2(theme.fog, theme.fogDens);
-        const ambLight = scene.children.find(l => l instanceof THREE.AmbientLight);
-        if(ambLight) ambLight.intensity = theme.ambient;
-        if(nikoLight) nikoLight.color.set(theme.lightColor);
+
+        const rC = document.createElement('canvas'); rC.width = 512; rC.height = 512;
+        const rCtx = rC.getContext('2d');
+        rCtx.fillStyle = theme.sidewalkColor; rCtx.fillRect(0,0,512,512);
+        rCtx.fillStyle = theme.roadColor; rCtx.fillRect(60,0,392,512);
+
+        const bC = document.createElement('canvas'); bC.width = 512; bC.height = 1024;
+        const bCtx = bC.getContext('2d'); bCtx.fillStyle = theme.buildColor; bCtx.fillRect(0,0,512,1024);
+        const eC = document.createElement('canvas'); eC.width = 512; eC.height = 1024;
+        const eCtx = eC.getContext('2d');
+        for(let y=40; y<1024; y+=120) {
+            for(let x=30; x<512; x+=100) {
+                if(Math.random() > 0.4) {
+                    const col = Math.random() > 0.5 ? theme.win1 : theme.win2;
+                    bCtx.fillStyle = col; bCtx.globalAlpha = 0.2; bCtx.fillRect(x,y,65,45);
+                    eCtx.fillStyle = col; eCtx.fillRect(x,y,65,45);
+                }
+            }
+        }
+
+        const roadMat = new THREE.MeshStandardMaterial({map: new THREE.CanvasTexture(rC)});
+        const buildMat = new THREE.MeshStandardMaterial({
+            map: new THREE.CanvasTexture(bC),
+            emissiveMap: new THREE.CanvasTexture(eC),
+            emissive: 0xffffff, emissiveIntensity: 2
+        });
 
         for(let z=0; z<mapData.grid.length; z++) {
             for(let x=0; x<mapData.grid[z].length; x++) {
                 const px = x*cellSize - mapOffset, pz = z*cellSize - mapOffset;
                 if(mapData.grid[z][x] === 1) {
-                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 6000, cellSize), mats.build);
+                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 6000, cellSize), buildMat);
                     b.position.set(px, 3000, pz); levelGroup.add(b);
                 } else {
-                    const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), mats.road);
+                    const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), roadMat);
                     r.rotation.x = -Math.PI/2; r.position.set(px, 0, pz); levelGroup.add(r);
-                    if (Math.random() > 0.7 && (x !== mapData.start.x || z !== mapData.start.z)) {
-                        spawnShard(px, pz, theme.lightColor);
-                    }
                 }
             }
         }
 
+        // Ensure Goal Orb is created every level
         goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({color:0xffcc00, emissive:0xffcc00, emissiveIntensity:5}));
         goalOrb.position.set(mapData.goal.x*cellSize - mapOffset, 300, mapData.goal.z*cellSize - mapOffset);
         levelGroup.add(goalOrb);
@@ -344,18 +188,82 @@
         document.getElementById('intro-title').innerText = theme.name;
     }
 
-    function spawnShard(x, z, color) {
-        const shard = new THREE.Mesh(new THREE.OctahedronGeometry(80), new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2, wireframe: true }));
-        shard.position.set(x, 150, z);
-        shards.push(shard);
-        levelGroup.add(shard);
+    function init() {
+        clock = new THREE.Clock();
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 60000);
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        nikoLight = new THREE.PointLight(0xffffff, 50, 1500);
+        scene.add(nikoLight);
+
+        levelGroup = new THREE.Group();
+        scene.add(levelGroup);
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key.startsWith('Arrow')) keys[e.key] = true;
+            if(!gameActive && isReady) {
+                gameActive = true;
+                startTime = Date.now();
+                document.getElementById('intro-overlay').classList.add('hidden');
+            }
+            if(e.key.toLowerCase() === 't') {
+                camPitch = (camPitch < 40 ? 85 : 25);
+                camDistance = (camPitch === 85 ? 4500 : 1200);
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+            if (e.key.startsWith('Arrow')) keys[e.key] = false;
+        });
+
+        buildLevel(currentLevel);
+        loadAssets();
+        animate();
+    }
+
+    async function loadAssets() {
+        const loader = new FBXLoader();
+        const baseUrl = 'https://www.codefoxsoft.com/';
+        const clips = ['catwalk.fbx', 'idle2.fbx', 'twerk.fbx', 'run.fbx'];
+
+        for(let i=0; i<clips.length; i++) {
+            const fbx = await new Promise(r => loader.load(baseUrl+clips[i], r));
+            document.getElementById('load-bar').style.width = ((i+1)/clips.length * 100) + "%";
+            if(i === 0) {
+                model = fbx;
+                const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
+                model.scale.setScalar(240/size.y);
+                scene.add(model);
+                mixer = new THREE.AnimationMixer(model);
+                resetNiko();
+            }
+            const name = clips[i].split('.')[0].replace('cat', '').replace('2', '');
+            const action = mixer.clipAction(fbx.animations[0]);
+            if(name === 'twerk') action.setLoop(THREE.LoopOnce);
+            actions[name] = action;
+        }
+
+        fadeToAction('idle');
+        isReady = true;
+        document.getElementById('status-text').innerText = "SYSTEMS STABLE";
+        document.getElementById('click-prompt').style.display = "block";
+    }
+
+    function fadeToAction(name) {
+        if (!actions[name] || currentAction === actions[name]) return;
+        if (currentAction) currentAction.fadeOut(0.2);
+        currentAction = actions[name];
+        currentAction.reset().fadeIn(0.2).play();
     }
 
     function resetNiko() {
         const start = maps[currentLevel].start;
         model.position.set(start.x*cellSize - mapOffset, 0, start.z*cellSize - mapOffset);
-        model.rotation.y = 0;
-        camYaw = 0;
     }
 
     function animate() {
@@ -363,97 +271,71 @@
         const delta = clock.getDelta();
         if(mixer) mixer.update(delta);
 
-        if(gameActive && isReady) {
+        if(gameActive) {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = formatTime(elapsed);
 
             if(keys['arrowleft']) camYaw += 0.05;
             if(keys['arrowright']) camYaw -= 0.05;
 
-            let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-            let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+            let moveX = (keys.d?1:0) - (keys.a?1:0);
+            let moveZ = (keys.s?1:0) - (keys.w?1:0);
 
-            if (inputX !== 0 || inputZ !== 0) {
-                idleTimer = 0;
-                const angle = Math.atan2(inputX, inputZ) + camYaw;
-                const spd = keys.shift ? 75 : 40;
-                if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
+            if (moveX !== 0 || moveZ !== 0) {
+                const angle = Math.atan2(moveX, moveZ) + camYaw;
+                const spd = keys.shift ? 80 : 45;
+                const vx = Math.sin(angle) * spd, vz = Math.cos(angle) * spd;
 
-                const vx = Math.sin(angle) * spd;
-                const vz = Math.cos(angle) * spd;
-                const nX = model.position.x + vx, nZ = model.position.z + vz;
-                const gx = Math.round((nX + mapOffset) / cellSize), gz = Math.round((nZ + mapOffset) / cellSize);
+                const nx = model.position.x + vx, nz = model.position.z + vz;
+                const gx = Math.round((nx + mapOffset) / cellSize), gz = Math.round((nz + mapOffset) / cellSize);
 
-                if(gz >= 0 && gz < maps[currentLevel].grid.length && gx >= 0 && gx < maps[currentLevel].grid[0].length) {
-                    if(maps[currentLevel].grid[gz][gx] === 0) {
-                        model.position.x = nX;
-                        model.position.z = nZ;
-                    }
+                if(maps[currentLevel].grid[gz]?.[gx] === 0) {
+                    model.position.x = nx;
+                    model.position.z = nz;
                 }
-                const targetRotation = angle;
-                const currentRotation = model.rotation.y;
-                let diff = targetRotation - currentRotation;
-                while (diff < -Math.PI) diff += Math.PI * 2;
-                while (diff > Math.PI) diff -= Math.PI * 2;
-                model.rotation.y += diff * 0.15;
-
-                if (keys.shift) fadeToAction('run'); else fadeToAction('walk');
+                model.rotation.y = angle;
+                fadeToAction(keys.shift ? 'run' : 'walk');
+                idleTimer = 0;
             } else {
-                if (currentAction !== actions['twerk']) {
+                if(currentAction !== actions['twerk']) {
                     fadeToAction('idle');
                     idleTimer += delta;
-                    if (idleTimer >= 8) { fadeToAction('twerk'); idleTimer = 0; }
-                } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
-                    fadeToAction('idle');
+                    if(idleTimer > 10) { fadeToAction('twerk'); idleTimer = 0; }
                 }
             }
 
-            if(nikoLight) nikoLight.position.set(model.position.x, model.position.y + 300, model.position.z);
+            nikoLight.position.set(model.position.x, 300, model.position.z);
 
-            for (let i = shards.length - 1; i >= 0; i--) {
-                const s = shards[i]; s.rotation.y += 0.02;
-                if (model.position.distanceTo(s.position) < 250) {
-                    score += 100;
-                    document.getElementById('score').innerText = `SHARDS: ${score}`;
-                    levelGroup.remove(s); shards.splice(i, 1);
-                    shakeIntensity = 15;
-                }
-            }
-
-            if(model.position.distanceTo(goalOrb.position) < 450) {
-                // Save time before transitioning
+            if(model.position.distanceTo(goalOrb.position) < 500) {
                 saveBestTime(currentLevel, elapsed);
-
-                if (currentLevel < 6) {
+                if(currentLevel < 6) {
                     currentLevel++;
                     gameActive = false;
                     document.getElementById('intro-overlay').classList.remove('hidden');
-                    document.getElementById('status-text').innerText = "OBJECTIVE SECURED";
                     buildLevel(currentLevel);
                     resetNiko();
                 } else {
-                    // FINISHED GAME
                     gameActive = false;
-                    updateVictoryScreen();
+                    showVictory();
                 }
             }
+        }
 
-            shakeIntensity *= 0.9;
+        if(model) {
             const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
-            const pr = THREE.MathUtils.degToRad(camPitch);
-            const tPos = new THREE.Vector3(
-                focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + (Math.random()-0.5)*shakeIntensity,
-                focus.y + camDistance * Math.sin(pr) + (Math.random()-0.5)*shakeIntensity,
-                focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
+            const p = THREE.MathUtils.degToRad(camPitch);
+            const targetPos = new THREE.Vector3(
+                focus.x + camDistance * Math.sin(camYaw) * Math.cos(p),
+                focus.y + camDistance * Math.sin(p),
+                focus.z + camDistance * Math.cos(camYaw) * Math.cos(p)
             );
-            camera.position.lerp(tPos, 0.2);
+            camera.position.lerp(targetPos, 0.1);
             camera.lookAt(focus);
         }
 
         if(goalOrb) {
-            goalOrb.position.y = 300 + Math.sin(clock.getElapsedTime()*2) * 40;
-            const sc = 1 + Math.sin(clock.getElapsedTime()*4)*0.15;
-            goalOrb.scale.set(sc, sc, sc);
+            goalOrb.position.y = 300 + Math.sin(Date.now()*0.003)*50;
+            goalOrb.rotation.y += 0.02;
         }
         renderer.render(scene, camera);
     }
