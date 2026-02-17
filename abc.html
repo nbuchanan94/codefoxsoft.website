@@ -49,16 +49,16 @@
     import * as THREE from 'three';
     import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-    let scene, camera, renderer, mixer, clock, model, goalOrb;
+    let scene, camera, renderer, mixer, clock, model, goalOrb, nikoLight;
     let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
     let actions = {}, currentAction, idleTimer = 0;
     let isReady = false;
     let score = 0;
     let shards = [];
-    
+
     // Camera settings
-    let camDistance = 800; 
-    let camPitch = 25; 
+    let camDistance = 200; // Updated: Now defaults to the minimum distance (MAX CLOSE)
+    let camPitch = 25;
     let camYaw = 0;
     let shakeIntensity = 0;
 
@@ -68,7 +68,7 @@
     const themes = {
         1: { name: "THE BRONX", sky: 0x050510, fog: 0x050510, fogDens: 0.00018, roadColor: '#1a1a1a', sidewalkColor: '#333', buildColor: '#15151a', win1: '#ffaa00', win2: '#00aaff', lightColor: 0xffaa00, ambient: 0.6 },
         2: { name: "NEON DISTRICT", sky: 0x000510, fog: 0x000510, fogDens: 0.00025, roadColor: '#0a0a15', sidewalkColor: '#111', buildColor: '#050510', win1: '#ff00ff', win2: '#00ffff', lightColor: 0x00ffff, ambient: 0.7 },
-        3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.6 },
+        3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.9 }, // Boosted ambient significantly for Level 3
         4: { name: "THE GRID", sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002, roadColor: '#001a1a', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ffffff', lightColor: 0x00ffff, ambient: 0.6 },
         5: { name: "VOID JUNCTION", sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022, roadColor: '#1a001a', sidewalkColor: '#2a002a', buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00', lightColor: 0xff00ff, ambient: 0.5 },
         6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 }
@@ -98,7 +98,7 @@
         rCtx.fillStyle = theme.sidewalkColor; rCtx.fillRect(0,0,512,512);
         rCtx.fillStyle = theme.roadColor; rCtx.fillRect(60,0,392,512);
         rCtx.fillStyle = '#444'; for(let i=0; i<512; i+=64) rCtx.fillRect(250, i, 12, 32);
-        
+
         const bC = document.createElement('canvas'); bC.width = 512; bC.height = 1024;
         const bCtx = bC.getContext('2d'); bCtx.fillStyle = theme.buildColor; bCtx.fillRect(0,0,512,1024);
         const eC = document.createElement('canvas'); eC.width = 512; eC.height = 1024;
@@ -113,12 +113,12 @@
                 }
             }
         }
-        return { 
+        return {
             road: new THREE.MeshStandardMaterial({map: new THREE.CanvasTexture(rC)}),
             build: new THREE.MeshStandardMaterial({
-                map: new THREE.CanvasTexture(bC), 
-                emissiveMap: new THREE.CanvasTexture(eC), 
-                emissive: 0xffffff, emissiveIntensity: 2.5
+                map: new THREE.CanvasTexture(bC),
+                emissiveMap: new THREE.CanvasTexture(eC),
+                emissive: 0xffffff, emissiveIntensity: currentLevel === 3 ? 4.5 : 2.5 // Brighter windows in Level 3
             }),
             lightColor: theme.lightColor
         };
@@ -127,7 +127,7 @@
     function init() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
-        
+
         camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 60000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -138,6 +138,10 @@
         const sun = new THREE.DirectionalLight(0xffffff, 0.5);
         sun.position.set(2000, 4000, 1000);
         scene.add(sun);
+
+        // Character rim light to ensure Niko is always visible regardless of ambient theme
+        nikoLight = new THREE.PointLight(0xffffff, 50, 1000);
+        scene.add(nikoLight);
 
         levelGroup = new THREE.Group();
         scene.add(levelGroup);
@@ -150,16 +154,16 @@
             }
         };
 
-        window.addEventListener('keydown', (e) => { 
+        window.addEventListener('keydown', (e) => {
             const k = e.key.toLowerCase();
-            keys[k] = true; 
+            keys[k] = true;
             if (e.key.startsWith('Arrow')) keys[e.key] = true;
-            
-            startAction(); 
-            
-            if(k === 't') { 
-                camPitch = (camPitch < 40 ? 85 : 25); 
-                camDistance = (camPitch === 85 ? 3500 : 800); 
+
+            startAction();
+
+            if(k === 't') {
+                camPitch = (camPitch < 40 ? 85 : 25);
+                camDistance = (camPitch === 85 ? 3500 : 200);
             }
         });
         window.addEventListener('mousedown', startAction);
@@ -176,7 +180,7 @@
     async function loadFile(loader, key, path) {
         return new Promise((resolve) => {
             log(`Fetching ${key}...`);
-            loader.load(path, 
+            loader.load(path,
                 (fbx) => {
                     log(`${key} LOADED`, 'success');
                     resolve({ key, fbx });
@@ -217,16 +221,16 @@
                 if (!res.error && res.fbx && res.fbx.animations.length > 0) {
                     const clip = res.fbx.animations[0];
                     clip.tracks = clip.tracks.filter(track => {
-                        return !track.name.toLowerCase().includes('root.position') && 
+                        return !track.name.toLowerCase().includes('root.position') &&
                                !track.name.toLowerCase().includes('hips.position') &&
                                !track.name.toLowerCase().includes('basehumanoid.position');
                     });
-                    
+
                     const action = mixer.clipAction(clip);
                     if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
                     if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
                     if (res.key === 'walk') action.setEffectiveTimeScale(1.5);
-                    
+
                     actions[res.key] = action;
                 }
             });
@@ -238,7 +242,7 @@
 
         resetNiko();
         if (actions['idle']) fadeToAction('idle');
-        
+
         isReady = true;
         document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
         document.getElementById('click-prompt').style.display = "block";
@@ -256,8 +260,8 @@
 
     function buildLevel(num) {
         while(levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
-        shards = []; 
-        
+        shards = [];
+
         const theme = themes[num];
         const mapData = maps[num];
         const mats = createThemeMaterials(theme);
@@ -268,7 +272,10 @@
         // Update Global Ambient Lighting based on theme
         const ambLight = scene.children.find(l => l instanceof THREE.AmbientLight);
         if(ambLight) ambLight.intensity = theme.ambient;
-        
+
+        // Update Niko's personal light color based on theme
+        if(nikoLight) nikoLight.color.set(theme.lightColor);
+
         for(let z=0; z<mapData.grid.length; z++) {
             for(let x=0; x<mapData.grid[z].length; x++) {
                 const px = x*cellSize - mapOffset, pz = z*cellSize - mapOffset;
@@ -284,11 +291,11 @@
                 }
             }
         }
-        
+
         goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({color:0xffcc00, emissive:0xffcc00, emissiveIntensity:5}));
         goalOrb.position.set(mapData.goal.x*cellSize - mapOffset, 300, mapData.goal.z*cellSize - mapOffset);
         levelGroup.add(goalOrb);
-        
+
         document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
         document.getElementById('intro-title').innerText = theme.name;
     }
@@ -303,7 +310,7 @@
     function resetNiko() {
         const start = maps[currentLevel].start;
         model.position.set(start.x*cellSize - mapOffset, 0, start.z*cellSize - mapOffset);
-        model.rotation.y = 0; 
+        model.rotation.y = 0;
         camYaw = 0;
     }
 
@@ -311,11 +318,11 @@
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
         if(mixer) mixer.update(delta);
-        
+
         if(gameActive && isReady) {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
-            
+
             // Camera Controls
             if(keys['arrowleft']) camYaw += 0.05;
             if(keys['arrowright']) camYaw -= 0.05;
@@ -324,24 +331,24 @@
 
             // Movement Inputs
             let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-            let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0); 
-            
+            let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
                 const angle = Math.atan2(inputX, inputZ) + camYaw;
                 const spd = keys.shift ? 75 : 40;
-                
+
                 if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
-                
+
                 const vx = Math.sin(angle) * spd;
                 const vz = Math.cos(angle) * spd;
-                
+
                 const nX = model.position.x + vx;
                 const nZ = model.position.z + vz;
-                
+
                 const gx = Math.round((nX + mapOffset) / cellSize);
                 const gz = Math.round((nZ + mapOffset) / cellSize);
-                
+
                 const currentGrid = maps[currentLevel].grid;
                 if(gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
                     if(currentGrid[gz][gx] === 0) {
@@ -359,7 +366,7 @@
 
                 if (keys.shift) fadeToAction('run');
                 else fadeToAction('walk');
-                
+
             } else {
                 if (currentAction !== actions['twerk']) {
                     fadeToAction('idle');
@@ -368,6 +375,11 @@
                 } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
                     fadeToAction('idle');
                 }
+            }
+
+            // Update Niko's Rim Light Position
+            if(nikoLight) {
+                nikoLight.position.set(model.position.x, model.position.y + 300, model.position.z);
             }
 
             // Collectibles
@@ -386,10 +398,10 @@
             // Goal check
             if(model.position.distanceTo(goalOrb.position) < 450) {
                 currentLevel = currentLevel < 6 ? currentLevel + 1 : 1;
-                gameActive = false; 
+                gameActive = false;
                 document.getElementById('intro-overlay').classList.remove('hidden');
                 document.getElementById('status-text').innerText = currentLevel === 1 ? "CHAMPION OF DIMENSIONS" : "OBJECTIVE SECURED";
-                buildLevel(currentLevel); 
+                buildLevel(currentLevel);
                 resetNiko();
             }
 
@@ -400,23 +412,23 @@
 
             const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
-            
+
             const tPos = new THREE.Vector3(
-                focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX, 
-                focus.y + camDistance * Math.sin(pr) + sY, 
+                focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
+                focus.y + camDistance * Math.sin(pr) + sY,
                 focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
             );
-            
+
             camera.position.lerp(tPos, 0.2);
             camera.lookAt(focus);
         }
-        
+
         if(goalOrb) {
             goalOrb.position.y = 300 + Math.sin(clock.getElapsedTime()*2) * 40;
             const sc = 1 + Math.sin(clock.getElapsedTime()*4)*0.15;
             goalOrb.scale.set(sc, sc, sc);
         }
-        
+
         renderer.render(scene, camera);
     }
     init();
