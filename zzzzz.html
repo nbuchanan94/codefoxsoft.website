@@ -318,26 +318,28 @@
             if(keys['arrowup']) camDistance = Math.max(200, camDistance - 25);
             if(keys['arrowdown']) camDistance = Math.min(6000, camDistance + 25);
 
-            // Movement Inputs
+            // Movement Inputs - W should be negative Z in Three.js default world space (forward)
             let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-            let inputZ = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
+            let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
 
             if (inputX !== 0 || inputZ !== 0) {
                 idleTimer = 0;
 
                 // Calculate move direction based on camera yaw
+                // Math.atan2(x, y) - switch to (inputX, inputZ) and add camYaw
                 const angle = Math.atan2(inputX, inputZ) + camYaw;
                 const spd = keys.shift ? 75 : 40;
 
                 if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
 
+                // Final vector application
                 const vx = Math.sin(angle) * spd;
                 const vz = Math.cos(angle) * spd;
 
                 const nX = model.position.x + vx;
                 const nZ = model.position.z + vz;
 
-                // Simple collision detection
+                // Collision check
                 const gx = Math.round((nX + mapOffset) / cellSize);
                 const gz = Math.round((nZ + mapOffset) / cellSize);
 
@@ -349,7 +351,7 @@
                     }
                 }
 
-                // Smooth rotation to face movement direction
+                // Match character facing with movement angle
                 const targetRotation = angle;
                 const currentRotation = model.rotation.y;
                 let diff = targetRotation - currentRotation;
