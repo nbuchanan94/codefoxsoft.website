@@ -229,7 +229,10 @@
                     const action = mixer.clipAction(clip);
                     if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
                     if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
-                    if (res.key === 'walk') action.setEffectiveTimeScale(1.5);
+
+                    // Adjusted walk animation timescale to match movement speed better
+                    if (res.key === 'walk') action.setEffectiveTimeScale(2.2); // Increased from 1.5
+                    if (res.key === 'run') action.setEffectiveTimeScale(1.0);
 
                     actions[res.key] = action;
                 }
