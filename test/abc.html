@@ -340,8 +340,11 @@
             sun.position.set(2000, 4000, 1000);
             scene.add(sun);
 
-            nikoLight = new THREE.PointLight(0xffffff, 50, 1000);
+            nikoLight = new THREE.PointLight(0xffffff, 100, 2000);
             scene.add(nikoLight);
+
+            const grid = new THREE.GridHelper(20000, 20, 0x444444, 0x222222);
+            scene.add(grid);
 
             levelGroup = new THREE.Group();
             scene.add(levelGroup);
@@ -392,25 +395,24 @@
 
         async function loadAllAssets() {
             const fbxLoader = new FBXLoader();
-            const gltfLoader = new GLTFLoader();
-            const baseUrl = 'https://www.codefoxsoft.com/';
+            const baseUrl = ''; // Use local files
 
-            // 1. Load the main GLB model first
-            log("Loading main GLB model...", "info");
-            const glbResult = await loadFile(gltfLoader, 'main', baseUrl + 'mainmodel.glb');
+            // 1. Load the main FBX model instead of GLB
+            log("Loading main model (idle2.fbx)...", "info");
+            const modelResult = await loadFile(fbxLoader, 'main', baseUrl + 'idle2.fbx');
 
-            if (!glbResult.error && glbResult.result) {
-                model = glbResult.result.scene;
+            if (!modelResult.error && modelResult.result) {
+                model = modelResult.result;
                 scene.add(model);
                 mixer = new THREE.AnimationMixer(model);
 
-                // Scale handling for GLB
+                // Scale handling for FBX - normalized to 240 units height
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
                 model.scale.setScalar(240 / size.y);
-                log("Main GLB model loaded and scaled.", "success");
+                log("Main FBX model loaded and scaled.", "success");
             } else {
-                log("Failed to load GLB, using fallback box", "error");
+                log("Failed to load FBX, using fallback box", "error");
                 model = new THREE.Mesh(new THREE.BoxGeometry(100, 240, 100), new THREE.MeshStandardMaterial({ color: 0x00ffcc }));
                 scene.add(model);
                 mixer = new THREE.AnimationMixer(model);
@@ -421,17 +423,19 @@
                 { key: 'walk', path: baseUrl + 'catwalk.fbx' },
                 { key: 'idle', path: baseUrl + 'idle2.fbx' },
                 { key: 'twerk', path: baseUrl + 'twerk.fbx' },
-                { key: 'run', path: baseUrl + 'run.fbx' },
+                { key: 'run', path: baseUrl + 'catwalk.fbx' }, // Fallback to catwalk for run
                 { key: 'leftturn', path: baseUrl + 'leftturn.fbx' },
-                { key: 'rightturn', path: baseUrl + 'rightturn.fbx' }
+                { key: 'rightturn', path: baseUrl + 'rightturn.fbx' },
+                { key: 'walk_start', path: baseUrl + 'catwalk-start-378915.fbx' },
+                { key: 'walk_end', path: baseUrl + 'catwalk-end-378898.fbx' }
             ];
 
             log("Loading animations from FBX files...", "info");
             const results = await Promise.all(files.map(f => loadFile(fbxLoader, f.key, f.path)));
             document.getElementById('load-bar').style.width = "100%";
 
-            // Dictionary of every node found in the GLB model
-            const glbNodeMap = new Map();
+            // Dictionary of every node found in the model
+            const nodeMap = new Map();
             let boneCheck = "SKELETON: ";
             let meshCheck = "MESHES: ";
             let bcCount = 0;
@@ -442,10 +446,10 @@
             model.traverse(node => {
                 const norm = node.name ? node.name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
                 if (norm) {
-                    glbNodeMap.set(norm, node.name);
+                    nodeMap.set(norm, node.name);
                     const parts = norm.split(/mixamorig|mixamo|armature/);
                     const core = parts[parts.length - 1];
-                    if (core && core.length > 2) glbNodeMap.set(core, node.name);
+                    if (core && core.length > 2) nodeMap.set(core, node.name);
                 }
 
                 if (node.isBone) {
@@ -462,19 +466,16 @@
             log(`Found ${bcCount}+ bones, ${meshCount} meshes (SkinMode: ${skeletonFound})`, "info");
 
             // 2. MIXER ROOT DETECTION
-            // If we have bones, try to find a shared parent of them or the skinned mesh root
             let animRoot = model;
-            model.traverse(n => {
-                if (n.isSkinnedMesh && n.skeleton && n.skeleton.bones.length > 0) {
-                    animRoot = n.parent || model;
-                }
-            });
             mixer = new THREE.AnimationMixer(animRoot);
             model.updateMatrixWorld(true);
 
             results.forEach(res => {
                 if (!res.error && res.result && res.result.animations.length > 0) {
                     const clip = res.result.animations[0].clone();
+                    // Rename clip if it's named 'mixamo.com' or generic
+                    clip.name = res.key;
+
                     let totalTracks = clip.tracks.length;
                     let boundOk = 0;
 
@@ -484,16 +485,16 @@
                         if (parts.length < 2) return;
 
                         let trackBoneName = parts[0];
-                        const property = parts[parts.length - 1]; // quaternion, position, etc.
+                        const property = parts[parts.length - 1];
 
                         const normTrack = trackBoneName.toLowerCase().replace(/[^a-z0-9]/g, '');
                         const coreTrack = normTrack.replace(/mixamorig|mixamo|armature/g, '');
 
                         let targetBoneName = null;
-                        if (glbNodeMap.has(normTrack)) targetBoneName = glbNodeMap.get(normTrack);
-                        else if (glbNodeMap.has(coreTrack)) targetBoneName = glbNodeMap.get(coreTrack);
+                        if (nodeMap.has(normTrack)) targetBoneName = nodeMap.get(normTrack);
+                        else if (nodeMap.has(coreTrack)) targetBoneName = nodeMap.get(coreTrack);
                         else {
-                            for (let [key, val] of glbNodeMap) {
+                            for (let [key, val] of nodeMap) {
                                 if (key.length > 3 && (coreTrack.includes(key) || key.includes(coreTrack))) {
                                     targetBoneName = val; break;
                                 }
@@ -501,7 +502,6 @@
                         }
 
                         if (targetBoneName) {
-                            // Ensure we use the correct property path for the mixer root
                             track.name = targetBoneName + "." + property;
                             if (animRoot.getObjectByName(targetBoneName)) boundOk++;
                         }
@@ -520,6 +520,7 @@
                     if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
                     if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
                     if (res.key === 'walk') action.setEffectiveTimeScale(2.2);
+                    if (res.key === 'run') action.setEffectiveTimeScale(3.5);
 
                     actions[res.key] = action;
                     const percent = Math.round((boundOk / totalTracks) * 100);
@@ -528,7 +529,7 @@
             });
 
             fadeToAction('idle');
-            log("Mixer Ready: " + (mixer._actions.length) + " actions registered", "success");
+            log("Mixer Ready: " + (Object.keys(actions).length) + " actions registered", "success");
 
             resetNiko();
             isReady = true;
@@ -634,7 +635,6 @@
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
             if (mixer) mixer.update(delta);
-            runSkeletalDiagnostics(); // Verify if bones actually move the mesh manually
 
             if (gameActive && model) {
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
