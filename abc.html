@@ -430,52 +430,119 @@
             const results = await Promise.all(files.map(f => loadFile(fbxLoader, f.key, f.path)));
             document.getElementById('load-bar').style.width = "100%";
 
+            // Dictionary of every node found in the GLB model
+            const glbNodeMap = new Map();
+            let boneCheck = "SKELETON: ";
+            let meshCheck = "MESHES: ";
+            let bcCount = 0;
+            let meshCount = 0;
+            let skeletonFound = false;
+
+            // 1. Scan Model for Bones and EVERY types of Mesh
+            model.traverse(node => {
+                const norm = node.name ? node.name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+                if (norm) {
+                    glbNodeMap.set(norm, node.name);
+                    const parts = norm.split(/mixamorig|mixamo|armature/);
+                    const core = parts[parts.length - 1];
+                    if (core && core.length > 2) glbNodeMap.set(core, node.name);
+                }
+
+                if (node.isBone) {
+                    skeletonFound = true;
+                    if (bcCount < 8) { boneCheck += node.name + " | "; bcCount++; }
+                }
+                if (node.isMesh) {
+                    meshCount++;
+                    if (meshCount < 3) meshCheck += `${node.name}(${node.type}) | `;
+                }
+            });
+            log(boneCheck, "info");
+            log(meshCheck, "info");
+            log(`Found ${bcCount}+ bones, ${meshCount} meshes (SkinMode: ${skeletonFound})`, "info");
+
+            // 2. MIXER ROOT DETECTION
+            // If we have bones, try to find a shared parent of them or the skinned mesh root
+            let animRoot = model;
+            model.traverse(n => {
+                if (n.isSkinnedMesh && n.skeleton && n.skeleton.bones.length > 0) {
+                    animRoot = n.parent || model;
+                }
+            });
+            mixer = new THREE.AnimationMixer(animRoot);
+            model.updateMatrixWorld(true);
+
             results.forEach(res => {
                 if (!res.error && res.result && res.result.animations.length > 0) {
                     const clip = res.result.animations[0].clone();
+                    let totalTracks = clip.tracks.length;
+                    let boundOk = 0;
 
-                    // --- ANIMATION FIX: BONE NAME MAPPING ---
-                    // FBX often prefixes bone names with "MixamoSkeleton_" or "Armature|"
-                    // We strip these prefixes so they match the GLB model's bone names.
+                    // --- DEEPER PROPERTY BINDING ---
                     clip.tracks.forEach(track => {
-                        const dotIndex = track.name.indexOf('.');
-                        if (dotIndex === -1) return;
+                        const parts = track.name.split('.');
+                        if (parts.length < 2) return;
 
-                        let boneName = track.name.substring(0, dotIndex);
-                        const property = track.name.substring(dotIndex);
+                        let trackBoneName = parts[0];
+                        const property = parts[parts.length - 1]; // quaternion, position, etc.
 
-                        // Strip common prefixes and namespaces
-                        if (boneName.includes(':')) boneName = boneName.split(':').pop();
-                        boneName = boneName.replace(/MixamoSkeleton|Mixamo|Armature|Object|Group|Skeleton/gi, '');
-                        // Remove leading/trailing separators
-                        boneName = boneName.replace(/^[_\-]+|[_\-]+$/g, '');
+                        const normTrack = trackBoneName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        const coreTrack = normTrack.replace(/mixamorig|mixamo|armature/g, '');
 
-                        track.name = boneName + property;
+                        let targetBoneName = null;
+                        if (glbNodeMap.has(normTrack)) targetBoneName = glbNodeMap.get(normTrack);
+                        else if (glbNodeMap.has(coreTrack)) targetBoneName = glbNodeMap.get(coreTrack);
+                        else {
+                            for (let [key, val] of glbNodeMap) {
+                                if (key.length > 3 && (coreTrack.includes(key) || key.includes(coreTrack))) {
+                                    targetBoneName = val; break;
+                                }
+                            }
+                        }
+
+                        if (targetBoneName) {
+                            // Ensure we use the correct property path for the mixer root
+                            track.name = targetBoneName + "." + property;
+                            if (animRoot.getObjectByName(targetBoneName)) boundOk++;
+                        }
                     });
 
-                    // Clean up tracks for retargeting
+                    // Only filter out root position if it's not the primary character
                     clip.tracks = clip.tracks.filter(track => {
-                        return !track.name.toLowerCase().includes('root.position') &&
-                            !track.name.toLowerCase().includes('basehumanoid.position');
+                        const lowTrack = track.name.toLowerCase();
+                        if (lowTrack.includes('.position')) {
+                            return lowTrack.includes('hips') || lowTrack.includes('root') || lowTrack.includes('pelvis');
+                        }
+                        return true;
                     });
 
                     const action = mixer.clipAction(clip);
                     if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
                     if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
                     if (res.key === 'walk') action.setEffectiveTimeScale(2.2);
-                    if (res.key === 'run') action.setEffectiveTimeScale(1.0);
 
                     actions[res.key] = action;
-                    log(`Animation loaded: ${res.key}`, "success");
+                    const percent = Math.round((boundOk / totalTracks) * 100);
+                    log(`Linked ${res.key}: ${percent}% (${boundOk}/${totalTracks} bound)`, percent > 50 ? "success" : "error");
                 }
             });
 
-            resetNiko();
-            if (actions['idle']) fadeToAction('idle');
+            fadeToAction('idle');
+            log("Mixer Ready: " + (mixer._actions.length) + " actions registered", "success");
 
+            resetNiko();
             isReady = true;
             document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
             document.getElementById('click-prompt').style.display = "block";
+        }
+
+        // --- SKELETAL PULSE TEST ---
+        function runSkeletalDiagnostics() {
+            if (!model) return;
+            const hips = model.getObjectByName(glbNodeMap.get('hips') || 'mixamorigHips' || 'Hips');
+            if (hips) {
+                hips.rotation.z = Math.sin(Date.now() * 0.005) * 0.2;
+            }
         }
 
         function fadeToAction(name, duration = 0.2) {
@@ -567,8 +634,9 @@
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
             if (mixer) mixer.update(delta);
+            runSkeletalDiagnostics(); // Verify if bones actually move the mesh manually
 
-            if (gameActive && isReady) {
+            if (gameActive && model) {
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 document.getElementById('timer').innerText = formatTime(elapsed);
 
@@ -659,7 +727,7 @@
                         w.position.y = 3000 - (p * 6000);
                     });
                 } else if (transitionTime < 1.1) {
-                    // Phase 2: Load next level (instant swap while walls are hidden)
+                    // Phase 2: Load next level
                     if (currentLevel < Object.keys(maps).length) {
                         currentLevel++;
                         buildLevel(currentLevel);
@@ -671,17 +739,21 @@
                         showVictory();
                         isTransitioning = false;
                     }
-                } else if (transitionTime < 2.1) {
-                    // Phase 3: New walls rise
-                    const p = (transitionTime - 1.1);
+                } else if (transitionTime < 2.5) {
+                    // Phase 3: New walls rise with SPRING
+                    const p = (transitionTime - 1.1) / 1.4; // normalized 0 to 1
+                    // Elastic ease out
+                    const elastic = 1 - Math.pow(1 - p, 4) * Math.cos(p * Math.PI * 4);
+                    const targetY = 3000;
+                    const startY = -3000;
                     walls.forEach(w => {
-                        w.position.y = -3000 + (p * 6000);
+                        w.position.y = startY + (targetY - startY) * elastic;
                     });
                 } else {
                     // Finished
                     walls.forEach(w => w.position.y = 3000);
                     isTransitioning = false;
-                    gameActive = false; // Wait for click to start
+                    gameActive = false;
                 }
             }
             const sX = (Math.random() - 0.5) * shakeIntensity;
