@@ -225,9 +225,11 @@
         let scene, camera, renderer, mixer, clock, model, goalOrb, nikoLight;
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
         let actions = {}, currentAction, idleTimer = 0;
-        let isReady = false;
+        let isReady = false, isTransitioning = false;
         let score = 0;
         let shards = [];
+        let walls = [], roads = []; // Track meshes for transition effect
+        let transitionTime = 0;
 
         // Camera settings - Defaulting to .5 of closest proximity
         let camDistance = 400; // Adjusted: Closest is 200, so 400 is a close follow mode
@@ -244,7 +246,9 @@
             3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.9 },
             4: { name: "THE GRID", sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002, roadColor: '#001a1a', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ffffff', lightColor: 0x00ffff, ambient: 0.6 },
             5: { name: "VOID JUNCTION", sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022, roadColor: '#1a001a', sidewalkColor: '#2a002a', buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00', lightColor: 0xff00ff, ambient: 0.5 },
-            6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 }
+            6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 },
+            7: { name: "NEON OVERLOAD", sky: 0x001010, fog: 0x001010, fogDens: 0.00025, roadColor: '#002222', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ff00ff', lightColor: 0x00ffff, ambient: 0.7 },
+            8: { name: "THE FINAL LOOP", sky: 0x050510, fog: 0x050510, fogDens: 0.00015, roadColor: '#000000', sidewalkColor: '#111', buildColor: '#000', win1: '#ffffff', win2: '#ffcc00', lightColor: 0xffffff, ambient: 0.8 }
         };
 
         const maps = {
@@ -253,9 +257,10 @@
             3: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 7, z: 1 } },
             4: { grid: [[1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 1, 0, 1], [1, 0, 1, 0, 0, 1, 0, 1], [1, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 6, z: 6 } },
             5: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 1, z: 7 } },
-            6: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 9, z: 1 } }
+            6: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 9, z: 1 } },
+            7: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 7, z: 7 } },
+            8: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 9, z: 7 } }
         };
-
         function log(msg, type = 'info') {
             const div = document.getElementById('debug-log');
             const span = document.createElement('div');
@@ -281,7 +286,7 @@
             const records = JSON.parse(localStorage.getItem('niko_records') || '{}');
             const tbody = document.getElementById('best-tbody');
             tbody.innerHTML = '';
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= 8; i++) {
                 const time = records[i] ? formatTime(records[i]) : "--:--";
                 tbody.innerHTML += `<tr><td>DIMENSION ${i}: ${themes[i].name}</td><td class="best-row">${time}</td></tr>`;
             }
@@ -427,12 +432,30 @@
 
             results.forEach(res => {
                 if (!res.error && res.result && res.result.animations.length > 0) {
-                    const clip = res.result.animations[0];
+                    const clip = res.result.animations[0].clone();
 
-                    // Clean up tracks for retargeting if necessary (root movement)
+                    // --- ANIMATION FIX: BONE NAME MAPPING ---
+                    // FBX often prefixes bone names with "MixamoSkeleton_" or "Armature|"
+                    // We strip these prefixes so they match the GLB model's bone names.
+                    clip.tracks.forEach(track => {
+                        const dotIndex = track.name.indexOf('.');
+                        if (dotIndex === -1) return;
+
+                        let boneName = track.name.substring(0, dotIndex);
+                        const property = track.name.substring(dotIndex);
+
+                        // Strip common prefixes and namespaces
+                        if (boneName.includes(':')) boneName = boneName.split(':').pop();
+                        boneName = boneName.replace(/MixamoSkeleton|Mixamo|Armature|Object|Group|Skeleton/gi, '');
+                        // Remove leading/trailing separators
+                        boneName = boneName.replace(/^[_\-]+|[_\-]+$/g, '');
+
+                        track.name = boneName + property;
+                    });
+
+                    // Clean up tracks for retargeting
                     clip.tracks = clip.tracks.filter(track => {
                         return !track.name.toLowerCase().includes('root.position') &&
-                            !track.name.toLowerCase().includes('hips.position') &&
                             !track.name.toLowerCase().includes('basehumanoid.position');
                     });
 
@@ -468,6 +491,8 @@
         function buildLevel(num) {
             while (levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
             shards = [];
+            walls = [];
+            roads = [];
 
             const theme = themes[num];
             const mapData = maps[num];
@@ -485,10 +510,17 @@
                     const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
                     if (mapData.grid[z][x] === 1) {
                         const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 6000, cellSize), mats.build);
-                        b.position.set(px, 3000, pz); levelGroup.add(b);
+                        b.position.set(px, 3000, pz);
+                        levelGroup.add(b);
+                        walls.push(b);
+                        // Start walls below ground for appearing animation if transitioning
+                        if (isTransitioning) b.position.y = -3000;
                     } else {
                         const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), mats.road);
-                        r.rotation.x = -Math.PI / 2; r.position.set(px, 0, pz); levelGroup.add(r);
+                        r.rotation.x = -Math.PI / 2;
+                        r.position.set(px, 0, pz);
+                        levelGroup.add(r);
+                        roads.push(r);
                         if (Math.random() > 0.7 && (x !== mapData.start.x || z !== mapData.start.z)) {
                             spawnShard(px, pz, theme.lightColor);
                         }
@@ -502,6 +534,19 @@
 
             document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
             document.getElementById('intro-title').innerText = theme.name;
+        }
+
+        function startLevelTransition() {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            transitionTime = 0;
+            gameActive = false;
+
+            // Celebration!
+            fadeToAction('twerk', 0.1);
+            shakeIntensity = 30;
+
+            log("NEXT DIMENSION SYNCING...", "info");
         }
 
         function spawnShard(x, z, color) {
@@ -539,7 +584,13 @@
                     idleTimer = 0;
                     const angle = Math.atan2(inputX, inputZ) + camYaw;
                     const spd = keys.shift ? 75 : 40;
-                    if (keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
+                    if (keys.shift) {
+                        shakeIntensity = Math.max(shakeIntensity, 3);
+                        camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
+                    } else {
+                        camera.fov = THREE.MathUtils.lerp(camera.fov, 60, 0.1);
+                    }
+                    camera.updateProjectionMatrix();
 
                     const vx = Math.sin(angle) * spd;
                     const vz = Math.cos(angle) * spd;
@@ -591,32 +642,59 @@
 
                 if (model.position.distanceTo(goalOrb.position) < 450) {
                     saveBestTime(currentLevel, elapsed);
-                    if (currentLevel < 6) {
-                        currentLevel++;
-                        gameActive = false;
-                        document.getElementById('intro-overlay').classList.remove('hidden');
-                        document.getElementById('status-text').innerText = "OBJECTIVE SECURED";
-                        buildLevel(currentLevel);
-                        resetNiko();
-                    } else {
-                        gameActive = false;
-                        showVictory();
-                    }
+                    startLevelTransition();
                 }
 
                 shakeIntensity *= 0.9;
-                const sX = (Math.random() - 0.5) * shakeIntensity;
-                const sY = (Math.random() - 0.5) * shakeIntensity;
-                const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
-                const pr = THREE.MathUtils.degToRad(camPitch);
-                const tPos = new THREE.Vector3(
-                    focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
-                    focus.y + camDistance * Math.sin(pr) + sY,
-                    focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
-                );
-                camera.position.lerp(tPos, 0.2);
-                camera.lookAt(focus);
             }
+
+            // --- LEVEL TRANSITION ANIMATION (MELTING WALLS) ---
+            if (isTransitioning) {
+                transitionTime += delta;
+
+                if (transitionTime < 1.0) {
+                    // Phase 1: Walls sink
+                    const p = transitionTime;
+                    walls.forEach(w => {
+                        w.position.y = 3000 - (p * 6000);
+                    });
+                } else if (transitionTime < 1.1) {
+                    // Phase 2: Load next level (instant swap while walls are hidden)
+                    if (currentLevel < Object.keys(maps).length) {
+                        currentLevel++;
+                        buildLevel(currentLevel);
+                        resetNiko();
+                        fadeToAction('idle');
+                        document.getElementById('intro-overlay').classList.remove('hidden');
+                        document.getElementById('status-text').innerText = "DIMENSION SHIFTED";
+                    } else {
+                        showVictory();
+                        isTransitioning = false;
+                    }
+                } else if (transitionTime < 2.1) {
+                    // Phase 3: New walls rise
+                    const p = (transitionTime - 1.1);
+                    walls.forEach(w => {
+                        w.position.y = -3000 + (p * 6000);
+                    });
+                } else {
+                    // Finished
+                    walls.forEach(w => w.position.y = 3000);
+                    isTransitioning = false;
+                    gameActive = false; // Wait for click to start
+                }
+            }
+            const sX = (Math.random() - 0.5) * shakeIntensity;
+            const sY = (Math.random() - 0.5) * shakeIntensity;
+            const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
+            const pr = THREE.MathUtils.degToRad(camPitch);
+            const tPos = new THREE.Vector3(
+                focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
+                focus.y + camDistance * Math.sin(pr) + sY,
+                focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
+            );
+            camera.position.lerp(tPos, 0.2);
+            camera.lookAt(focus);
 
             if (goalOrb) {
                 goalOrb.position.y = 300 + Math.sin(clock.getElapsedTime() * 2) * 40;
