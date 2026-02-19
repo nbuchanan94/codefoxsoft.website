@@ -225,14 +225,17 @@
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
         let actions = {}, currentAction, idleTimer = 0;
         let isReady = false;
-        let score = 0;
-        let shards = [];
 
-        // Camera settings - Defaulting to .5 of closest proximity
-        let camDistance = 400; // Adjusted: Closest is 200, so 400 is a close follow mode
-        let camPitch = 18;     // Adjusted: Lower pitch for tighter camera
-        let camYaw = 0;
+        // Game Feel & Transition Variables
+        let walls = [], roads = [], shards = [];
+        let isTransitioning = false, transitionTime = 0;
         let shakeIntensity = 0;
+        let camYaw = 0, camDistance = 800;
+        // Camera settings - Defaulting to .5 of closest proximity
+        camDistance = 400; // Adjusted: Closest is 200, so 400 is a close follow mode
+        let camPitch = 18;     // Adjusted: Lower pitch for tighter camera
+        camYaw = 0;
+        shakeIntensity = 0;
 
         const keys = {}, cellSize = 1800;
         const mapOffset = 4000;
@@ -408,8 +411,8 @@
                 mixer = new THREE.AnimationMixer(model);
 
                 // NOSE ON FLOOR FIX: Stand him up inside the fixGroup
-                // If -PI/2 was upside down, PI/2 should be right side up.
-                fixGroup.rotation.x = Math.PI / 2;
+                // If PI/2 was upside down UNDER floor, then -PI/2 is right-side up ABOVE floor.
+                fixGroup.rotation.x = -Math.PI / 2;
 
                 // NO MODEL ROTATION HERE: Child rotation relative to X-rotated parent causes "rolling"
                 model.rotation.set(0, 0, 0);
@@ -417,11 +420,12 @@
                 // HEIGHT FIX: Ensure feet are on the floor (Y=0)
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
-                // After scaling 240, we need to know the min Y to offset it
+                // Scale to roughly 240 units tall
                 model.scale.setScalar(240 / size.y);
 
                 // Compute box again after scale to get precise offset
                 const scaledBox = new THREE.Box3().setFromObject(model);
+                // Lift so min Y (feet) is at floor level (Y=0)
                 model.position.y = -scaledBox.min.y;
 
                 // TRANSPARENCY & OPAQUE FIX: Force everything to be 100% solid
@@ -438,7 +442,7 @@
                     }
                 });
 
-                log("Main FBX loaded, flipped upright, and height corrected.", "success");
+                log("Main FBX loaded, stood upright, and height shifted.", "success");
             } else {
                 log("Failed to load local FBX, using fallback box", "error");
                 modelContainer = new THREE.Group();
@@ -566,6 +570,8 @@
         function buildLevel(num) {
             while (levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
             shards = [];
+            walls = [];
+            roads = [];
 
             const theme = themes[num];
             const mapData = maps[num];
@@ -583,10 +589,15 @@
                     const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
                     if (mapData.grid[z][x] === 1) {
                         const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 6000, cellSize), mats.build);
-                        b.position.set(px, 3000, pz); levelGroup.add(b);
+                        b.position.set(px, 3000, pz);
+                        levelGroup.add(b);
+                        walls.push(b);
+                        if (isTransitioning) b.position.y = -3000;
                     } else {
                         const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), mats.road);
-                        r.rotation.x = -Math.PI / 2; r.position.set(px, 0, pz); levelGroup.add(r);
+                        r.rotation.x = -Math.PI / 2; r.position.set(px, 0, pz);
+                        levelGroup.add(r);
+                        roads.push(r);
                         if (Math.random() > 0.7 && (x !== mapData.start.x || z !== mapData.start.z)) {
                             spawnShard(px, pz, theme.lightColor);
                         }
@@ -607,6 +618,14 @@
             shard.position.set(x, 150, z);
             shards.push(shard);
             levelGroup.add(shard);
+        }
+
+        function startLevelTransition() {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            transitionTime = 0;
+            gameActive = false;
+            log("LEVEL COMPLETE! Dimension shifting...", "success");
         }
 
         function resetNiko() {
@@ -637,7 +656,13 @@
                     idleTimer = 0;
                     const angle = Math.atan2(inputX, inputZ) + camYaw;
                     const spd = keys.shift ? 75 : 40;
-                    if (keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
+                    if (keys.shift) {
+                        shakeIntensity = Math.max(shakeIntensity, 3);
+                        camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
+                    } else {
+                        camera.fov = THREE.MathUtils.lerp(camera.fov, 60, 0.1);
+                    }
+                    camera.updateProjectionMatrix();
 
                     const vx = Math.sin(angle) * spd;
                     const vz = Math.cos(angle) * spd;
@@ -689,38 +714,72 @@
 
                 if (modelContainer.position.distanceTo(goalOrb.position) < 450) {
                     saveBestTime(currentLevel, elapsed);
-                    if (currentLevel < 6) {
-                        currentLevel++;
-                        gameActive = false;
-                        document.getElementById('intro-overlay').classList.remove('hidden');
-                        document.getElementById('status-text').innerText = "OBJECTIVE SECURED";
-                        buildLevel(currentLevel);
-                        resetNiko();
-                    } else {
-                        gameActive = false;
-                        showVictory();
-                    }
+                    startLevelTransition();
                 }
 
                 shakeIntensity *= 0.9;
-                const sX = (Math.random() - 0.5) * shakeIntensity;
-                const sY = (Math.random() - 0.5) * shakeIntensity;
-                const focus = modelContainer.position.clone().add(new THREE.Vector3(0, 150, 0));
-                const pr = THREE.MathUtils.degToRad(camPitch);
-                const tPos = new THREE.Vector3(
-                    focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
-                    focus.y + camDistance * Math.sin(pr) + sY,
-                    focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
-                );
-                camera.position.lerp(tPos, 0.2);
-                camera.lookAt(focus);
             }
+
+            // --- LEVEL TRANSITION ANIMATION (MELTING WALLS) ---
+            if (isTransitioning) {
+                transitionTime += delta;
+
+                if (transitionTime < 1.0) {
+                    // Phase 1: Walls sink
+                    const p = transitionTime;
+                    walls.forEach(w => {
+                        w.position.y = 3000 - (p * 6000);
+                    });
+                } else if (transitionTime < 1.1) {
+                    // Phase 2: Load next level
+                    if (currentLevel < 6) {
+                        currentLevel++;
+                        buildLevel(currentLevel);
+                        resetNiko();
+                        fadeToAction('idle2');
+                        document.getElementById('intro-overlay').classList.remove('hidden');
+                        document.getElementById('status-text').innerText = "DIMENSION SHIFTED";
+                        isTransitioning = true; // Stay in transition to rise walls
+                    } else {
+                        showVictory();
+                        isTransitioning = false;
+                        gameActive = false;
+                    }
+                } else if (transitionTime < 2.5) {
+                    // Phase 3: New walls rise with SPRING
+                    const p = (transitionTime - 1.1) / 1.4; // normalized 0 to 1
+                    const elastic = 1 - Math.pow(1 - p, 4) * Math.cos(p * Math.PI * 4);
+                    const targetY = 3000;
+                    const startY = -3000;
+                    walls.forEach(w => {
+                        w.position.y = startY + (targetY - startY) * elastic;
+                    });
+                } else {
+                    isTransitioning = false;
+                    gameActive = true;
+                    startTime = Date.now(); // Reset timer for new level
+                }
+            }
+
+            // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
+            const sX = (Math.random() - 0.5) * shakeIntensity;
+            const sY = (Math.random() - 0.5) * shakeIntensity;
+            const focus = modelContainer.position.clone().add(new THREE.Vector3(0, 150, 0));
+            const pr = THREE.MathUtils.degToRad(camPitch);
+            const tPos = new THREE.Vector3(
+                focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
+                focus.y + camDistance * Math.sin(pr) + sY,
+                focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
+            );
+            camera.position.lerp(tPos, 0.2);
+            camera.lookAt(focus);
 
             if (goalOrb) {
                 goalOrb.position.y = 300 + Math.sin(clock.getElapsedTime() * 2) * 40;
                 const sc = 1 + Math.sin(clock.getElapsedTime() * 4) * 0.15;
                 goalOrb.scale.set(sc, sc, sc);
             }
+
             renderer.render(scene, camera);
         }
         init();
