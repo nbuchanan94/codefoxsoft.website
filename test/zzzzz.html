@@ -517,7 +517,8 @@
                 const norm = node.name ? node.name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
                 if (norm) {
                     nodeMap.set(norm, node.name);
-                    const core = norm.replace(/mixamorig|mixamo|armature/g, '');
+                    // Core: Remove common prefixes like mixamorig, mixamo, armature, and cc_base (from AccuRig)
+                    const core = norm.replace(/mixamorig|mixamo|armature|ccbase|rl/g, '');
                     if (core.length > 2) nodeMap.set(core, node.name);
                 }
             });
@@ -538,15 +539,18 @@
                         // Robust Scan: Check all parts of the track name for a bone match
                         for (const p of trackNameParts) {
                             const normP = p.toLowerCase().replace(/[^a-z0-9]/g, '');
-                            const coreP = normP.replace(/mixamorig|mixamo|armature/g, '');
+                            const coreP = normP.replace(/mixamorig|mixamo|armature|ccbase|rl/g, '');
 
                             if (nodeMap.has(normP)) targetBoneName = nodeMap.get(normP);
                             else if (nodeMap.has(coreP)) targetBoneName = nodeMap.get(coreP);
                             else {
-                                // Try splitting by colon for mixamorig:Prefix
-                                const boneOnly = p.split(':').pop();
-                                const target = model.getObjectByName(boneOnly);
-                                if (target) targetBoneName = target.name;
+                                // Try splitting by colon for mixamorig:Prefix or rl:Prefix
+                                const boneOnly = p.split(':').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
+                                if (nodeMap.has(boneOnly)) targetBoneName = nodeMap.get(boneOnly);
+                                else {
+                                    const target = model.getObjectByName(p.split(':').pop());
+                                    if (target) targetBoneName = target.name;
+                                }
                             }
                             if (targetBoneName) break;
                         }
