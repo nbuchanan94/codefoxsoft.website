@@ -1,33 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Niko: Maze Master - Dimensions</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
-        #ui { position: absolute; top: 20px; left: 20px; color: #fff; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 4px; border-left: 4px solid #00ffcc; z-index: 100; pointer-events: none; }
-        #score-display { position: absolute; top: 20px; right: 20px; text-align: right; z-index: 100; pointer-events: none; }
-        #timer { color: #ffcc00; font-size: 2em; font-weight: bold; text-shadow: 0 0 10px #ffaa00; }
-        #score { color: #00ffcc; font-size: 1.5em; margin-top: 5px; }
-        #intro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: #00ffcc; text-align: center; cursor: pointer;}
-        #load-bar-container { width: 300px; height: 10px; background: #222; margin-top: 20px; border-radius: 5px; overflow: hidden; }
-        #load-bar { width: 0%; height: 100%; background: #00ffcc; transition: width 0.1s; }
-        #debug-log { position: absolute; bottom: 20px; left: 20px; color: #aaa; font-size: 10px; z-index: 300; pointer-events: none; text-align: left; background: rgba(0,0,0,0.5); padding: 5px; max-height: 150px; overflow-y: auto; width: 280px; border: 1px solid #333;}
-        .success { color: #00ffcc; }
-        .error { color: #ff4444; }
-        .hidden { opacity: 0; pointer-events: none; }
+        body {
+            margin: 0;
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #00ffcc;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #score-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #timer {
+            color: #ffcc00;
+            font-size: 2em;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ffaa00;
+        }
+
+        #score {
+            color: #00ffcc;
+            font-size: 1.5em;
+            margin-top: 5px;
+        }
+
+        #intro-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            color: #00ffcc;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        #load-bar-container {
+            width: 300px;
+            height: 10px;
+            background: #222;
+            margin-top: 20px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #load-bar {
+            width: 0%;
+            height: 100%;
+            background: #00ffcc;
+            transition: width 0.1s;
+        }
+
+        #debug-log {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #aaa;
+            font-size: 10px;
+            z-index: 300;
+            pointer-events: none;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+            width: 280px;
+            border: 1px solid #333;
+        }
+
+        .success {
+            color: #00ffcc;
+        }
+
+        .error {
+            color: #ff4444;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
 
         /* Victory Screen Styles */
-        #victory-screen { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 400; color: #00ffcc; text-align: center; overflow-y: auto; padding: 20px; }
-        .stats-container { background: rgba(0, 255, 204, 0.05); border: 1px solid #00ffcc; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; }
-        .stats-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .stats-table th, .stats-table td { border-bottom: 1px solid rgba(0, 255, 204, 0.2); padding: 10px; text-align: left; }
-        .best-row { color: #ffcc00; font-weight: bold; }
-        .btn-restart { background: #00ffcc; color: #000; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; font-family: inherit; margin-top: 20px; font-size: 1.2em; transition: 0.3s; }
-        .btn-restart:hover { background: #fff; transform: scale(1.05); }
+        #victory-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.98);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 400;
+            color: #00ffcc;
+            text-align: center;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .stats-container {
+            background: rgba(0, 255, 204, 0.05);
+            border: 1px solid #00ffcc;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .stats-table th,
+        .stats-table td {
+            border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+            padding: 10px;
+            text-align: left;
+        }
+
+        .best-row {
+            color: #ffcc00;
+            font-weight: bold;
+        }
+
+        .btn-restart {
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 20px;
+            font-size: 1.2em;
+            transition: 0.3s;
+        }
+
+        .btn-restart:hover {
+            background: #fff;
+            transform: scale(1.05);
+        }
     </style>
 </head>
+
 <body>
     <div id="ui">
         <b id="lvl-name">LEVEL 1: THE BRONX</b><br>
@@ -41,7 +184,9 @@
     <div id="intro-overlay">
         <h1 id="intro-title">THE BRONX</h1>
         <p id="status-text" style="color:white">CONNECTING TO CODEFOXSOFT...</p>
-        <div id="load-bar-container"><div id="load-bar"></div></div>
+        <div id="load-bar-container">
+            <div id="load-bar"></div>
+        </div>
         <p id="click-prompt" style="color:#00ffcc; margin-top:20px; display:none;">[ CLICK TO START ]</p>
     </div>
 
@@ -52,7 +197,10 @@
             <h3>PERSONAL RECORDS (BROWSER CACHE)</h3>
             <table class="stats-table" id="best-times-table">
                 <thead>
-                    <tr><th>DIMENSION</th><th>BEST TIME</th></tr>
+                    <tr>
+                        <th>DIMENSION</th>
+                        <th>BEST TIME</th>
+                    </tr>
                 </thead>
                 <tbody id="best-tbody"></tbody>
             </table>
@@ -60,7 +208,7 @@
         <button class="btn-restart" onclick="location.reload()">RE-INITIALIZE LOOP</button>
     </div>
 
-<script type="importmap">
+    <script type="importmap">
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -69,200 +217,223 @@
     }
 </script>
 
-<script type="module">
-    import * as THREE from 'three';
-    import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+    <script type="module">
+        import * as THREE from 'three';
+        import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-    let scene, camera, renderer, mixer, clock, model, goalOrb, nikoLight;
-    let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
-    let actions = {}, currentAction, idleTimer = 0;
-    let isReady = false;
-    let score = 0;
-    let shards = [];
+        let scene, camera, renderer, mixer, clock, model, goalOrb, nikoLight;
+        let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
+        let actions = {}, currentAction, idleTimer = 0;
+        let isReady = false;
+        let score = 0;
+        let shards = [];
 
-    // Camera settings - Defaulting to .5 of closest proximity
-    let camDistance = 400; // Adjusted: Closest is 200, so 400 is a close follow mode
-    let camPitch = 18;     // Adjusted: Lower pitch for tighter camera
-    let camYaw = 0;
-    let shakeIntensity = 0;
+        // Camera settings - Defaulting to .5 of closest proximity
+        let camDistance = 400; // Adjusted: Closest is 200, so 400 is a close follow mode
+        let camPitch = 18;     // Adjusted: Lower pitch for tighter camera
+        let camYaw = 0;
+        let shakeIntensity = 0;
 
-    const keys = {}, cellSize = 1800;
-    const mapOffset = 4000;
+        const keys = {}, cellSize = 1800;
+        const mapOffset = 4000;
 
-    const themes = {
-        1: { name: "THE BRONX", sky: 0x050510, fog: 0x050510, fogDens: 0.00018, roadColor: '#1a1a1a', sidewalkColor: '#333', buildColor: '#15151a', win1: '#ffaa00', win2: '#00aaff', lightColor: 0xffaa00, ambient: 0.6 },
-        2: { name: "NEON DISTRICT", sky: 0x000510, fog: 0x000510, fogDens: 0.00025, roadColor: '#0a0a15', sidewalkColor: '#111', buildColor: '#050510', win1: '#ff00ff', win2: '#00ffff', lightColor: 0x00ffff, ambient: 0.7 },
-        3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.9 },
-        4: { name: "THE GRID", sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002, roadColor: '#001a1a', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ffffff', lightColor: 0x00ffff, ambient: 0.6 },
-        5: { name: "VOID JUNCTION", sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022, roadColor: '#1a001a', sidewalkColor: '#2a002a', buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00', lightColor: 0xff00ff, ambient: 0.5 },
-        6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 }
-    };
+        const themes = {
+            1: { name: "THE BRONX", sky: 0x050510, fog: 0x050510, fogDens: 0.00018, roadColor: '#1a1a1a', sidewalkColor: '#333', buildColor: '#15151a', win1: '#ffaa00', win2: '#00aaff', lightColor: 0xffaa00, ambient: 0.6 },
+            2: { name: "NEON DISTRICT", sky: 0x000510, fog: 0x000510, fogDens: 0.00025, roadColor: '#0a0a15', sidewalkColor: '#111', buildColor: '#050510', win1: '#ff00ff', win2: '#00ffff', lightColor: 0x00ffff, ambient: 0.7 },
+            3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.9 },
+            4: { name: "THE GRID", sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002, roadColor: '#001a1a', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ffffff', lightColor: 0x00ffff, ambient: 0.6 },
+            5: { name: "VOID JUNCTION", sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022, roadColor: '#1a001a', sidewalkColor: '#2a002a', buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00', lightColor: 0xff00ff, ambient: 0.5 },
+            6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 }
+        };
 
-    const maps = {
-        1: { grid: [[1,1,1,1,1,1,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,0,1,1,1,1,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:5} },
-        2: { grid: [[1,1,1,1,1,1,1],[1,0,1,0,0,0,1],[1,0,1,0,1,0,1],[1,0,0,0,1,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:5, z:1} },
-        3: { grid: [[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,1,0,0,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,1,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:7, z:1} },
-        4: { grid: [[1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,1],[1,0,1,1,1,1,0,1],[1,0,1,0,0,1,0,1],[1,0,1,0,0,1,0,1],[1,0,1,1,0,1,0,1],[1,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:6, z:6} },
-        5: { grid: [[1,1,1,1,1,1,1,1,1],[1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,0,1,0,1,1,1],[1,0,0,0,1,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:1, z:7} },
-        6: { grid: [[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,1,0,0,0,0,0,1],[1,0,1,0,1,0,1,1,1,0,1],[1,0,1,0,0,0,0,0,1,0,1],[1,0,1,1,1,1,1,0,1,0,1],[1,0,0,0,0,0,1,0,0,0,1],[1,0,1,1,1,0,1,1,1,0,1],[1,0,0,0,1,0,0,0,1,0,1],[1,1,1,1,1,1,1,1,1,1,1]], start: {x:1, z:1}, goal: {x:9, z:1} }
-    };
+        const maps = {
+            1: { grid: [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 5, z: 5 } },
+            2: { grid: [[1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 5, z: 1 } },
+            3: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 7, z: 1 } },
+            4: { grid: [[1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 1, 0, 1], [1, 0, 1, 0, 0, 1, 0, 1], [1, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 6, z: 6 } },
+            5: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 1, z: 7 } },
+            6: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 9, z: 1 } }
+        };
 
-    function log(msg, type = 'info') {
-        const div = document.getElementById('debug-log');
-        const span = document.createElement('div');
-        span.className = type;
-        span.innerHTML = `> ${msg}`;
-        div.appendChild(span);
-        div.scrollTop = div.scrollHeight;
-    }
-
-    function saveBestTime(lvl, time) {
-        let records = JSON.parse(localStorage.getItem('niko_records') || '{}');
-        if (!records[lvl] || time < records[lvl]) {
-            records[lvl] = time;
-            localStorage.setItem('niko_records', JSON.stringify(records));
+        function log(msg, type = 'info') {
+            const div = document.getElementById('debug-log');
+            const span = document.createElement('div');
+            span.className = type;
+            span.innerHTML = `> ${msg}`;
+            div.appendChild(span);
+            div.scrollTop = div.scrollHeight;
         }
-    }
 
-    function formatTime(sec) {
-        return `${Math.floor(sec/60).toString().padStart(2,'0')}:${(sec%60).toString().padStart(2,'0')}`;
-    }
-
-    function showVictory() {
-        const records = JSON.parse(localStorage.getItem('niko_records') || '{}');
-        const tbody = document.getElementById('best-tbody');
-        tbody.innerHTML = '';
-        for (let i = 1; i <= 6; i++) {
-            const time = records[i] ? formatTime(records[i]) : "--:--";
-            tbody.innerHTML += `<tr><td>DIMENSION ${i}: ${themes[i].name}</td><td class="best-row">${time}</td></tr>`;
+        function saveBestTime(lvl, time) {
+            let records = JSON.parse(localStorage.getItem('niko_records') || '{}');
+            if (!records[lvl] || time < records[lvl]) {
+                records[lvl] = time;
+                localStorage.setItem('niko_records', JSON.stringify(records));
+            }
         }
-        document.getElementById('victory-screen').style.display = 'flex';
-    }
 
-    function createThemeMaterials(theme) {
-        const rC = document.createElement('canvas'); rC.width = 512; rC.height = 512;
-        const rCtx = rC.getContext('2d');
-        rCtx.fillStyle = theme.sidewalkColor; rCtx.fillRect(0,0,512,512);
-        rCtx.fillStyle = theme.roadColor; rCtx.fillRect(60,0,392,512);
-        rCtx.fillStyle = '#444'; for(let i=0; i<512; i+=64) rCtx.fillRect(250, i, 12, 32);
+        function formatTime(sec) {
+            return `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`;
+        }
 
-        const bC = document.createElement('canvas'); bC.width = 512; bC.height = 1024;
-        const bCtx = bC.getContext('2d'); bCtx.fillStyle = theme.buildColor; bCtx.fillRect(0,0,512,1024);
-        const eC = document.createElement('canvas'); eC.width = 512; eC.height = 1024;
-        const eCtx = eC.getContext('2d'); eCtx.fillStyle = '#000'; eCtx.fillRect(0,0,512,1024);
+        function showVictory() {
+            const records = JSON.parse(localStorage.getItem('niko_records') || '{}');
+            const tbody = document.getElementById('best-tbody');
+            tbody.innerHTML = '';
+            for (let i = 1; i <= 6; i++) {
+                const time = records[i] ? formatTime(records[i]) : "--:--";
+                tbody.innerHTML += `<tr><td>DIMENSION ${i}: ${themes[i].name}</td><td class="best-row">${time}</td></tr>`;
+            }
+            document.getElementById('victory-screen').style.display = 'flex';
+        }
 
-        for(let y=40; y<1024; y+=120) {
-            for(let x=30; x<512; x+=100) {
-                if(Math.random() > 0.4) {
-                    const col = Math.random() > 0.5 ? theme.win1 : theme.win2;
-                    bCtx.fillStyle = col; bCtx.globalAlpha = 0.15; bCtx.fillRect(x,y,65,45);
-                    eCtx.fillStyle = col; eCtx.shadowBlur = 25; eCtx.shadowColor = col; eCtx.fillRect(x,y,65,45);
+        function createThemeMaterials(theme) {
+            const rC = document.createElement('canvas'); rC.width = 512; rC.height = 512;
+            const rCtx = rC.getContext('2d');
+            rCtx.fillStyle = theme.sidewalkColor; rCtx.fillRect(0, 0, 512, 512);
+            rCtx.fillStyle = theme.roadColor; rCtx.fillRect(60, 0, 392, 512);
+            rCtx.fillStyle = '#444'; for (let i = 0; i < 512; i += 64) rCtx.fillRect(250, i, 12, 32);
+
+            const bC = document.createElement('canvas'); bC.width = 512; bC.height = 1024;
+            const bCtx = bC.getContext('2d'); bCtx.fillStyle = theme.buildColor; bCtx.fillRect(0, 0, 512, 1024);
+            const eC = document.createElement('canvas'); eC.width = 512; eC.height = 1024;
+            const eCtx = eC.getContext('2d'); eCtx.fillStyle = '#000'; eCtx.fillRect(0, 0, 512, 1024);
+
+            for (let y = 40; y < 1024; y += 120) {
+                for (let x = 30; x < 512; x += 100) {
+                    if (Math.random() > 0.4) {
+                        const col = Math.random() > 0.5 ? theme.win1 : theme.win2;
+                        bCtx.fillStyle = col; bCtx.globalAlpha = 0.15; bCtx.fillRect(x, y, 65, 45);
+                        eCtx.fillStyle = col; eCtx.shadowBlur = 25; eCtx.shadowColor = col; eCtx.fillRect(x, y, 65, 45);
+                    }
                 }
             }
+            return {
+                road: new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(rC) }),
+                build: new THREE.MeshStandardMaterial({
+                    map: new THREE.CanvasTexture(bC),
+                    emissiveMap: new THREE.CanvasTexture(eC),
+                    emissive: 0xffffff, emissiveIntensity: currentLevel === 3 ? 4.5 : 2.5
+                }),
+                lightColor: theme.lightColor
+            };
         }
-        return {
-            road: new THREE.MeshStandardMaterial({map: new THREE.CanvasTexture(rC)}),
-            build: new THREE.MeshStandardMaterial({
-                map: new THREE.CanvasTexture(bC),
-                emissiveMap: new THREE.CanvasTexture(eC),
-                emissive: 0xffffff, emissiveIntensity: currentLevel === 3 ? 4.5 : 2.5
-            }),
-            lightColor: theme.lightColor
-        };
-    }
 
-    function init() {
-        clock = new THREE.Clock();
-        scene = new THREE.Scene();
+        function init() {
+            clock = new THREE.Clock();
+            scene = new THREE.Scene();
 
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 10, 60000);
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 60000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
 
-        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambient);
-        const sun = new THREE.DirectionalLight(0xffffff, 0.5);
-        sun.position.set(2000, 4000, 1000);
-        scene.add(sun);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambient);
+            const sun = new THREE.DirectionalLight(0xffffff, 0.5);
+            sun.position.set(2000, 4000, 1000);
+            scene.add(sun);
 
-        nikoLight = new THREE.PointLight(0xffffff, 50, 1000);
-        scene.add(nikoLight);
+            nikoLight = new THREE.PointLight(0xffffff, 50, 1000);
+            scene.add(nikoLight);
 
-        levelGroup = new THREE.Group();
-        scene.add(levelGroup);
+            levelGroup = new THREE.Group();
+            scene.add(levelGroup);
 
-        const startAction = () => {
-            if(isReady && !gameActive) {
-                gameActive = true;
-                startTime = Date.now();
-                document.getElementById('intro-overlay').classList.add('hidden');
+            const startAction = () => {
+                if (isReady && !gameActive) {
+                    gameActive = true;
+                    startTime = Date.now();
+                    document.getElementById('intro-overlay').classList.add('hidden');
+                }
+            };
+
+            window.addEventListener('keydown', (e) => {
+                const k = e.key.toLowerCase();
+                keys[k] = true;
+                if (e.key.startsWith('Arrow')) keys[e.key] = true;
+
+                startAction();
+
+                if (k === 't') {
+                    camPitch = (camPitch < 40 ? 85 : 18);
+                    camDistance = (camPitch === 85 ? 3500 : 400);
+                }
+            });
+            window.addEventListener('mousedown', startAction);
+            window.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+                if (e.key.startsWith('Arrow')) keys[e.key] = false;
+            });
+
+            buildLevel(currentLevel);
+            loadAllAssets();
+            animate();
+        }
+
+        async function loadFile(loader, key, path) {
+            return new Promise((resolve) => {
+                loader.load(path,
+                    (result) => { resolve({ key, result }); },
+                    undefined,
+                    (err) => {
+                        console.error(`Error loading ${key}:`, err);
+                        resolve({ key, error: true });
+                    }
+                );
+            });
+        }
+
+        async function loadAllAssets() {
+            const fbxLoader = new FBXLoader();
+            const gltfLoader = new GLTFLoader();
+            const baseUrl = 'https://www.codefoxsoft.com/';
+
+            // 1. Load the main GLB model first
+            log("Loading main GLB model...", "info");
+            const glbResult = await loadFile(gltfLoader, 'main', baseUrl + 'mainmodel.glb');
+
+            if (!glbResult.error && glbResult.result) {
+                model = glbResult.result.scene;
+                scene.add(model);
+                mixer = new THREE.AnimationMixer(model);
+
+                // Scale handling for GLB
+                const box = new THREE.Box3().setFromObject(model);
+                const size = box.getSize(new THREE.Vector3());
+                model.scale.setScalar(240 / size.y);
+                log("Main GLB model loaded and scaled.", "success");
+            } else {
+                log("Failed to load GLB, using fallback box", "error");
+                model = new THREE.Mesh(new THREE.BoxGeometry(100, 240, 100), new THREE.MeshStandardMaterial({ color: 0x00ffcc }));
+                scene.add(model);
+                mixer = new THREE.AnimationMixer(model);
             }
-        };
 
-        window.addEventListener('keydown', (e) => {
-            const k = e.key.toLowerCase();
-            keys[k] = true;
-            if (e.key.startsWith('Arrow')) keys[e.key] = true;
+            // 2. Load FBX animations
+            const files = [
+                { key: 'walk', path: baseUrl + 'catwalk.fbx' },
+                { key: 'idle', path: baseUrl + 'idle2.fbx' },
+                { key: 'twerk', path: baseUrl + 'twerk.fbx' },
+                { key: 'run', path: baseUrl + 'run.fbx' },
+                { key: 'leftturn', path: baseUrl + 'leftturn.fbx' },
+                { key: 'rightturn', path: baseUrl + 'rightturn.fbx' }
+            ];
 
-            startAction();
-
-            if(k === 't') {
-                camPitch = (camPitch < 40 ? 85 : 18);
-                camDistance = (camPitch === 85 ? 3500 : 400);
-            }
-        });
-        window.addEventListener('mousedown', startAction);
-        window.addEventListener('keyup', (e) => {
-            keys[e.key.toLowerCase()] = false;
-            if (e.key.startsWith('Arrow')) keys[e.key] = false;
-        });
-
-        buildLevel(currentLevel);
-        loadAllAssets();
-        animate();
-    }
-
-    async function loadFile(loader, key, path) {
-        return new Promise((resolve) => {
-            loader.load(path,
-                (fbx) => { resolve({ key, fbx }); },
-                undefined,
-                (err) => { resolve({ key, error: true }); }
-            );
-        });
-    }
-
-    async function loadAllAssets() {
-        const loader = new FBXLoader();
-        const baseUrl = 'https://www.codefoxsoft.com/';
-        const files = [
-            { key: 'walk', path: baseUrl + 'catwalk.fbx' },
-            { key: 'idle', path: baseUrl + 'idle2.fbx' },
-            { key: 'twerk', path: baseUrl + 'twerk.fbx' },
-            { key: 'run', path: baseUrl + 'run.fbx' },
-            { key: 'leftturn', path: baseUrl + 'leftturn.fbx' },
-            { key: 'rightturn', path: baseUrl + 'rightturn.fbx' }
-        ];
-
-        const results = await Promise.all(files.map(f => loadFile(loader, f.key, f.path)));
-        document.getElementById('load-bar').style.width = "100%";
-
-        const walkRes = results.find(r => r.key === 'walk');
-        if (walkRes && !walkRes.error) {
-            model = walkRes.fbx;
-            const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
-            model.scale.setScalar(240 / size.y);
-            scene.add(model);
-            mixer = new THREE.AnimationMixer(model);
+            log("Loading animations from FBX files...", "info");
+            const results = await Promise.all(files.map(f => loadFile(fbxLoader, f.key, f.path)));
+            document.getElementById('load-bar').style.width = "100%";
 
             results.forEach(res => {
-                if (!res.error && res.fbx && res.fbx.animations.length > 0) {
-                    const clip = res.fbx.animations[0];
+                if (!res.error && res.result && res.result.animations.length > 0) {
+                    const clip = res.result.animations[0];
+
+                    // Clean up tracks for retargeting if necessary (root movement)
                     clip.tracks = clip.tracks.filter(track => {
                         return !track.name.toLowerCase().includes('root.position') &&
-                               !track.name.toLowerCase().includes('hips.position') &&
-                               !track.name.toLowerCase().includes('basehumanoid.position');
+                            !track.name.toLowerCase().includes('hips.position') &&
+                            !track.name.toLowerCase().includes('basehumanoid.position');
                     });
 
                     const action = mixer.clipAction(clip);
@@ -272,193 +443,190 @@
                     if (res.key === 'run') action.setEffectiveTimeScale(1.0);
 
                     actions[res.key] = action;
+                    log(`Animation loaded: ${res.key}`, "success");
                 }
             });
-        } else {
-            model = new THREE.Mesh(new THREE.BoxGeometry(100,240,100), new THREE.MeshStandardMaterial({color: 0x00ffcc}));
-            scene.add(model);
-            mixer = new THREE.AnimationMixer(model);
+
+            resetNiko();
+            if (actions['idle']) fadeToAction('idle');
+
+            isReady = true;
+            document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
+            document.getElementById('click-prompt').style.display = "block";
         }
 
-        resetNiko();
-        if (actions['idle']) fadeToAction('idle');
-
-        isReady = true;
-        document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
-        document.getElementById('click-prompt').style.display = "block";
-    }
-
-    function fadeToAction(name, duration = 0.2) {
-        if (!actions[name]) return;
-        const prev = currentAction;
-        currentAction = actions[name];
-        if (prev !== currentAction) {
-            if (prev) prev.fadeOut(duration);
-            currentAction.reset().fadeIn(duration).play();
+        function fadeToAction(name, duration = 0.2) {
+            if (!actions[name]) return;
+            const prev = currentAction;
+            currentAction = actions[name];
+            if (prev !== currentAction) {
+                if (prev) prev.fadeOut(duration);
+                currentAction.reset().fadeIn(duration).play();
+            }
         }
-    }
 
-    function buildLevel(num) {
-        while(levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
-        shards = [];
+        function buildLevel(num) {
+            while (levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
+            shards = [];
 
-        const theme = themes[num];
-        const mapData = maps[num];
-        const mats = createThemeMaterials(theme);
+            const theme = themes[num];
+            const mapData = maps[num];
+            const mats = createThemeMaterials(theme);
 
-        scene.background = new THREE.Color(theme.sky);
-        scene.fog = new THREE.FogExp2(theme.fog, theme.fogDens);
+            scene.background = new THREE.Color(theme.sky);
+            scene.fog = new THREE.FogExp2(theme.fog, theme.fogDens);
 
-        const ambLight = scene.children.find(l => l instanceof THREE.AmbientLight);
-        if(ambLight) ambLight.intensity = theme.ambient;
-        if(nikoLight) nikoLight.color.set(theme.lightColor);
+            const ambLight = scene.children.find(l => l instanceof THREE.AmbientLight);
+            if (ambLight) ambLight.intensity = theme.ambient;
+            if (nikoLight) nikoLight.color.set(theme.lightColor);
 
-        for(let z=0; z<mapData.grid.length; z++) {
-            for(let x=0; x<mapData.grid[z].length; x++) {
-                const px = x*cellSize - mapOffset, pz = z*cellSize - mapOffset;
-                if(mapData.grid[z][x] === 1) {
-                    const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 6000, cellSize), mats.build);
-                    b.position.set(px, 3000, pz); levelGroup.add(b);
-                } else {
-                    const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), mats.road);
-                    r.rotation.x = -Math.PI/2; r.position.set(px, 0, pz); levelGroup.add(r);
-                    if (Math.random() > 0.7 && (x !== mapData.start.x || z !== mapData.start.z)) {
-                        spawnShard(px, pz, theme.lightColor);
+            for (let z = 0; z < mapData.grid.length; z++) {
+                for (let x = 0; x < mapData.grid[z].length; x++) {
+                    const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
+                    if (mapData.grid[z][x] === 1) {
+                        const b = new THREE.Mesh(new THREE.BoxGeometry(cellSize, 6000, cellSize), mats.build);
+                        b.position.set(px, 3000, pz); levelGroup.add(b);
+                    } else {
+                        const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), mats.road);
+                        r.rotation.x = -Math.PI / 2; r.position.set(px, 0, pz); levelGroup.add(r);
+                        if (Math.random() > 0.7 && (x !== mapData.start.x || z !== mapData.start.z)) {
+                            spawnShard(px, pz, theme.lightColor);
+                        }
                     }
                 }
             }
+
+            goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 5 }));
+            goalOrb.position.set(mapData.goal.x * cellSize - mapOffset, 300, mapData.goal.z * cellSize - mapOffset);
+            levelGroup.add(goalOrb);
+
+            document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
+            document.getElementById('intro-title').innerText = theme.name;
         }
 
-        goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({color:0xffcc00, emissive:0xffcc00, emissiveIntensity:5}));
-        goalOrb.position.set(mapData.goal.x*cellSize - mapOffset, 300, mapData.goal.z*cellSize - mapOffset);
-        levelGroup.add(goalOrb);
+        function spawnShard(x, z, color) {
+            const shard = new THREE.Mesh(new THREE.OctahedronGeometry(80), new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2, wireframe: true }));
+            shard.position.set(x, 150, z);
+            shards.push(shard);
+            levelGroup.add(shard);
+        }
 
-        document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
-        document.getElementById('intro-title').innerText = theme.name;
-    }
+        function resetNiko() {
+            const start = maps[currentLevel].start;
+            model.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
+            model.rotation.y = 0;
+            camYaw = 0;
+        }
 
-    function spawnShard(x, z, color) {
-        const shard = new THREE.Mesh(new THREE.OctahedronGeometry(80), new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2, wireframe: true }));
-        shard.position.set(x, 150, z);
-        shards.push(shard);
-        levelGroup.add(shard);
-    }
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            if (mixer) mixer.update(delta);
 
-    function resetNiko() {
-        const start = maps[currentLevel].start;
-        model.position.set(start.x*cellSize - mapOffset, 0, start.z*cellSize - mapOffset);
-        model.rotation.y = 0;
-        camYaw = 0;
-    }
+            if (gameActive && isReady) {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('timer').innerText = formatTime(elapsed);
 
-    function animate() {
-        requestAnimationFrame(animate);
-        const delta = clock.getDelta();
-        if(mixer) mixer.update(delta);
+                if (keys['arrowleft']) camYaw += 0.05;
+                if (keys['arrowright']) camYaw -= 0.05;
+                if (keys['arrowup']) camDistance = Math.max(200, camDistance - 25);
+                if (keys['arrowdown']) camDistance = Math.min(6000, camDistance + 25);
 
-        if(gameActive && isReady) {
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById('timer').innerText = formatTime(elapsed);
+                let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+                let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
 
-            if(keys['arrowleft']) camYaw += 0.05;
-            if(keys['arrowright']) camYaw -= 0.05;
-            if(keys['arrowup']) camDistance = Math.max(200, camDistance - 25);
-            if(keys['arrowdown']) camDistance = Math.min(6000, camDistance + 25);
+                if (inputX !== 0 || inputZ !== 0) {
+                    idleTimer = 0;
+                    const angle = Math.atan2(inputX, inputZ) + camYaw;
+                    const spd = keys.shift ? 75 : 40;
+                    if (keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
 
-            let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-            let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+                    const vx = Math.sin(angle) * spd;
+                    const vz = Math.cos(angle) * spd;
+                    const nX = model.position.x + vx;
+                    const nZ = model.position.z + vz;
+                    const gx = Math.round((nX + mapOffset) / cellSize);
+                    const gz = Math.round((nZ + mapOffset) / cellSize);
+                    const currentGrid = maps[currentLevel].grid;
 
-            if (inputX !== 0 || inputZ !== 0) {
-                idleTimer = 0;
-                const angle = Math.atan2(inputX, inputZ) + camYaw;
-                const spd = keys.shift ? 75 : 40;
-                if(keys.shift) shakeIntensity = Math.max(shakeIntensity, 3);
+                    if (gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
+                        if (currentGrid[gz][gx] === 0) {
+                            model.position.x = nX;
+                            model.position.z = nZ;
+                        }
+                    }
 
-                const vx = Math.sin(angle) * spd;
-                const vz = Math.cos(angle) * spd;
-                const nX = model.position.x + vx;
-                const nZ = model.position.z + vz;
-                const gx = Math.round((nX + mapOffset) / cellSize);
-                const gz = Math.round((nZ + mapOffset) / cellSize);
-                const currentGrid = maps[currentLevel].grid;
+                    const targetRotation = angle;
+                    const currentRotation = model.rotation.y;
+                    let diff = targetRotation - currentRotation;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    model.rotation.y += diff * 0.15;
 
-                if(gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
-                    if(currentGrid[gz][gx] === 0) {
-                        model.position.x = nX;
-                        model.position.z = nZ;
+                    if (keys.shift) fadeToAction('run');
+                    else fadeToAction('walk');
+                } else {
+                    if (currentAction !== actions['twerk']) {
+                        fadeToAction('idle');
+                        idleTimer += delta;
+                        if (idleTimer >= 8) { fadeToAction('twerk'); idleTimer = 0; }
+                    } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
+                        fadeToAction('idle');
                     }
                 }
 
-                const targetRotation = angle;
-                const currentRotation = model.rotation.y;
-                let diff = targetRotation - currentRotation;
-                while (diff < -Math.PI) diff += Math.PI * 2;
-                while (diff > Math.PI) diff -= Math.PI * 2;
-                model.rotation.y += diff * 0.15;
+                if (nikoLight) nikoLight.position.set(model.position.x, model.position.y + 300, model.position.z);
 
-                if (keys.shift) fadeToAction('run');
-                else fadeToAction('walk');
-            } else {
-                if (currentAction !== actions['twerk']) {
-                    fadeToAction('idle');
-                    idleTimer += delta;
-                    if (idleTimer >= 8) { fadeToAction('twerk'); idleTimer = 0; }
-                } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
-                    fadeToAction('idle');
+                for (let i = shards.length - 1; i >= 0; i--) {
+                    const s = shards[i];
+                    s.rotation.y += 0.02;
+                    if (model.position.distanceTo(s.position) < 250) {
+                        score += 100;
+                        document.getElementById('score').innerText = `SHARDS: ${score}`;
+                        levelGroup.remove(s);
+                        shards.splice(i, 1);
+                        shakeIntensity = 15;
+                    }
                 }
+
+                if (model.position.distanceTo(goalOrb.position) < 450) {
+                    saveBestTime(currentLevel, elapsed);
+                    if (currentLevel < 6) {
+                        currentLevel++;
+                        gameActive = false;
+                        document.getElementById('intro-overlay').classList.remove('hidden');
+                        document.getElementById('status-text').innerText = "OBJECTIVE SECURED";
+                        buildLevel(currentLevel);
+                        resetNiko();
+                    } else {
+                        gameActive = false;
+                        showVictory();
+                    }
+                }
+
+                shakeIntensity *= 0.9;
+                const sX = (Math.random() - 0.5) * shakeIntensity;
+                const sY = (Math.random() - 0.5) * shakeIntensity;
+                const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
+                const pr = THREE.MathUtils.degToRad(camPitch);
+                const tPos = new THREE.Vector3(
+                    focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
+                    focus.y + camDistance * Math.sin(pr) + sY,
+                    focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
+                );
+                camera.position.lerp(tPos, 0.2);
+                camera.lookAt(focus);
             }
 
-            if(nikoLight) nikoLight.position.set(model.position.x, model.position.y + 300, model.position.z);
-
-            for (let i = shards.length - 1; i >= 0; i--) {
-                const s = shards[i];
-                s.rotation.y += 0.02;
-                if (model.position.distanceTo(s.position) < 250) {
-                    score += 100;
-                    document.getElementById('score').innerText = `SHARDS: ${score}`;
-                    levelGroup.remove(s);
-                    shards.splice(i, 1);
-                    shakeIntensity = 15;
-                }
+            if (goalOrb) {
+                goalOrb.position.y = 300 + Math.sin(clock.getElapsedTime() * 2) * 40;
+                const sc = 1 + Math.sin(clock.getElapsedTime() * 4) * 0.15;
+                goalOrb.scale.set(sc, sc, sc);
             }
-
-            if(model.position.distanceTo(goalOrb.position) < 450) {
-                saveBestTime(currentLevel, elapsed);
-                if (currentLevel < 6) {
-                    currentLevel++;
-                    gameActive = false;
-                    document.getElementById('intro-overlay').classList.remove('hidden');
-                    document.getElementById('status-text').innerText = "OBJECTIVE SECURED";
-                    buildLevel(currentLevel);
-                    resetNiko();
-                } else {
-                    gameActive = false;
-                    showVictory();
-                }
-            }
-
-            shakeIntensity *= 0.9;
-            const sX = (Math.random() - 0.5) * shakeIntensity;
-            const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
-            const pr = THREE.MathUtils.degToRad(camPitch);
-            const tPos = new THREE.Vector3(
-                focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
-                focus.y + camDistance * Math.sin(pr) + sY,
-                focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
-            );
-            camera.position.lerp(tPos, 0.2);
-            camera.lookAt(focus);
+            renderer.render(scene, camera);
         }
-
-        if(goalOrb) {
-            goalOrb.position.y = 300 + Math.sin(clock.getElapsedTime()*2) * 40;
-            const sc = 1 + Math.sin(clock.getElapsedTime()*4)*0.15;
-            goalOrb.scale.set(sc, sc, sc);
-        }
-        renderer.render(scene, camera);
-    }
-    init();
-</script>
+        init();
+    </script>
 </body>
+
 </html>
