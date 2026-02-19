@@ -221,7 +221,7 @@
         import * as THREE from 'three';
         import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-        let scene, camera, renderer, mixer, clock, model, goalOrb, nikoLight;
+        let scene, camera, renderer, mixer, clock, model, modelContainer, goalOrb, nikoLight;
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
         let actions = {}, currentAction, idleTimer = 0;
         let isReady = false;
@@ -393,22 +393,42 @@
 
             if (!modelResult.error && modelResult.fbx) {
                 model = modelResult.fbx;
-                scene.add(model);
+
+                // Wrap in container for clean rotation/movement
+                modelContainer = new THREE.Group();
+                scene.add(modelContainer);
+                modelContainer.add(model);
+
                 mixer = new THREE.AnimationMixer(model);
 
-                // NOSE ON FLOOR FIX: Ensure character is upright
-                // Blender/Mixamo FBX often exported on its face
-                model.rotation.x = -Math.PI / 2;
+                // NOSE ON FLOOR & DIRECTION FIX
+                model.rotation.x = -Math.PI / 2; // Standing up Fix
+                model.rotation.y = 0; // Trial: Start with 0. If S is correct, then with container rotation he should be fine.
+
+                // TRANSPARENCY & MATERIAL FIX
+                model.traverse(node => {
+                    if (node.isMesh) {
+                        node.material.transparent = false;
+                        node.material.opacity = 1.0;
+                        node.material.side = THREE.FrontSide;
+                        node.material.alphaTest = 0; // Disable alpha testing for solid look
+                        node.material.depthWrite = true;
+                        node.material.depthTest = true;
+                        if (node.material.map) node.material.map.needsUpdate = true;
+                    }
+                });
 
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
                 model.scale.setScalar(240 / size.y);
 
-                log("Main FBX model loaded and scaled.", "success");
+                log("Main FBX model loaded, scaled, and opaque.", "success");
             } else {
                 log("Failed to load local FBX, using fallback box", "error");
+                modelContainer = new THREE.Group();
+                scene.add(modelContainer);
                 model = new THREE.Mesh(new THREE.BoxGeometry(100, 240, 100), new THREE.MeshStandardMaterial({ color: 0x00ffcc }));
-                scene.add(model);
+                modelContainer.add(model);
                 mixer = new THREE.AnimationMixer(model);
             }
 
@@ -509,7 +529,7 @@
                 fadeToAction('idle2', 0);
                 log("Idle animation started", "success");
             } else {
-                log("Animation 'idle' not found!", "error");
+                log("Animation 'idle2' not found!", "error");
             }
 
             isReady = true;
@@ -575,8 +595,8 @@
 
         function resetNiko() {
             const start = maps[currentLevel].start;
-            model.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
-            model.rotation.y = 0;
+            modelContainer.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
+            modelContainer.rotation.y = 0;
             camYaw = 0;
         }
 
@@ -605,25 +625,25 @@
 
                     const vx = Math.sin(angle) * spd;
                     const vz = Math.cos(angle) * spd;
-                    const nX = model.position.x + vx;
-                    const nZ = model.position.z + vz;
+                    const nX = modelContainer.position.x + vx;
+                    const nZ = modelContainer.position.z + vz;
                     const gx = Math.round((nX + mapOffset) / cellSize);
                     const gz = Math.round((nZ + mapOffset) / cellSize);
                     const currentGrid = maps[currentLevel].grid;
 
                     if (gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
                         if (currentGrid[gz][gx] === 0) {
-                            model.position.x = nX;
-                            model.position.z = nZ;
+                            modelContainer.position.x = nX;
+                            modelContainer.position.z = nZ;
                         }
                     }
 
                     const targetRotation = angle;
-                    const currentRotation = model.rotation.y;
+                    const currentRotation = modelContainer.rotation.y;
                     let diff = targetRotation - currentRotation;
                     while (diff < -Math.PI) diff += Math.PI * 2;
                     while (diff > Math.PI) diff -= Math.PI * 2;
-                    model.rotation.y += diff * 0.15;
+                    modelContainer.rotation.y += diff * 0.15;
 
                     if (keys.shift) fadeToAction('run');
                     else fadeToAction('walk');
@@ -637,12 +657,12 @@
                     }
                 }
 
-                if (nikoLight) nikoLight.position.set(model.position.x, model.position.y + 300, model.position.z);
+                if (nikoLight) nikoLight.position.set(modelContainer.position.x, modelContainer.position.y + 300, modelContainer.position.z);
 
                 for (let i = shards.length - 1; i >= 0; i--) {
                     const s = shards[i];
                     s.rotation.y += 0.02;
-                    if (model.position.distanceTo(s.position) < 250) {
+                    if (modelContainer.position.distanceTo(s.position) < 250) {
                         score += 100;
                         document.getElementById('score').innerText = `SHARDS: ${score}`;
                         levelGroup.remove(s);
@@ -651,7 +671,7 @@
                     }
                 }
 
-                if (model.position.distanceTo(goalOrb.position) < 450) {
+                if (modelContainer.position.distanceTo(goalOrb.position) < 450) {
                     saveBestTime(currentLevel, elapsed);
                     if (currentLevel < 6) {
                         currentLevel++;
@@ -669,7 +689,7 @@
                 shakeIntensity *= 0.9;
                 const sX = (Math.random() - 0.5) * shakeIntensity;
                 const sY = (Math.random() - 0.5) * shakeIntensity;
-                const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
+                const focus = modelContainer.position.clone().add(new THREE.Vector3(0, 150, 0));
                 const pr = THREE.MathUtils.degToRad(camPitch);
                 const tPos = new THREE.Vector3(
                     focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
