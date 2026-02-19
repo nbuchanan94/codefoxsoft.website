@@ -414,7 +414,7 @@
 
             const files = [
                 { key: 'walk', path: baseUrl + 'catwalk.fbx' },
-                { key: 'idle', path: baseUrl + 'idle2.fbx' },
+                { key: 'idle2', path: baseUrl + 'idle2.fbx' },
                 { key: 'twerk', path: baseUrl + 'twerk.fbx' },
                 { key: 'run', path: baseUrl + 'catwalk.fbx' },
                 { key: 'leftturn', path: baseUrl + 'leftturn.fbx' },
@@ -471,7 +471,7 @@
                         }
                     });
 
-                    // NOSE ON FLOOR FIX: 
+                    // NOSE ON FLOOR FIX:
                     // Filter out tracks that target the root object to prevent them overriding model.rotation.x
                     clip.tracks = clip.tracks.filter(track => {
                         const lowTrack = track.name.toLowerCase();
@@ -505,8 +505,8 @@
 
             resetNiko();
             // Force start idle action
-            if (actions['idle']) {
-                fadeToAction('idle', 0);
+            if (actions['idle2']) {
+                fadeToAction('idle2', 0);
                 log("Idle animation started", "success");
             } else {
                 log("Animation 'idle' not found!", "error");
@@ -629,11 +629,11 @@
                     else fadeToAction('walk');
                 } else {
                     if (currentAction !== actions['twerk']) {
-                        fadeToAction('idle');
+                        fadeToAction('idle2');
                         idleTimer += delta;
                         if (idleTimer >= 8) { fadeToAction('twerk'); idleTimer = 0; }
                     } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
-                        fadeToAction('idle');
+                        fadeToAction('idle2');
                     }
                 }
 
