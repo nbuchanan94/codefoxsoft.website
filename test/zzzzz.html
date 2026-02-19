@@ -408,25 +408,23 @@
                 mixer = new THREE.AnimationMixer(model);
 
                 // NOSE ON FLOOR FIX: Stand him up inside the fixGroup
-                // This isolates the rotation from the mixer which might target 'model'
+                // This isolates the rotation from the mixer which targets 'model'
                 fixGroup.rotation.x = -Math.PI / 2;
 
-                // DIRECTIONAL FIX: Flip model 180 so "Forward" aligns with +Z (model was backwards)
-                model.rotation.y = Math.PI;
+                // NO MODEL ROTATION HERE: Child rotation relative to X-rotated parent causes "rolling"
+                model.rotation.set(0, 0, 0);
 
-                // TRANSPARENCY FIX: Force everything to be 100% solid
+                // TRANSPARENCY & OPAQUE FIX: Force everything to be 100% solid
                 model.traverse(node => {
-                    if (node.isMesh) {
+                    if (node.isObject3D && node.isMesh) {
                         node.material.transparent = false;
                         node.material.opacity = 1.0;
                         node.material.alphaTest = 0;
-                        node.material.side = THREE.FrontSide;
+                        node.material.side = THREE.DoubleSide; // Max visibility
                         node.material.depthWrite = true;
                         node.material.depthTest = true;
                         node.material.needsUpdate = true;
-                        if (node.material.map) {
-                            node.material.map.needsUpdate = true;
-                        }
+                        if (node.material.map) node.material.map.needsUpdate = true;
                     }
                 });
 
@@ -663,7 +661,7 @@
                     if (currentAction !== actions['twerk']) {
                         fadeToAction('idle2');
                         idleTimer += delta;
-                        if (idleTimer >= 8) { fadeToAction('twerk'); idleTimer = 0; }
+                        if (idleTimer >= 10) { fadeToAction('twerk'); idleTimer = 0; }
                     } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
                         fadeToAction('idle2');
                     }
