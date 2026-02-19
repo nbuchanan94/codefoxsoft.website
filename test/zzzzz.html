@@ -168,6 +168,37 @@
             background: #fff;
             transform: scale(1.05);
         }
+
+        /* Mini-map Glassmorphism */
+        #minimap-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 180px;
+            height: 180px;
+            background: rgba(0, 255, 204, 0.05);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 12px;
+            padding: 5px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        #minimap-container:hover {
+            transform: scale(1.05);
+        }
+
+        #minimap {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
     </style>
 </head>
 
@@ -179,6 +210,9 @@
     <div id="score-display">
         <div id="timer">00:00</div>
         <div id="score">SHARDS: 0</div>
+    </div>
+    <div id="minimap-container">
+        <canvas id="minimap"></canvas>
     </div>
     <div id="debug-log">DEBUG CONSOLE:<br></div>
     <div id="intro-overlay">
@@ -231,14 +265,18 @@
         let isTransitioning = false, transitionTime = 0;
         let shakeIntensity = 0;
         let camYaw = 0, camDistance = 800;
-        // Camera settings - Defaulting to .5 of closest proximity
-        camDistance = 400; // Adjusted: Closest is 200, so 400 is a close follow mode
-        let camPitch = 18;     // Adjusted: Lower pitch for tighter camera
+        let targetPitch = 18, targetDistance = 400; // New for lerping
+
+        // Camera settings
+        let camPitch = 18;
         camYaw = 0;
         shakeIntensity = 0;
+        let score = 0;
 
         const keys = {}, cellSize = 1800;
         const mapOffset = 4000;
+
+        let minimapCanvas, minimapCtx;
 
         const themes = {
             1: { name: "THE BRONX", sky: 0x050510, fog: 0x050510, fogDens: 0.00018, roadColor: '#1a1a1a', sidewalkColor: '#333', buildColor: '#15151a', win1: '#ffaa00', win2: '#00aaff', lightColor: 0xffaa00, ambient: 0.6 },
@@ -331,6 +369,12 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
+            // Initialize Mini-map
+            minimapCanvas = document.getElementById('minimap');
+            minimapCtx = minimapCanvas.getContext('2d');
+            minimapCanvas.width = 150;
+            minimapCanvas.height = 150;
+
             const ambient = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambient);
             const sun = new THREE.DirectionalLight(0xffffff, 0.5);
@@ -362,8 +406,10 @@
                 startAction();
 
                 if (k === 't') {
-                    camPitch = (camPitch < 40 ? 85 : 18);
-                    camDistance = (camPitch === 85 ? 3500 : 400);
+                    // Use target variables for smooth lerping
+                    targetPitch = (targetPitch < 40 ? 85 : 18);
+                    targetDistance = (targetPitch === 85 ? 4000 : 400);
+                    log(`Birds-eye: ${targetPitch === 85 ? "ON" : "OFF"}`, "info");
                 }
             });
             window.addEventListener('mousedown', startAction);
@@ -420,8 +466,8 @@
                 // HEIGHT FIX: Ensure feet are on the floor (Y=0)
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
-                // Scale to 120 units tall (reduced from 240 as per user request)
-                model.scale.setScalar(120 / size.y);
+                // Scale to 80 units tall (user request for one notch smaller)
+                model.scale.setScalar(80 / size.y);
 
                 // Compute box again after scale to get precise offset
                 const scaledBox = new THREE.Box3().setFromObject(model);
@@ -485,37 +531,29 @@
                     let totalTracks = clip.tracks.length;
 
                     clip.tracks.forEach(track => {
-                        const parts = track.name.split('.');
-                        if (parts.length < 2) return;
-
-                        let trackBoneName = parts[0];
-                        const property = parts[parts.length - 1];
-
-                        const normTrack = trackBoneName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                        const coreTrack = normTrack.replace(/mixamorig|mixamo|armature/g, '');
-
+                        const trackNameParts = track.name.split('.');
+                        const property = trackNameParts.pop();
                         let targetBoneName = null;
-                        if (nodeMap.has(normTrack)) targetBoneName = nodeMap.get(normTrack);
-                        else if (nodeMap.has(coreTrack)) targetBoneName = nodeMap.get(coreTrack);
-                        else {
-                            for (let [key, val] of nodeMap) {
-                                if (key.length > 3 && (coreTrack.includes(key) || key.includes(coreTrack))) {
-                                    targetBoneName = val; break;
-                                }
+
+                        // Robust Scan: Check all parts of the track name for a bone match
+                        for (const p of trackNameParts) {
+                            const normP = p.toLowerCase().replace(/[^a-z0-9]/g, '');
+                            const coreP = normP.replace(/mixamorig|mixamo|armature/g, '');
+
+                            if (nodeMap.has(normP)) targetBoneName = nodeMap.get(normP);
+                            else if (nodeMap.has(coreP)) targetBoneName = nodeMap.get(coreP);
+                            else {
+                                // Try splitting by colon for mixamorig:Prefix
+                                const boneOnly = p.split(':').pop();
+                                const target = model.getObjectByName(boneOnly);
+                                if (target) targetBoneName = target.name;
                             }
+                            if (targetBoneName) break;
                         }
 
                         if (targetBoneName) {
                             track.name = targetBoneName + "." + property;
                             if (model.getObjectByName(targetBoneName)) boundOk++;
-                        } else {
-                            // LAST DITCH: If part of the track name matches any bone, try it
-                            const boneOnly = trackBoneName.split(':').pop();
-                            const target = model.getObjectByName(boneOnly);
-                            if (target) {
-                                track.name = target.name + "." + property;
-                                boundOk++;
-                            }
                         }
                     });
 
@@ -540,15 +578,17 @@
                     if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
                     else action.setLoop(THREE.LoopRepeat);
 
-                    if (res.key === 'walk') action.setEffectiveTimeScale(2.2);
+                    // Animation Speeds
+                    if (res.key === 'walk') action.setEffectiveTimeScale(3.0);
+                    if (res.key === 'run') action.setEffectiveTimeScale(4.5);
 
                     actions[res.key] = action;
                     const percent = Math.round((boundOk / totalTracks) * 100);
                     log(`Linked ${res.key}: ${percent}% bound (${boundOk}/${totalTracks} tracks)`, percent > 50 ? "success" : "error");
 
-                    // DIAGNOSTIC: If bound is 0, log the first track name
-                    if (boundOk === 0 && totalTracks > 0) {
-                        log(`  DIAG: ${res.key} failed. First track: ${res.fbx.animations[0].tracks[0].name}`, "error");
+                    if (percent < 20 && totalTracks > 0) {
+                        const sample = clip.tracks.slice(0, 2).map(t => t.name).join(', ');
+                        log(`  DIAG: ${res.key} failed. Track pattern: ${sample}`, "error");
                     }
                 } else {
                     log(`Skipped ${res.key}: clip not found or empty`, "error");
@@ -632,6 +672,63 @@
             levelGroup.add(shard);
         }
 
+        function drawMinimap() {
+            if (!minimapCtx || !isReady) return;
+            const ctx = minimapCtx;
+            const grid = maps[currentLevel].grid;
+            const cw = minimapCanvas.width, ch = minimapCanvas.height;
+            const rows = grid.length, cols = grid[0].length;
+            const cellW = cw / cols, cellH = ch / rows;
+
+            ctx.clearRect(0, 0, cw, ch);
+
+            // Draw Background (Grid)
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    ctx.fillStyle = grid[r][c] === 1 ? 'rgba(0, 255, 204, 0.15)' : 'rgba(0, 0, 0, 0.3)';
+                    ctx.fillRect(c * cellW, r * cellH, cellW - 1, cellH - 1);
+                }
+            }
+
+            // Draw Shards
+            ctx.fillStyle = '#00ffcc';
+            shards.forEach(s => {
+                const sx = (s.position.x + mapOffset) / cellSize;
+                const sz = (s.position.z + mapOffset) / cellSize;
+                ctx.beginPath();
+                ctx.arc(sx * cellW + cellW / 2, sz * cellH + cellH / 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw Goal
+            const gx = maps[currentLevel].goal.x, gz = maps[currentLevel].goal.z;
+            ctx.fillStyle = '#ffcc00';
+            ctx.shadowBlur = 10; ctx.shadowColor = '#ffcc00';
+            ctx.fillRect(gx * cellW + 2, gz * cellH + 2, cellW - 4, cellH - 4);
+            ctx.shadowBlur = 0;
+
+            // Draw Player
+            const px = (modelContainer.position.x + mapOffset) / cellSize;
+            const pz = (modelContainer.position.z + mapOffset) / cellSize;
+            ctx.fillStyle = '#fff';
+            ctx.shadowBlur = 15; ctx.shadowColor = '#fff';
+            ctx.beginPath();
+            ctx.arc(px * cellW + cellW / 2, pz * cellH + cellH / 2, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Player directional indicator
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(px * cellW + cellW / 2, pz * cellH + cellH / 2);
+            ctx.lineTo(
+                px * cellW + cellW / 2 + Math.sin(modelContainer.rotation.y) * 10,
+                pz * cellH + cellH / 2 + Math.cos(modelContainer.rotation.y) * 10
+            );
+            ctx.stroke();
+        }
+
         function startLevelTransition() {
             if (isTransitioning) return;
             isTransitioning = true;
@@ -658,8 +755,12 @@
 
                 if (keys['arrowleft']) camYaw += 0.05;
                 if (keys['arrowright']) camYaw -= 0.05;
-                if (keys['arrowup']) camDistance = Math.max(200, camDistance - 25);
-                if (keys['arrowdown']) camDistance = Math.min(6000, camDistance + 25);
+                if (keys['arrowup']) targetDistance = Math.max(200, targetDistance - 50);
+                if (keys['arrowdown']) targetDistance = Math.min(6000, targetDistance + 50);
+
+                // Smooth Lerp Camera
+                camPitch = THREE.MathUtils.lerp(camPitch, targetPitch, 0.08);
+                camDistance = THREE.MathUtils.lerp(camDistance, targetDistance, 0.08);
 
                 let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
                 let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
@@ -791,6 +892,8 @@
                 const sc = 1 + Math.sin(clock.getElapsedTime() * 4) * 0.15;
                 goalOrb.scale.set(sc, sc, sc);
             }
+
+            drawMinimap();
 
             renderer.render(scene, camera);
         }
