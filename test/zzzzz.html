@@ -221,7 +221,7 @@
         import * as THREE from 'three';
         import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-        let scene, camera, renderer, mixer, clock, model, modelContainer, goalOrb, nikoLight;
+        let scene, camera, renderer, mixer, clock, model, modelContainer, fixGroup, goalOrb, nikoLight;
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
         let actions = {}, currentAction, idleTimer = 0;
         let isReady = false;
@@ -394,27 +394,39 @@
             if (!modelResult.error && modelResult.fbx) {
                 model = modelResult.fbx;
 
-                // Wrap in container for clean rotation/movement
+                // 1. Scene -> modelContainer (moves/turns)
                 modelContainer = new THREE.Group();
                 scene.add(modelContainer);
-                modelContainer.add(model);
+
+                // 2. modelContainer -> fixGroup (handles standing the prone character up)
+                fixGroup = new THREE.Group();
+                modelContainer.add(fixGroup);
+
+                // 3. fixGroup -> model (handles animations)
+                fixGroup.add(model);
 
                 mixer = new THREE.AnimationMixer(model);
 
-                // NOSE ON FLOOR & DIRECTION FIX
-                model.rotation.x = -Math.PI / 2; // Standing up Fix
-                model.rotation.y = 0; // Trial: Start with 0. If S is correct, then with container rotation he should be fine.
+                // NOSE ON FLOOR FIX: Stand him up inside the fixGroup
+                // This isolates the rotation from the mixer which might target 'model'
+                fixGroup.rotation.x = -Math.PI / 2;
 
-                // TRANSPARENCY & MATERIAL FIX
+                // DIRECTIONAL FIX: Flip model 180 so "Forward" aligns with +Z (model was backwards)
+                model.rotation.y = Math.PI;
+
+                // TRANSPARENCY FIX: Force everything to be 100% solid
                 model.traverse(node => {
                     if (node.isMesh) {
                         node.material.transparent = false;
                         node.material.opacity = 1.0;
+                        node.material.alphaTest = 0;
                         node.material.side = THREE.FrontSide;
-                        node.material.alphaTest = 0; // Disable alpha testing for solid look
                         node.material.depthWrite = true;
                         node.material.depthTest = true;
-                        if (node.material.map) node.material.map.needsUpdate = true;
+                        node.material.needsUpdate = true;
+                        if (node.material.map) {
+                            node.material.map.needsUpdate = true;
+                        }
                     }
                 });
 
@@ -422,7 +434,7 @@
                 const size = box.getSize(new THREE.Vector3());
                 model.scale.setScalar(240 / size.y);
 
-                log("Main FBX model loaded, scaled, and opaque.", "success");
+                log("Main FBX loaded, stood up, and solidified.", "success");
             } else {
                 log("Failed to load local FBX, using fallback box", "error");
                 modelContainer = new THREE.Group();
