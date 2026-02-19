@@ -11,7 +11,7 @@
                 "Generation": "AccuRig",
                 "Physics": {
                     "Collision Shapes": {
-                        "root": {},
+                        "RL_BoneRoot": {},
                         "CC_Base_Hip": {},
                         "CC_Base_Pelvis": {},
                         "CC_Base_L_Thigh": {},
@@ -403,7 +403,7 @@
                     "Body": {
                         "SubD Level": 0,
                         "Materials": {
-                            "body_Pbr": {
+                            "body": {
                                 "Material Type": "Pbr",
                                 "MultiUV Index": 0,
                                 "Two Side": true,
@@ -426,7 +426,7 @@
                                 "Self Illumination": 0.0,
                                 "Textures": {
                                     "Base Color": {
-                                        "Texture Path": "body_Pbr_Diffuse.png",
+                                        "Texture Path": "body_Diffuse.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -438,7 +438,7 @@
                                         ]
                                     },
                                     "Opacity": {
-                                        "Texture Path": "body_Pbr_Diffuse.png",
+                                        "Texture Path": "body_Opacity.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -457,7 +457,7 @@
                     "Ears": {
                         "SubD Level": 0,
                         "Materials": {
-                            "ears_Pbr": {
+                            "ears": {
                                 "Material Type": "Pbr",
                                 "MultiUV Index": 0,
                                 "Two Side": true,
@@ -480,7 +480,7 @@
                                 "Self Illumination": 0.0,
                                 "Textures": {
                                     "Base Color": {
-                                        "Texture Path": "ears_Pbr_Diffuse.png",
+                                        "Texture Path": "ears_Diffuse.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -492,7 +492,7 @@
                                         ]
                                     },
                                     "Opacity": {
-                                        "Texture Path": "ears_Pbr_Diffuse.png",
+                                        "Texture Path": "ears_Opacity.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -511,7 +511,7 @@
                     "Eyes": {
                         "SubD Level": 0,
                         "Materials": {
-                            "eyes_Pbr": {
+                            "eyes": {
                                 "Material Type": "Pbr",
                                 "MultiUV Index": 0,
                                 "Two Side": true,
@@ -534,7 +534,7 @@
                                 "Self Illumination": 0.0,
                                 "Textures": {
                                     "Base Color": {
-                                        "Texture Path": "eyes_Pbr_Diffuse.png",
+                                        "Texture Path": "eyes_Diffuse.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -546,7 +546,7 @@
                                         ]
                                     },
                                     "Opacity": {
-                                        "Texture Path": "eyes_Pbr_Diffuse.png",
+                                        "Texture Path": "eyes_Opacity.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -565,7 +565,7 @@
                     "Fluff": {
                         "SubD Level": 0,
                         "Materials": {
-                            "fluff_Pbr": {
+                            "fluff": {
                                 "Material Type": "Pbr",
                                 "MultiUV Index": 0,
                                 "Two Side": true,
@@ -588,7 +588,7 @@
                                 "Self Illumination": 0.0,
                                 "Textures": {
                                     "Base Color": {
-                                        "Texture Path": "fluff_Pbr_Diffuse.png",
+                                        "Texture Path": "fluff_Diffuse.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -600,7 +600,7 @@
                                         ]
                                     },
                                     "Opacity": {
-                                        "Texture Path": "fluff_Pbr_Diffuse.png",
+                                        "Texture Path": "fluff_Opacity.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -619,7 +619,7 @@
                     "Hair": {
                         "SubD Level": 0,
                         "Materials": {
-                            "hair_Pbr": {
+                            "hair": {
                                 "Material Type": "Pbr",
                                 "MultiUV Index": 0,
                                 "Two Side": true,
@@ -642,7 +642,7 @@
                                 "Self Illumination": 0.0,
                                 "Textures": {
                                     "Base Color": {
-                                        "Texture Path": "hair_Pbr_Diffuse.png",
+                                        "Texture Path": "hair_Diffuse.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -654,7 +654,7 @@
                                         ]
                                     },
                                     "Opacity": {
-                                        "Texture Path": "hair_Pbr_Diffuse.png",
+                                        "Texture Path": "hair_Opacity.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -673,7 +673,7 @@
                     "Head": {
                         "SubD Level": 0,
                         "Materials": {
-                            "head_Pbr": {
+                            "head": {
                                 "Material Type": "Pbr",
                                 "MultiUV Index": 0,
                                 "Two Side": true,
@@ -696,7 +696,7 @@
                                 "Self Illumination": 0.0,
                                 "Textures": {
                                     "Base Color": {
-                                        "Texture Path": "head_Pbr_Diffuse.png",
+                                        "Texture Path": "head_Diffuse.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -708,7 +708,7 @@
                                         ]
                                     },
                                     "Opacity": {
-                                        "Texture Path": "head_Pbr_Diffuse.png",
+                                        "Texture Path": "head_Opacity.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -727,7 +727,7 @@
                     "Mouth": {
                         "SubD Level": 0,
                         "Materials": {
-                            "mouth_Pbr": {
+                            "mouth": {
                                 "Material Type": "Pbr",
                                 "MultiUV Index": 0,
                                 "Two Side": true,
@@ -750,7 +750,7 @@
                                 "Self Illumination": 0.0,
                                 "Textures": {
                                     "Base Color": {
-                                        "Texture Path": "mouth_Pbr_Diffuse.png",
+                                        "Texture Path": "mouth_Diffuse.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -762,7 +762,7 @@
                                         ]
                                     },
                                     "Opacity": {
-                                        "Texture Path": "mouth_Pbr_Diffuse.png",
+                                        "Texture Path": "mouth_Opacity.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -781,7 +781,7 @@
                     "Nose": {
                         "SubD Level": 0,
                         "Materials": {
-                            "nose_Pbr": {
+                            "nose": {
                                 "Material Type": "Pbr",
                                 "MultiUV Index": 0,
                                 "Two Side": true,
@@ -804,7 +804,7 @@
                                 "Self Illumination": 0.0,
                                 "Textures": {
                                     "Base Color": {
-                                        "Texture Path": "nose_Pbr_Diffuse.png",
+                                        "Texture Path": "nose_Diffuse.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
@@ -816,7 +816,7 @@
                                         ]
                                     },
                                     "Opacity": {
-                                        "Texture Path": "nose_Pbr_Diffuse.png",
+                                        "Texture Path": "nose_Opacity.png",
                                         "Strength": 100.0,
                                         "Offset": [
                                             0.0,
