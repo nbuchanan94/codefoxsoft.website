@@ -408,11 +408,21 @@
                 mixer = new THREE.AnimationMixer(model);
 
                 // NOSE ON FLOOR FIX: Stand him up inside the fixGroup
-                // This isolates the rotation from the mixer which targets 'model'
-                fixGroup.rotation.x = -Math.PI / 2;
+                // If -PI/2 was upside down, PI/2 should be right side up.
+                fixGroup.rotation.x = Math.PI / 2;
 
                 // NO MODEL ROTATION HERE: Child rotation relative to X-rotated parent causes "rolling"
                 model.rotation.set(0, 0, 0);
+
+                // HEIGHT FIX: Ensure feet are on the floor (Y=0)
+                const box = new THREE.Box3().setFromObject(model);
+                const size = box.getSize(new THREE.Vector3());
+                // After scaling 240, we need to know the min Y to offset it
+                model.scale.setScalar(240 / size.y);
+
+                // Compute box again after scale to get precise offset
+                const scaledBox = new THREE.Box3().setFromObject(model);
+                model.position.y = -scaledBox.min.y;
 
                 // TRANSPARENCY & OPAQUE FIX: Force everything to be 100% solid
                 model.traverse(node => {
@@ -428,11 +438,7 @@
                     }
                 });
 
-                const box = new THREE.Box3().setFromObject(model);
-                const size = box.getSize(new THREE.Vector3());
-                model.scale.setScalar(240 / size.y);
-
-                log("Main FBX loaded, stood up, and solidified.", "success");
+                log("Main FBX loaded, flipped upright, and height corrected.", "success");
             } else {
                 log("Failed to load local FBX, using fallback box", "error");
                 modelContainer = new THREE.Group();
