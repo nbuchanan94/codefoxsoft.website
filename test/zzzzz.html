@@ -420,8 +420,8 @@
                 // HEIGHT FIX: Ensure feet are on the floor (Y=0)
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
-                // Scale to roughly 240 units tall
-                model.scale.setScalar(240 / size.y);
+                // Scale to 120 units tall (reduced from 240 as per user request)
+                model.scale.setScalar(120 / size.y);
 
                 // Compute box again after scale to get precise offset
                 const scaledBox = new THREE.Box3().setFromObject(model);
@@ -508,6 +508,14 @@
                         if (targetBoneName) {
                             track.name = targetBoneName + "." + property;
                             if (model.getObjectByName(targetBoneName)) boundOk++;
+                        } else {
+                            // LAST DITCH: If part of the track name matches any bone, try it
+                            const boneOnly = trackBoneName.split(':').pop();
+                            const target = model.getObjectByName(boneOnly);
+                            if (target) {
+                                track.name = target.name + "." + property;
+                                boundOk++;
+                            }
                         }
                     });
 
@@ -517,15 +525,12 @@
                         const lowTrack = track.name.toLowerCase();
                         const parts = track.name.split('.');
 
-                        // If track has no dot, it targets root
                         if (parts.length === 1) return false;
 
                         const boneName = parts[0];
-                        // If boneName is empty or matches model name, it's a root override
                         if (!boneName || boneName === model.name) return false;
 
                         if (lowTrack.includes('.position')) {
-                            // Keep vertical hip movement, block horizontal drift
                             return lowTrack.includes('hips') || lowTrack.includes('pelvis');
                         }
                         return true;
@@ -539,7 +544,14 @@
 
                     actions[res.key] = action;
                     const percent = Math.round((boundOk / totalTracks) * 100);
-                    log(`Linked ${res.key}: ${percent}% bound`, percent > 50 ? "success" : "error");
+                    log(`Linked ${res.key}: ${percent}% bound (${boundOk}/${totalTracks} tracks)`, percent > 50 ? "success" : "error");
+
+                    // DIAGNOSTIC: If bound is 0, log the first track name
+                    if (boundOk === 0 && totalTracks > 0) {
+                        log(`  DIAG: ${res.key} failed. First track: ${res.fbx.animations[0].tracks[0].name}`, "error");
+                    }
+                } else {
+                    log(`Skipped ${res.key}: clip not found or empty`, "error");
                 }
             });
 
