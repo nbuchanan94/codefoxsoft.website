@@ -679,6 +679,9 @@
             const stand = (s) => s.toLowerCase()
                 .replace(/mixamorig|ccbase|armature|rl/g, '')
                 .replace(/^left/, 'l').replace(/^right/, 'r')
+                .replace(/hips?/, 'hip') // Normalize hip/hips
+                .replace(/legs?/, 'leg') // Normalize leg/legs
+                .replace(/toes?/, 'toe') // Normalize toe/toes
                 .replace(/[^a-z0-9]/g, ''); // Ensure 'l_thigh' and 'lthigh' both become 'lthigh'
 
             model.traverse(node => {
@@ -691,8 +694,8 @@
             });
 
             const boneAliases = {
-                'hips': ['pelvis', 'waist', 'root', 'bip01_pelvis'],
-                'pelvis': ['hips', 'waist', 'bip01_pelvis'],
+                'hip': ['pelvis', 'waist', 'root', 'bip01_pelvis'],
+                'pelvis': ['hip', 'waist', 'bip01_pelvis'],
                 'spine': ['chest', 'waist', 'spine01', 'spine02', 'bip01_spine'],
                 'chest': ['spine01', 'spine02', 'spine03', 'bip01_spine2'],
                 'neck': ['head', 'bip01_neck'],
@@ -714,7 +717,6 @@
 
             results.forEach(res => {
                 if (!res.error && res.fbx && res.fbx.animations.length > 0) {
-                    // PICK THE BEST CLIP (AccuRig often has poses at index 0, real anim at 1)
                     let bestClip = res.fbx.animations[0];
                     if (res.fbx.animations.length > 1) {
                         res.fbx.animations.forEach(c => {
@@ -725,42 +727,29 @@
 
                     const clip = bestClip.clone();
                     clip.name = res.key;
-
                     let boundOk = 0;
-                    let totalTracks = clip.tracks.length;
+                    const totalTracks = clip.tracks.length;
+                    const seenBones = new Set();
 
-                    clip.tracks.forEach(track => {
-                        const trackNameParts = track.name.split('.');
-                        const property = trackNameParts.pop();
+                    // Step 1: Human-Aware Mapping & Collision Prevention
+                    clip.tracks = clip.tracks.filter(track => {
+                        const parts = track.name.split('.');
+                        const property = parts.pop();
                         let targetBoneName = null;
 
-                        // Hyper-Robust Matching with L/R preservation (STRICT)
-                        for (const p of trackNameParts) {
+                        for (const p of parts) {
                             const clean = stand(p);
                             const side = clean.startsWith('l') ? 'l' : (clean.startsWith('r') ? 'r' : '');
                             const core = side ? clean.slice(1) : clean;
 
-                            // 1. Strict match
+                            // 1. Exact Match
                             if (nodeMap.has(clean)) {
                                 targetBoneName = nodeMap.get(clean);
-                            } else {
-                                // 2. Strict Alias match (no "includes" to avoid ArmRoll stealing Arm)
-                                if (boneAliases[core]) {
-                                    for (let alt of boneAliases[core]) {
-                                        const searchKey = side + alt;
-                                        if (nodeMap.has(searchKey)) {
-                                            targetBoneName = nodeMap.get(searchKey);
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
-                            // 3. Fallback (only for longer unique names)
-                            if (!targetBoneName) {
-                                for (let [key, val] of nodeMap) {
-                                    if (key.length >= 6 && key === clean) {
-                                        targetBoneName = val;
+                            } else if (boneAliases[core]) {
+                                // 2. Alias Match
+                                for (let alt of boneAliases[core]) {
+                                    if (nodeMap.has(side + alt)) {
+                                        targetBoneName = nodeMap.get(side + alt);
                                         break;
                                     }
                                 }
@@ -769,72 +758,56 @@
                         }
 
                         if (targetBoneName) {
+                            // Only allow one driver per bone property
+                            const uniqueKey = targetBoneName + "." + (property === 'quaternion' ? 'rot' : 'pos');
+                            if (seenBones.has(uniqueKey)) return false;
+                            seenBones.add(uniqueKey);
+
                             track.name = targetBoneName + "." + property;
-                            if (model.getObjectByName(targetBoneName)) boundOk++;
+                            boundOk++;
+                            return true;
                         }
+                        return false;
                     });
 
-                    // NOSE ON FLOOR FIX: (Character stability)
+                    // Step 2: Stability Filter (Position only on core hub)
                     clip.tracks = clip.tracks.filter(track => {
-                        const parts = track.name.split('.');
-                        if (parts.length === 1) return false;
-                        const boneName = parts[0];
-                        if (boneName === model.name) return false;
-
-                        // FLAPPING FIX: Only allow position tracks on the HIPS/ROOT.
-                        // Non-hip position tracks in Mixamo often cause "fly away" effects.
                         if (track.name.toLowerCase().includes('.position')) {
                             const low = track.name.toLowerCase();
-                            return low.includes('hips') || low.includes('pelvis') || low.includes('root') || low.includes('waist');
+                            return low.includes('hip') || low.includes('pelvis') || low.includes('root') || low.includes('waist');
                         }
                         return true;
                     });
 
                     const rawPercent = Math.round((boundOk / totalTracks) * 100);
                     const activeTracks = clip.tracks.length;
-
                     const action = mixer.clipAction(clip);
-                    if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
-                    else action.setLoop(THREE.LoopRepeat);
+                    action.setLoop(res.key === 'twerk' ? THREE.LoopOnce : THREE.LoopRepeat);
 
-                    // Animation Speeds
                     if (res.key === 'walk') action.setEffectiveTimeScale(3.0);
                     if (res.key === 'run') action.setEffectiveTimeScale(4.5);
-                    if (res.key === 'alt_run') action.setEffectiveTimeScale(5.0);
+                    if (res.key === 'alt_run') action.setEffectiveTimeScale(5.5);
 
                     actions[res.key] = action;
                     animationScores[res.key] = rawPercent;
 
-                    // Update Diagnostic Overlay
                     const overlay = document.getElementById('anim-overlay');
                     const item = document.createElement('div');
                     item.className = 'anim-item';
                     const color = rawPercent > 90 ? '#00ffcc' : (rawPercent > 40 ? '#ffcc00' : '#ff4444');
-                    // Show Raw Binding (Bone match) and Active (after stability filtering)
                     item.innerHTML = `<span>${res.key}</span><span class="anim-pct" style="color:${color}">${rawPercent}%</span> <small style="opacity:0.5">(${activeTracks} act)</small>`;
                     overlay.appendChild(item);
 
                     log(`Linked ${res.key}: ${rawPercent}% raw binding (${activeTracks}/${totalTracks} active tracks)`, rawPercent > 90 ? "success" : "error");
 
-                    if (res.key === 'resting') {
-                        const sample = clip.tracks.slice(0, 8).map(t => {
-                            const b = t.name.split('.')[0];
-                            return b.length > 10 ? '...' + b.slice(-8) : b;
-                        }).join(' | ');
-                        log(`  AUDIT [resting]: ${sample}`, "info");
-                    }
-
-                    // Smart Idle Picker: Pick resting as primary if bound
-                    if (res.key === 'resting') {
-                        if (rawPercent > maxIdleScore && rawPercent > 15) {
-                            maxIdleScore = rawPercent;
-                            activeIdleKey = res.key;
-                        }
-                    }
-
                     if (rawPercent < 30 && totalTracks > 0) {
                         const rawTracks = res.fbx.animations[0].tracks.slice(0, 3).map(t => t.name).join(' | ');
                         log(`  DIAG: ${res.key} failed. Source tracks sample: ${rawTracks}`, "error");
+                    }
+
+                    if (res.key === 'resting' && rawPercent > maxIdleScore && rawPercent > 15) {
+                        maxIdleScore = rawPercent;
+                        activeIdleKey = res.key;
                     }
                 } else {
                     log(`Skipped ${res.key}: clip not found or empty`, "error");
@@ -842,7 +815,6 @@
             });
 
             resetNiko();
-            // Force start best idle action
             if (actions[activeIdleKey]) {
                 fadeToAction(activeIdleKey, 0);
                 log(`Best Idle System: Using '${activeIdleKey}'`, "success");
