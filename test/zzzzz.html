@@ -291,6 +291,7 @@
         let idleTimer = 0;
         let restingThreshold = 10 + Math.random() * 5; // New: Randomized resting duration
         let isReady = false;
+        let velX = 0, velZ = 0; // New for movement inertia
 
         // Game Feel & Transition Variables
         let walls = [], roads = [], shards = [];
@@ -727,7 +728,7 @@
             document.getElementById('click-prompt').style.display = "block";
         }
 
-        function fadeToAction(name, duration = 0.6) {
+        function fadeToAction(name, duration = 0.3) {
             if (!actions[name]) return;
             const prev = currentAction;
             currentAction = actions[name];
@@ -887,11 +888,13 @@
                 let inputX = (keys['KeyD'] ? 1 : 0) - (keys['KeyA'] ? 1 : 0);
                 let inputZ = (keys['KeyS'] ? 1 : 0) - (keys['KeyW'] ? 1 : 0);
 
+                const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'] || keys['shift'];
+                const spd = isSprinting ? 75 : 40;
+
                 if (inputX !== 0 || inputZ !== 0) {
                     idleTimer = 0;
                     const angle = Math.atan2(inputX, inputZ) + camYaw;
-                    const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'] || keys['shift'];
-                    const spd = isSprinting ? 75 : 40;
+
                     if (isSprinting) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
                         camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
@@ -900,20 +903,10 @@
                     }
                     camera.updateProjectionMatrix();
 
-                    const vx = Math.sin(angle) * spd;
-                    const vz = Math.cos(angle) * spd;
-                    const nX = modelContainer.position.x + vx;
-                    const nZ = modelContainer.position.z + vz;
-                    const gx = Math.round((nX + mapOffset) / cellSize);
-                    const gz = Math.round((nZ + mapOffset) / cellSize);
-                    const currentGrid = maps[currentLevel].grid;
-
-                    if (gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
-                        if (currentGrid[gz][gx] === 0) {
-                            modelContainer.position.x = nX;
-                            modelContainer.position.z = nZ;
-                        }
-                    }
+                    const targetVelX = Math.sin(angle) * spd;
+                    const targetVelZ = Math.cos(angle) * spd;
+                    velX = THREE.MathUtils.lerp(velX, targetVelX, 0.2);
+                    velZ = THREE.MathUtils.lerp(velZ, targetVelZ, 0.2);
 
                     const targetRotation = angle;
                     const currentRotation = modelContainer.rotation.y;
@@ -925,6 +918,9 @@
                     if (isSprinting) fadeToAction('run');
                     else fadeToAction('walk');
                 } else {
+                    velX = THREE.MathUtils.lerp(velX, 0, 0.1);
+                    velZ = THREE.MathUtils.lerp(velZ, 0, 0.1);
+
                     idleTimer += delta;
                     let targetIdle = activeIdleKey;
 
@@ -941,6 +937,25 @@
                     if (targetIdle === 'twerk' && actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
                         idleTimer = 0;
                         restingThreshold = 10 + Math.random() * 5; // RE-RANDOMIZE for next cycle
+                    }
+                }
+
+                // Apply unified velocity movement & Collision (Inertia)
+                if (Math.abs(velX) > 0.1 || Math.abs(velZ) > 0.1) {
+                    const nX = modelContainer.position.x + velX;
+                    const nZ = modelContainer.position.z + velZ;
+                    const gx = Math.round((nX + mapOffset) / cellSize);
+                    const gz = Math.round((nZ + mapOffset) / cellSize);
+                    const currentGrid = maps[currentLevel].grid;
+
+                    if (gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
+                        if (currentGrid[gz][gx] === 0) {
+                            modelContainer.position.x = nX;
+                            modelContainer.position.z = nZ;
+                        } else {
+                            // Wall hit: Stop velocity
+                            velX = 0; velZ = 0;
+                        }
                     }
                 }
 
