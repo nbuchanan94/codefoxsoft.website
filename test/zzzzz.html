@@ -262,7 +262,7 @@
 
         // Game Feel & Transition Variables
         let walls = [], roads = [], shards = [];
-        let isTransitioning = false, transitionTime = 0;
+        let isTransitioning = false, transitionTime = 0, hasShifted = false;
         let shakeIntensity = 0;
         let camYaw = 0, camDistance = 800;
         let targetPitch = 18, targetDistance = 400; // New for lerping
@@ -474,19 +474,19 @@
                 // Lift so min Y (feet) is at floor level (Y=0)
                 model.position.y = -scaledBox.min.y;
 
-                // TRANSPARENCY & OPAQUE FIX: Force everything to be 100% solid
+                // OPTIMIZED MATERIAL HANDLING: Preserve FBX materials/textures
                 model.traverse(node => {
-                    if (node.isObject3D && node.isMesh) {
-                        node.material.transparent = false;
-                        node.material.opacity = 1.0;
-                        node.material.alphaTest = 0;
-                        node.material.side = THREE.DoubleSide; // Max visibility
+                    if (node.isMesh) {
+                        node.material.side = THREE.DoubleSide;
                         node.material.depthWrite = true;
-                        node.material.depthTest = true;
-                        node.material.needsUpdate = true;
-                        if (node.material.map) node.material.map.needsUpdate = true;
+                        if (node.material.map) node.material.map.anisotropy = 16;
                     }
                 });
+
+                // BONE DIAGNOSTIC: Log all bone names to help with binding
+                const boneNames = [];
+                model.traverse(n => { if (n.isBone) boneNames.push(n.name); });
+                log(`SKELETON READY: Found ${boneNames.length} bones. (e.g. ${boneNames.slice(0, 3).join(', ')})`, "info");
 
                 log("Main FBX loaded, stood upright, and height shifted.", "success");
             } else {
@@ -502,9 +502,7 @@
                 { key: 'walk', path: baseUrl + 'catwalk.fbx' },
                 { key: 'idle2', path: baseUrl + 'idle2.fbx' },
                 { key: 'twerk', path: baseUrl + 'twerk.fbx' },
-                { key: 'run', path: baseUrl + 'catwalk.fbx' },
-                { key: 'leftturn', path: baseUrl + 'leftturn.fbx' },
-                { key: 'rightturn', path: baseUrl + 'rightturn.fbx' }
+                { key: 'run', path: baseUrl + 'catwalk.fbx' }
             ];
 
             log("Loading animations from local files...", "info");
@@ -536,20 +534,21 @@
                         const property = trackNameParts.pop();
                         let targetBoneName = null;
 
-                        // Robust Scan: Check all parts of the track name for a bone match
+                        // Ultra-Robust Matching (Scrub prefixes like mixamorig, cc_base, rl)
                         for (const p of trackNameParts) {
-                            const normP = p.toLowerCase().replace(/[^a-z0-9]/g, '');
-                            const coreP = normP.replace(/mixamorig|mixamo|armature|ccbase|rl/g, '');
+                            const raw = p.toLowerCase().replace(/mixamorig[|_:]|cc[|_:]base[|_:]|rl[|_:]/g, '').replace(/[^a-z0-9]/g, '');
+                            const core = raw.replace(/mixamo|armature|ccbase|rl/g, '');
 
-                            if (nodeMap.has(normP)) targetBoneName = nodeMap.get(normP);
-                            else if (nodeMap.has(coreP)) targetBoneName = nodeMap.get(coreP);
-                            else {
-                                // Try splitting by colon for mixamorig:Prefix or rl:Prefix
-                                const boneOnly = p.split(':').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
-                                if (nodeMap.has(boneOnly)) targetBoneName = nodeMap.get(boneOnly);
-                                else {
-                                    const target = model.getObjectByName(p.split(':').pop());
-                                    if (target) targetBoneName = target.name;
+                            if (nodeMap.has(raw)) targetBoneName = nodeMap.get(raw);
+                            else if (nodeMap.has(core)) targetBoneName = nodeMap.get(core);
+
+                            // Last ditch: partial match
+                            if (!targetBoneName) {
+                                for (let [key, val] of nodeMap) {
+                                    if (key.length > 3 && (raw.includes(key) || key.includes(raw))) {
+                                        targetBoneName = val;
+                                        break;
+                                    }
                                 }
                             }
                             if (targetBoneName) break;
@@ -737,6 +736,7 @@
             if (isTransitioning) return;
             isTransitioning = true;
             transitionTime = 0;
+            hasShifted = false;
             gameActive = false;
             log("LEVEL COMPLETE! Dimension shifting...", "success");
         }
@@ -847,8 +847,8 @@
                     walls.forEach(w => {
                         w.position.y = 3000 - (p * 6000);
                     });
-                } else if (transitionTime < 1.1) {
-                    // Phase 2: Load next level
+                } else if (!hasShifted) {
+                    // Phase 2: Load next level (ONCE)
                     if (currentLevel < 6) {
                         currentLevel++;
                         buildLevel(currentLevel);
@@ -856,15 +856,15 @@
                         fadeToAction('idle2');
                         document.getElementById('intro-overlay').classList.remove('hidden');
                         document.getElementById('status-text').innerText = "DIMENSION SHIFTED";
-                        isTransitioning = true; // Stay in transition to rise walls
                     } else {
                         showVictory();
                         isTransitioning = false;
                         gameActive = false;
                     }
+                    hasShifted = true;
                 } else if (transitionTime < 2.5) {
                     // Phase 3: New walls rise with SPRING
-                    const p = (transitionTime - 1.1) / 1.4; // normalized 0 to 1
+                    const p = (transitionTime - 1.0) / 1.5; // normalized 0 to 1
                     const elastic = 1 - Math.pow(1 - p, 4) * Math.cos(p * Math.PI * 4);
                     const targetY = 3000;
                     const startY = -3000;
