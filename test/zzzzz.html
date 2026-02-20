@@ -257,7 +257,8 @@
 
         let scene, camera, renderer, mixer, clock, model, modelContainer, fixGroup, goalOrb, nikoLight;
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
-        let actions = {}, currentAction, idleTimer = 0;
+        let actions = {}, currentAction, activeIdleKey = 'twerk';
+        let idleTimer = 0;
         let isReady = false;
 
         // Game Feel & Transition Variables
@@ -500,10 +501,15 @@
 
             const files = [
                 { key: 'walk', path: baseUrl + 'catwalk.fbx' },
-                { key: 'idle2', path: baseUrl + 'idlemotion.fbx' },
+                { key: 'idle2', path: baseUrl + 'idle2.fbx' },
+                { key: 'idle3', path: baseUrl + 'idle3.fbx' },
+                { key: 'idlemotion', path: baseUrl + 'idlemotion.fbx' },
                 { key: 'twerk', path: baseUrl + 'twerk.fbx' },
                 { key: 'run', path: baseUrl + 'catwalk.fbx' }
             ];
+
+            let maxIdleScore = -1;
+            const idlePriority = { 'idle3': 3, 'idle2': 2, 'idlemotion': 1 };
 
             log("Loading animations from local files...", "info");
             const results = await Promise.all(files.map(f => loadFile(fbxLoader, f.key, f.path)));
@@ -586,6 +592,15 @@
                     const percent = Math.round((boundOk / totalTracks) * 100);
                     log(`Linked ${res.key}: ${percent}% bound (${boundOk}/${totalTracks} tracks)`, percent > 50 ? "success" : "error");
 
+                    // Smart Idle Picker: Pick the one with best binding, or follow priority if scores are similar
+                    if (res.key.startsWith('idle') || res.key === 'idlemotion') {
+                        const score = percent + (idlePriority[res.key] || 0) * 0.1; // Tiny boost for priority
+                        if (score > maxIdleScore && percent > 20) {
+                            maxIdleScore = score;
+                            activeIdleKey = res.key;
+                        }
+                    }
+
                     if (percent < 30 && totalTracks > 0) {
                         const rawTracks = res.fbx.animations[0].tracks.slice(0, 3).map(t => t.name).join(' | ');
                         log(`  DIAG: ${res.key} failed. Source tracks sample: ${rawTracks}`, "error");
@@ -596,12 +611,14 @@
             });
 
             resetNiko();
-            // Force start idle action
-            if (actions['idle2']) {
-                fadeToAction('idle2', 0);
-                log("Idle animation started", "success");
-            } else {
-                log("Animation 'idle2' not found!", "error");
+            // Force start best idle action
+            if (actions[activeIdleKey]) {
+                fadeToAction(activeIdleKey, 0);
+                log(`Best Idle System: Using '${activeIdleKey}'`, "success");
+            } else if (actions['twerk']) {
+                activeIdleKey = 'twerk';
+                fadeToAction('twerk', 0);
+                log("Best Idle System: Falling back to 'twerk'", "warning");
             }
 
             isReady = true;
@@ -803,13 +820,22 @@
                     if (keys.shift) fadeToAction('run');
                     else fadeToAction('walk');
                 } else {
-                    const idleAction = actions['idle2'] ? 'idle2' : 'twerk';
-                    if (currentAction !== actions['twerk']) {
-                        fadeToAction(idleAction);
-                        idleTimer += delta;
-                        if (idleTimer >= 10 && actions['twerk']) { fadeToAction('twerk'); idleTimer = 0; }
-                    } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
-                        fadeToAction(idleAction);
+                    idleTimer += delta;
+                    let targetIdle = activeIdleKey; // Smart fallback
+
+                    if (idleTimer < 5) {
+                        targetIdle = (actions['idle3'] && actions['idle3'].getEffectiveWeight() > 0.1) || actions['idle3'] ? 'idle3' : activeIdleKey;
+                    } else if (idleTimer < 10) {
+                        targetIdle = actions['idle2'] ? 'idle2' : activeIdleKey;
+                    } else {
+                        targetIdle = actions['twerk'] ? 'twerk' : activeIdleKey;
+                    }
+
+                    fadeToAction(targetIdle);
+
+                    // Reset cycle if we've been twerking and it's nearly done (since it's LoopOnce)
+                    if (targetIdle === 'twerk' && actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
+                        idleTimer = 0;
                     }
                 }
 
