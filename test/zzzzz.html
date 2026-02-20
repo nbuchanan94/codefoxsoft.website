@@ -108,6 +108,78 @@
             pointer-events: none;
         }
 
+        /* Pause Menu Styles */
+        #pause-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            color: #fff;
+            text-align: center;
+        }
+
+        .pause-content {
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 80%;
+        }
+
+        .pause-title {
+            font-size: 3em;
+            color: #00ffcc;
+            text-shadow: 0 0 15px #00ffcc;
+            margin: 0 0 30px 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .pause-btn {
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .pause-btn:hover {
+            transform: scale(1.05);
+            background: #fff;
+            box-shadow: 0 0 20px #00ffcc;
+        }
+
+        .pause-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 1, 0.3);
+        }
+
+        #chromatic-hit {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1000;
+            mix-blend-mode: color-dodge;
+            transition: opacity 0.4s;
+            background: radial-gradient(circle, transparent 20%, rgba(255, 0, 0, 0.2) 60%, rgba(0, 255, 255, 0.2) 100%);
+            opacity: 0;
+        }
+
         /* Victory Screen Styles */
         #victory-screen {
             position: absolute;
@@ -254,6 +326,18 @@
     </div>
 
     <!-- Victory Screen -->
+    <div id="chromatic-hit"></div>
+
+    <div id="pause-overlay">
+        <div class="pause-content">
+            <h1 class="pause-title">PAUSED</h1>
+            <p style="color: #aaa; margin-bottom: 30px;">DIMENSION STABILITY: LOCKED</p>
+            <button class="pause-btn" onclick="togglePause()">RESUME</button>
+            <button class="pause-btn secondary" onclick="location.reload()">RESTART LEVEL</button>
+            <div style="margin-top: 20px; font-size: 0.8em; color: #666;">PRESS ESC TO RETURN</div>
+        </div>
+    </div>
+
     <div id="victory-screen">
         <h1 style="font-size: 3em; letter-spacing: 5px; margin-bottom: 10px;">LOOP COMPLETED</h1>
         <div class="stats-container">
@@ -292,6 +376,7 @@
         let restingThreshold = 10 + Math.random() * 5; // New: Randomized resting duration
         let isReady = false;
         let velX = 0, velZ = 0; // New for movement inertia
+        let isPaused = false;
 
         // Game Feel & Transition Variables
         let walls = [], roads = [], shards = [];
@@ -299,6 +384,7 @@
         let shakeIntensity = 0;
         let camYaw = 0, camDistance = 800;
         let targetPitch = 18, targetDistance = 400; // New for lerping
+        let floatingTexts = [], ghosts = []; // Juice controllers
 
         // Camera settings
         let camPitch = 18;
@@ -317,7 +403,21 @@
             3: { name: "THE CORE", sky: 0x100500, fog: 0x100500, fogDens: 0.0003, roadColor: '#150500', sidewalkColor: '#201010', buildColor: '#100000', win1: '#ff0000', win2: '#ffaa00', lightColor: 0xff0000, ambient: 0.9 },
             4: { name: "THE GRID", sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002, roadColor: '#001a1a', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ffffff', lightColor: 0x00ffff, ambient: 0.6 },
             5: { name: "VOID JUNCTION", sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022, roadColor: '#1a001a', sidewalkColor: '#2a002a', buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00', lightColor: 0xff00ff, ambient: 0.5 },
-            6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 }
+            6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 },
+            7: { name: "THE ARCHIVE", sky: 0x010101, fog: 0x010101, fogDens: 0.00045, roadColor: '#050505', sidewalkColor: '#000', buildColor: '#111', win1: '#fff', win2: '#888', lightColor: 0xffffff, ambient: 1.2 },
+            8: { name: "CHROME DESERT", sky: 0x201005, fog: 0x201005, fogDens: 0.00015, roadColor: '#2a1a0a', sidewalkColor: '#332211', buildColor: '#151515', win1: '#ffcc00', win2: '#ffffff', lightColor: 0xffaa00, ambient: 0.8 },
+            9: { name: "GLITCH DOMAIN", sky: 0x050005, fog: 0x050005, fogDens: 0.00028, roadColor: '#0a000a', sidewalkColor: '#150015', buildColor: '#000', win1: '#ff00ff', win2: '#00ffff', lightColor: 0xff00ff, ambient: 1.0 },
+            10: { name: "DIMENSION ZERO", sky: 0x000000, fog: 0x000000, fogDens: 0.0005, roadColor: '#000', sidewalkColor: '#111', buildColor: '#000', win1: '#ff0000', win2: '#00ff00', lightColor: 0xffffff, ambient: 0.4 },
+            11: { name: "CYBER RUINS", sky: 0x100800, fog: 0x100800, fogDens: 0.00018, roadColor: '#1a0d00', sidewalkColor: '#2a1a00', buildColor: '#110800', win1: '#ffd700', win2: '#8b4513', lightColor: 0xffd700, ambient: 0.8 },
+            12: { name: "NEON PRISON", sky: 0x001000, fog: 0x001000, fogDens: 0.00025, roadColor: '#000a00', sidewalkColor: '#001a00', buildColor: '#000500', win1: '#00ff00', win2: '#ffffff', lightColor: 0x00ff00, ambient: 0.6 },
+            13: { name: "COBALT CATHEDRAL", sky: 0x000020, fog: 0x000020, fogDens: 0.00015, roadColor: '#00001a', sidewalkColor: '#000033', buildColor: '#000011', win1: '#00ffff', win2: '#ffffff', lightColor: 0x0000ff, ambient: 1.0 },
+            14: { name: "EMERALD EXPANSE", sky: 0x002000, fog: 0x002000, fogDens: 0.00012, roadColor: '#001a00', sidewalkColor: '#002a00', buildColor: '#001100', win1: '#00ff00', win2: '#ffffff', lightColor: 0x00ff00, ambient: 0.8 },
+            15: { name: "RUBY RESERVOIR", sky: 0x200000, fog: 0x200000, fogDens: 0.0002, roadColor: '#1a0000', sidewalkColor: '#2a0000', buildColor: '#110000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xff0000, ambient: 0.7 },
+            16: { name: "SAPPHIRE STATION", sky: 0x000030, fog: 0x000030, fogDens: 0.00022, roadColor: '#000a1a', sidewalkColor: '#111', buildColor: '#000015', win1: '#0077ff', win2: '#ffffff', lightColor: 0x0077ff, ambient: 0.6 },
+            17: { name: "AMETHYST ABBEY", sky: 0x100020, fog: 0x100020, fogDens: 0.00018, roadColor: '#1a0d1a', sidewalkColor: '#2a1a2a', buildColor: '#110811', win1: '#cc00ff', win2: '#ffffff', lightColor: 0xcc00ff, ambient: 0.9 },
+            18: { name: "OBSIDIAN OUTPOST", sky: 0x000000, fog: 0x000000, fogDens: 0.0003, roadColor: '#000', sidewalkColor: '#111', buildColor: '#000', win1: '#ff4400', win2: '#ffffff', lightColor: 0xff4400, ambient: 0.4 },
+            19: { name: "QUARTZ QUARRY", sky: 0x202020, fog: 0x202020, fogDens: 0.0001, roadColor: '#1a1a1a', sidewalkColor: '#333', buildColor: '#151515', win1: '#ffffff', win2: '#888', lightColor: 0xffffff, ambient: 1.2 },
+            20: { name: "THE ENDLESS", sky: 0x000000, fog: 0x000000, fogDens: 0.0005, roadColor: '#000', sidewalkColor: '#111', buildColor: '#000', win1: '#00ffcc', win2: '#ffffff', lightColor: 0x00ffcc, ambient: 0.5 }
         };
 
         const maps = {
@@ -326,7 +426,21 @@
             3: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 7, z: 1 } },
             4: { grid: [[1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 1, 0, 1], [1, 0, 1, 0, 0, 1, 0, 1], [1, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 6, z: 6 } },
             5: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 1, z: 7 } },
-            6: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 9, z: 1 } }
+            6: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 9, z: 1 } },
+            7: { grid: [[1, 1, 1, 1, 1], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 3, z: 3 } },
+            8: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 7, z: 5 } },
+            9: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 7, z: 1 } },
+            10: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 9, z: 1 } },
+            11: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 17, z: 17 } },
+            12: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 17, z: 17 } },
+            13: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 17, z: 17 } },
+            14: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 17, z: 17 } },
+            15: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 19, z: 19 } },
+            16: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 19, z: 19 } },
+            17: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 19, z: 19 } },
+            18: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 19, z: 19 } },
+            19: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 19, z: 19 } },
+            20: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 23, z: 23 } }
         };
 
         function log(msg, type = 'info') {
@@ -354,9 +468,10 @@
             const records = JSON.parse(localStorage.getItem('niko_records') || '{}');
             const tbody = document.getElementById('best-tbody');
             tbody.innerHTML = '';
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= 20; i++) {
                 const time = records[i] ? formatTime(records[i]) : "--:--";
-                tbody.innerHTML += `<tr><td>DIMENSION ${i}: ${themes[i].name}</td><td class="best-row">${time}</td></tr>`;
+                const label = themes[i] ? themes[i].name : `DIMENSION ${i}`;
+                tbody.innerHTML += `<tr><td>DIMENSION ${i}: ${label}</td><td class="best-row">${time}</td></tr>`;
             }
             document.getElementById('victory-screen').style.display = 'flex';
         }
@@ -441,6 +556,12 @@
             };
 
             window.addEventListener('keydown', (e) => {
+                if (e.code === 'Escape') {
+                    togglePause();
+                    return;
+                }
+                if (isPaused) return;
+
                 keys[e.code] = true;
                 keys[e.key.toLowerCase()] = true; // Fallback for some non-standard keys
 
@@ -862,10 +983,64 @@
             modelContainer.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
             modelContainer.rotation.y = 0;
             camYaw = 0;
+            velX = 0; velZ = 0;
+            idleTimer = 0;
+            startTime = Date.now();
+        }
+
+        function createFloatingText(text, pos, color = '#ffffff') {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.font = 'bold 80px Outfit, sans-serif';
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.fillText(text, 128, 80);
+            const tex = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(400, 200, 1);
+            sprite.position.copy(pos);
+            sprite.position.y += 100;
+            scene.add(sprite);
+            floatingTexts.push({ obj: sprite, life: 1.0 });
+        }
+
+        function spawnGhost() {
+            if (!model) return;
+            const ghost = model.clone();
+            ghost.traverse(child => {
+                if (child.isMesh) {
+                    child.material = new THREE.MeshBasicMaterial({
+                        color: themes[currentLevel].lightColor || 0x00ffff,
+                        transparent: true,
+                        opacity: 0.4
+                    });
+                }
+            });
+            ghost.position.copy(modelContainer.position);
+            ghost.rotation.copy(modelContainer.rotation);
+            scene.add(ghost);
+            ghosts.push({ obj: ghost, life: 0.5 });
+        }
+
+        function togglePause() {
+            if (!gameActive && !isPaused) return;
+            isPaused = !isPaused;
+            document.getElementById('pause-overlay').style.display = isPaused ? 'flex' : 'none';
+            log(isPaused ? "Game Paused" : "Game Resumed", "info");
+        }
+
+        function triggerHitEffect() {
+            const el = document.getElementById('chromatic-hit');
+            el.style.opacity = '1';
+            setTimeout(() => { el.style.opacity = '0'; }, 150);
+            shakeIntensity = 25;
         }
 
         function animate() {
             requestAnimationFrame(animate);
+            if (isPaused) return;
             const delta = clock.getDelta();
             if (mixer) mixer.update(delta);
 
@@ -898,6 +1073,7 @@
                     if (isSprinting) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
                         camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
+                        if (Date.now() % 100 < 32) spawnGhost(); // Speed trails
                     } else {
                         camera.fov = THREE.MathUtils.lerp(camera.fov, 60, 0.1);
                     }
@@ -918,9 +1094,10 @@
                     if (isSprinting) fadeToAction('run');
                     else fadeToAction('walk');
                 } else {
-                    // Crisp deceleration to match 0.3s cross-fade
-                    velX = THREE.MathUtils.lerp(velX, 0, 0.2);
-                    velZ = THREE.MathUtils.lerp(velZ, 0, 0.2);
+                    // Level-specific friction (Chrome Slide in level 8)
+                    const friction = (currentLevel === 8) ? 0.04 : 0.2;
+                    velX = THREE.MathUtils.lerp(velX, 0, friction);
+                    velZ = THREE.MathUtils.lerp(velZ, 0, friction);
                     if (Math.abs(velX) < 2) velX = 0;
                     if (Math.abs(velZ) < 2) velZ = 0;
 
@@ -956,9 +1133,29 @@
                             modelContainer.position.x = nX;
                             modelContainer.position.z = nZ;
                         } else {
-                            // Wall hit: Stop velocity
+                            // Wall hit: Stop velocity & Trigger Juice
+                            if (Math.abs(velX) > 5 || Math.abs(velZ) > 5) triggerHitEffect();
                             velX = 0; velZ = 0;
                         }
+                    }
+                }
+
+                // Update Ghosts & Floating Text
+                for (let i = ghosts.length - 1; i >= 0; i--) {
+                    ghosts[i].life -= delta;
+                    ghosts[i].obj.traverse(c => { if (c.isMesh) c.material.opacity = ghosts[i].life * 0.8; });
+                    if (ghosts[i].life <= 0) {
+                        scene.remove(ghosts[i].obj);
+                        ghosts.splice(i, 1);
+                    }
+                }
+                for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                    floatingTexts[i].life -= delta;
+                    floatingTexts[i].obj.position.y += 2;
+                    floatingTexts[i].obj.material.opacity = floatingTexts[i].life;
+                    if (floatingTexts[i].life <= 0) {
+                        scene.remove(floatingTexts[i].obj);
+                        floatingTexts.splice(i, 1);
                     }
                 }
 
@@ -966,10 +1163,19 @@
 
                 for (let i = shards.length - 1; i >= 0; i--) {
                     const s = shards[i];
-                    s.rotation.y += 0.02;
-                    if (modelContainer.position.distanceTo(s.position) < 250) {
+                    s.rotation.y += 0.04;
+                    s.position.y = 150 + Math.sin(Date.now() * 0.003 + i) * 50;
+
+                    const dist = modelContainer.position.distanceTo(s.position);
+                    // Magnetism
+                    if (dist < 800) {
+                        s.position.lerp(modelContainer.position, 0.15);
+                    }
+
+                    if (dist < 250) {
                         score += 100;
                         document.getElementById('score').innerText = `SHARDS: ${score}`;
+                        createFloatingText("+100", s.position, themes[currentLevel].win1);
                         levelGroup.remove(s);
                         shards.splice(i, 1);
                         shakeIntensity = 15;
@@ -984,6 +1190,17 @@
                 shakeIntensity *= 0.9;
             }
 
+            // --- HAZARD: MOVING WALLS (LEVELS 8-10) ---
+            if (gameActive && currentLevel >= 8 && !isTransitioning && !isPaused) {
+                const time = Date.now() * 0.002;
+                walls.forEach((w, idx) => {
+                    // Only move every 3rd wall to keep paths somewhat predictable
+                    if (idx % 3 === 0) {
+                        w.position.y = 3000 + Math.sin(time + idx) * 1500;
+                    }
+                });
+            }
+
             // --- LEVEL TRANSITION ANIMATION (MELTING WALLS) ---
             if (isTransitioning) {
                 transitionTime += delta;
@@ -996,7 +1213,7 @@
                     });
                 } else if (!hasShifted) {
                     // Phase 2: Load next level (ONCE)
-                    if (currentLevel < 6) {
+                    if (currentLevel < 20) {
                         currentLevel++;
                         buildLevel(currentLevel);
                         resetNiko();
