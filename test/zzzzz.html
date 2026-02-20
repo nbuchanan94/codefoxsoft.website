@@ -424,26 +424,28 @@
 
             const startAction = () => {
                 if (!isReady) return;
-                // Only activate if not already active and not in the middle of a transition
-                if (!gameActive && !isTransitioning) {
+                // Allow start if not transitioning OR if we've already shifted (waiting for wall rise)
+                if (!gameActive && (!isTransitioning || hasShifted)) {
                     gameActive = true;
                     startTime = Date.now();
+                    // If we were transitioning, just finish it
+                    if (isTransitioning) {
+                        isTransitioning = false;
+                        walls.forEach(w => w.position.y = 3000); // Snap walls to final pos
+                    }
                 }
-                // Always hide overlay if game is active
                 if (gameActive) {
                     document.getElementById('intro-overlay').classList.add('hidden');
                 }
             };
 
             window.addEventListener('keydown', (e) => {
-                const k = e.key.toLowerCase();
-                keys[k] = true;
-                if (e.key.startsWith('Arrow')) keys[e.key] = true;
+                keys[e.code] = true;
+                keys[e.key.toLowerCase()] = true; // Fallback for some non-standard keys
 
                 startAction();
 
-                if (k === 't') {
-                    // Use target variables for smooth lerping
+                if (e.code === 'KeyT') {
                     targetPitch = (targetPitch < 40 ? 85 : 18);
                     targetDistance = (targetPitch === 85 ? 4000 : 400);
                     log(`Birds-eye: ${targetPitch === 85 ? "ON" : "OFF"}`, "info");
@@ -451,8 +453,8 @@
             });
             window.addEventListener('mousedown', startAction);
             window.addEventListener('keyup', (e) => {
+                keys[e.code] = false;
                 keys[e.key.toLowerCase()] = false;
-                if (e.key.startsWith('Arrow')) keys[e.key] = false;
             });
 
             buildLevel(currentLevel);
@@ -725,7 +727,7 @@
             document.getElementById('click-prompt').style.display = "block";
         }
 
-        function fadeToAction(name, duration = 0.2) {
+        function fadeToAction(name, duration = 0.6) {
             if (!actions[name]) return;
             const prev = currentAction;
             currentAction = actions[name];
@@ -866,27 +868,31 @@
             const delta = clock.getDelta();
             if (mixer) mixer.update(delta);
 
+            // Camera Controls (Universal)
+            if (isReady) {
+                if (keys['ArrowLeft']) camYaw += 0.05;
+                if (keys['ArrowRight']) camYaw -= 0.05;
+                if (keys['ArrowUp']) targetDistance = Math.max(200, targetDistance - 50);
+                if (keys['ArrowDown']) targetDistance = Math.min(6000, targetDistance + 50);
+            }
+
             if (gameActive && isReady) {
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 document.getElementById('timer').innerText = formatTime(elapsed);
-
-                if (keys['arrowleft']) camYaw += 0.05;
-                if (keys['arrowright']) camYaw -= 0.05;
-                if (keys['arrowup']) targetDistance = Math.max(200, targetDistance - 50);
-                if (keys['arrowdown']) targetDistance = Math.min(6000, targetDistance + 50);
 
                 // Smooth Lerp Camera
                 camPitch = THREE.MathUtils.lerp(camPitch, targetPitch, 0.08);
                 camDistance = THREE.MathUtils.lerp(camDistance, targetDistance, 0.08);
 
-                let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-                let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+                let inputX = (keys['KeyD'] ? 1 : 0) - (keys['KeyA'] ? 1 : 0);
+                let inputZ = (keys['KeyS'] ? 1 : 0) - (keys['KeyW'] ? 1 : 0);
 
                 if (inputX !== 0 || inputZ !== 0) {
                     idleTimer = 0;
                     const angle = Math.atan2(inputX, inputZ) + camYaw;
-                    const spd = keys.shift ? 75 : 40;
-                    if (keys.shift) {
+                    const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'] || keys['shift'];
+                    const spd = isSprinting ? 75 : 40;
+                    if (isSprinting) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
                         camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
                     } else {
@@ -916,9 +922,12 @@
                     while (diff > Math.PI) diff -= Math.PI * 2;
                     modelContainer.rotation.y += diff * 0.15;
 
-                    if (keys.shift) fadeToAction('run');
+                    if (isSprinting) fadeToAction('run');
                     else fadeToAction('walk');
                 } else {
+                    idleTimer += delta;
+                    let targetIdle = activeIdleKey;
+
                     // SEQUENCE LOGIC: Randomized 10-15s resting -> twerk
                     if (idleTimer < restingThreshold) {
                         if (actions['resting'] && animationScores['resting'] > 20) targetIdle = 'resting';
