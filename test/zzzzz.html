@@ -545,7 +545,8 @@
                             // Last ditch: partial match
                             if (!targetBoneName) {
                                 for (let [key, val] of nodeMap) {
-                                    if (key.length > 3 && (raw.includes(key) || key.includes(raw))) {
+                                    // Relaxed to length >= 3 to catch 'hip', 'arm', etc.
+                                    if (key.length >= 3 && (raw.includes(key) || key.includes(raw))) {
                                         targetBoneName = val;
                                         break;
                                     }
@@ -563,16 +564,12 @@
                     // NOSE ON FLOOR FIX:
                     // Filter out tracks that target the root object to prevent them overriding model.rotation.x
                     clip.tracks = clip.tracks.filter(track => {
-                        const lowTrack = track.name.toLowerCase();
                         const parts = track.name.split('.');
-
                         if (parts.length === 1) return false;
-
                         const boneName = parts[0];
                         if (!boneName || boneName === model.name) return false;
-
-                        if (lowTrack.includes('.position')) {
-                            return lowTrack.includes('hips') || lowTrack.includes('pelvis');
+                        if (track.name.toLowerCase().includes('.position')) {
+                            return track.name.toLowerCase().includes('hips') || track.name.toLowerCase().includes('pelvis');
                         }
                         return true;
                     });
@@ -589,9 +586,9 @@
                     const percent = Math.round((boundOk / totalTracks) * 100);
                     log(`Linked ${res.key}: ${percent}% bound (${boundOk}/${totalTracks} tracks)`, percent > 50 ? "success" : "error");
 
-                    if (percent < 20 && totalTracks > 0) {
-                        const sample = clip.tracks.slice(0, 2).map(t => t.name).join(', ');
-                        log(`  DIAG: ${res.key} failed. Track pattern: ${sample}`, "error");
+                    if (percent < 30 && totalTracks > 0) {
+                        const rawTracks = res.fbx.animations[0].tracks.slice(0, 3).map(t => t.name).join(' | ');
+                        log(`  DIAG: ${res.key} failed. Source tracks sample: ${rawTracks}`, "error");
                     }
                 } else {
                     log(`Skipped ${res.key}: clip not found or empty`, "error");
@@ -806,12 +803,13 @@
                     if (keys.shift) fadeToAction('run');
                     else fadeToAction('walk');
                 } else {
+                    const idleAction = actions['idle2'] ? 'idle2' : 'twerk';
                     if (currentAction !== actions['twerk']) {
-                        fadeToAction('idle2');
+                        fadeToAction(idleAction);
                         idleTimer += delta;
-                        if (idleTimer >= 10) { fadeToAction('twerk'); idleTimer = 0; }
+                        if (idleTimer >= 10 && actions['twerk']) { fadeToAction('twerk'); idleTimer = 0; }
                     } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
-                        fadeToAction('idle2');
+                        fadeToAction(idleAction);
                     }
                 }
 
