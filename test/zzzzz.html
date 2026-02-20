@@ -437,8 +437,8 @@
             const fbxLoader = new FBXLoader();
             const baseUrl = ''; // Use local files
 
-            log("Loading main model (idle2.fbx)...", "info");
-            const modelResult = await loadFile(fbxLoader, 'main', baseUrl + 'idle2.fbx');
+            log("Loading main model (twerk.fbx)...", "info");
+            const modelResult = await loadFile(fbxLoader, 'main', baseUrl + 'twerk.fbx');
 
             if (!modelResult.error && modelResult.fbx) {
                 model = modelResult.fbx;
@@ -500,7 +500,7 @@
 
             const files = [
                 { key: 'walk', path: baseUrl + 'catwalk.fbx' },
-                { key: 'idle2', path: baseUrl + 'idle2.fbx' },
+                { key: 'idle2', path: baseUrl + 'idlemotion.fbx' },
                 { key: 'twerk', path: baseUrl + 'twerk.fbx' },
                 { key: 'run', path: baseUrl + 'catwalk.fbx' }
             ];
