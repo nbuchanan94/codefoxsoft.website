@@ -702,7 +702,7 @@
                 'upperarm': ['arm', 'bicep', 'bip01_l_upperarm', 'bip01_r_upperarm'],
                 'forearm': ['elbow', 'arm2', 'bip01_l_forearm', 'bip01_r_forearm', 'lowerarm'],
                 'hand': ['wrist', 'bip01_l_hand', 'bip01_r_hand'],
-                'thigh': ['upperleg', 'leg', 'bip01_l_thigh', 'bip01_r_thigh', 'upleg'],
+                'thigh': ['upperleg', 'leg', 'bip01_l_thigh', 'bip01_r_thigh', 'upleg', 'up leg'],
                 'calf': ['knee', 'lowerleg', 'bip01_l_calf', 'bip01_r_calf', 'leg'],
                 'foot': ['ankle', 'bip01_l_foot', 'bip01_r_foot'],
                 'upleg': ['thigh', 'upperleg'],
@@ -734,31 +734,32 @@
                         const property = trackNameParts.pop();
                         let targetBoneName = null;
 
-                        // Hyper-Robust Matching with L/R preservation
+                        // Hyper-Robust Matching with L/R preservation (STRICT)
                         for (const p of trackNameParts) {
                             const clean = stand(p);
+                            const side = clean.startsWith('l') ? 'l' : (clean.startsWith('r') ? 'r' : '');
+                            const core = side ? clean.slice(1) : clean;
+
+                            // 1. Strict match
                             if (nodeMap.has(clean)) {
                                 targetBoneName = nodeMap.get(clean);
                             } else {
-                                // Try aliases
-                                for (let aliasKey in boneAliases) {
-                                    if (clean.includes(aliasKey)) {
-                                        for (let alt of boneAliases[aliasKey]) {
-                                            const side = clean.startsWith('l') ? 'l' : (clean.startsWith('r') ? 'r' : '');
-                                            const searchKey = side + alt;
-                                            if (nodeMap.has(searchKey)) {
-                                                targetBoneName = nodeMap.get(searchKey);
-                                                break;
-                                            }
+                                // 2. Strict Alias match (no "includes" to avoid ArmRoll stealing Arm)
+                                if (boneAliases[core]) {
+                                    for (let alt of boneAliases[core]) {
+                                        const searchKey = side + alt;
+                                        if (nodeMap.has(searchKey)) {
+                                            targetBoneName = nodeMap.get(searchKey);
+                                            break;
                                         }
                                     }
-                                    if (targetBoneName) break;
                                 }
                             }
 
+                            // 3. Fallback (only for longer unique names)
                             if (!targetBoneName) {
                                 for (let [key, val] of nodeMap) {
-                                    if (key.length >= 4 && (clean.includes(key) || key.includes(clean))) {
+                                    if (key.length >= 6 && key === clean) {
                                         targetBoneName = val;
                                         break;
                                     }
@@ -1070,13 +1071,13 @@
                 let inputZ = (keys['KeyS'] ? 1 : 0) - (keys['KeyW'] ? 1 : 0);
 
                 const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'] || keys['shift'];
-                const isAltRun = keys['AltLeft'] || keys['AltRight'] || keys['alt'];
+                const isExperimental = keys['KeyC'] || keys['KeyC'];
                 const spd = isSprinting ? 75 : 40;
 
                 if (inputX !== 0 || inputZ !== 0) {
                     idleTimer = 0;
 
-                    if (isSprinting || isAltRun) {
+                    if (isSprinting || isExperimental) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
                         camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
                         if (Date.now() % 100 < 32) spawnGhost(); // Speed trails
@@ -1099,7 +1100,7 @@
                     while (diff > Math.PI) diff -= Math.PI * 2;
                     modelContainer.rotation.y += diff * 0.15;
 
-                    if (isAltRun) fadeToAction('alt_run');
+                    if (isExperimental) fadeToAction('alt_run');
                     else if (isSprinting) fadeToAction('run');
                     else fadeToAction('walk');
                 } else {
