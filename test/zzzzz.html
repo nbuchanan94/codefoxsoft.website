@@ -199,6 +199,34 @@
             height: 100%;
             border-radius: 8px;
         }
+
+        /* Animation Diagnostic Overlay */
+        #anim-overlay {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            z-index: 100;
+            border: 1px solid #444;
+            max-width: 250px;
+            pointer-events: auto;
+        }
+
+        .anim-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+            border-bottom: 1px solid #222;
+        }
+
+        .anim-pct {
+            font-weight: bold;
+            margin-left: 10px;
+        }
     </style>
 </head>
 
@@ -214,6 +242,7 @@
     <div id="minimap-container">
         <canvas id="minimap"></canvas>
     </div>
+    <div id="anim-overlay">BINDING LOG:</div>
     <div id="debug-log">DEBUG CONSOLE:<br></div>
     <div id="intro-overlay">
         <h1 id="intro-title">THE BRONX</h1>
@@ -258,6 +287,7 @@
         let scene, camera, renderer, mixer, clock, model, modelContainer, fixGroup, goalOrb, nikoLight;
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
         let actions = {}, currentAction, activeIdleKey = 'twerk';
+        let animationScores = {}; // Tracks link success %
         let idleTimer = 0;
         let isReady = false;
 
@@ -527,6 +557,22 @@
                 }
             });
 
+            const boneAliases = {
+                'hip': ['pelvis', 'thigh', 'root', 'bip01_pelvis'],
+                'pelvis': ['hip', 'waist', 'bip01_pelvis'],
+                'spine': ['chest', 'waist', 'spine01', 'spine02', 'bip01_spine'],
+                'chest': ['spine01', 'spine02', 'spine03', 'bip01_spine2'],
+                'neck': ['head', 'bip01_neck'],
+                'head': ['neck', 'bip01_head'],
+                'clavicle': ['shoulder', 'bip01_l_clavicle', 'bip01_r_clavicle'],
+                'upperarm': ['arm', 'bicep', 'bip01_l_upperarm', 'bip01_r_upperarm'],
+                'forearm': ['elbow', 'arm2', 'bip01_l_forearm', 'bip01_r_forearm'],
+                'hand': ['wrist', 'bip01_l_hand', 'bip01_r_hand'],
+                'thigh': ['hip', 'leg', 'upperleg', 'bip01_l_thigh', 'bip01_r_thigh'],
+                'calf': ['knee', 'leg2', 'lowerleg', 'bip01_l_calf', 'bip01_r_calf'],
+                'foot': ['ankle', 'bip01_l_foot', 'bip01_r_foot']
+            };
+
             results.forEach(res => {
                 if (!res.error && res.fbx && res.fbx.animations.length > 0) {
                     const clip = res.fbx.animations[0].clone();
@@ -547,6 +593,21 @@
 
                             if (nodeMap.has(raw)) targetBoneName = nodeMap.get(raw);
                             else if (nodeMap.has(core)) targetBoneName = nodeMap.get(core);
+
+                            // Alias Search
+                            if (!targetBoneName) {
+                                for (let aliasKey in boneAliases) {
+                                    if (raw.includes(aliasKey) || core.includes(aliasKey)) {
+                                        for (let alt of boneAliases[aliasKey]) {
+                                            if (nodeMap.has(alt)) {
+                                                targetBoneName = nodeMap.get(alt);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (targetBoneName) break;
+                                }
+                            }
 
                             // Last ditch: partial match
                             if (!targetBoneName) {
@@ -590,6 +651,16 @@
 
                     actions[res.key] = action;
                     const percent = Math.round((boundOk / totalTracks) * 100);
+                    animationScores[res.key] = percent;
+
+                    // Update Diagnostic Overlay
+                    const overlay = document.getElementById('anim-overlay');
+                    const item = document.createElement('div');
+                    item.className = 'anim-item';
+                    const color = percent > 60 ? '#00ffcc' : (percent > 20 ? '#ffcc00' : '#ff4444');
+                    item.innerHTML = `<span>${res.key}</span><span class="anim-pct" style="color:${color}">${percent}%</span>`;
+                    overlay.appendChild(item);
+
                     log(`Linked ${res.key}: ${percent}% bound (${boundOk}/${totalTracks} tracks)`, percent > 50 ? "success" : "error");
 
                     // Smart Idle Picker: Pick the one with best binding, or follow priority if scores are similar
@@ -821,19 +892,20 @@
                     else fadeToAction('walk');
                 } else {
                     idleTimer += delta;
-                    let targetIdle = activeIdleKey; // Smart fallback
+                    let targetIdle = activeIdleKey;
 
+                    // SEQUENCE LOGIC: 5s idle3 -> 5s idle2 -> twerk
+                    // ONLY play if binding percentage > 25% (prevents T-pose)
                     if (idleTimer < 5) {
-                        targetIdle = (actions['idle3'] && actions['idle3'].getEffectiveWeight() > 0.1) || actions['idle3'] ? 'idle3' : activeIdleKey;
+                        if (actions['idle3'] && animationScores['idle3'] > 25) targetIdle = 'idle3';
                     } else if (idleTimer < 10) {
-                        targetIdle = actions['idle2'] ? 'idle2' : activeIdleKey;
+                        if (actions['idle2'] && animationScores['idle2'] > 25) targetIdle = 'idle2';
                     } else {
-                        targetIdle = actions['twerk'] ? 'twerk' : activeIdleKey;
+                        if (actions['twerk'] && animationScores['twerk'] > 25) targetIdle = 'twerk';
                     }
 
                     fadeToAction(targetIdle);
 
-                    // Reset cycle if we've been twerking and it's nearly done (since it's LoopOnce)
                     if (targetIdle === 'twerk' && actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
                         idleTimer = 0;
                     }
