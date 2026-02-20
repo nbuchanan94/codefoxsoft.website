@@ -679,6 +679,7 @@
             const stand = (s) => s.toLowerCase()
                 .replace(/mixamorig|ccbase|armature|rl/g, '')
                 .replace(/^left/, 'l').replace(/^right/, 'r')
+                .replace(/hand|foot|toe/g, '') // Remove joint noise for better sub-bone matching
                 .replace(/[^a-z0-9]/g, '');
 
             model.traverse(node => {
@@ -706,7 +707,10 @@
                 'calf': ['knee', 'lowerleg', 'bip01_l_calf', 'bip01_r_calf', 'leg'],
                 'foot': ['ankle', 'bip01_l_foot', 'bip01_r_foot'],
                 'upleg': ['thigh', 'upperleg'],
-                'leg': ['calf', 'lowerleg', 'knee']
+                'leg': ['calf', 'lowerleg', 'knee'],
+                // Finger/Toe bridging
+                'thumb': ['thmb'], 'index': ['indx'], 'middle': ['mid'], 'ring': ['rng'], 'pinky': ['pnk', 'little'],
+                'mid': ['middle'], 'pnk': ['pinky', 'little'], 'bigtoe': ['toe1'], 'toe': ['bigtoe']
             };
 
             results.forEach(res => {
