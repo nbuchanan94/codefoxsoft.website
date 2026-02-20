@@ -556,24 +556,34 @@
             });
 
             const boneAliases = {
-                'hip': ['pelvis', 'thigh', 'root', 'bip01_pelvis'],
-                'pelvis': ['hip', 'waist', 'bip01_pelvis'],
+                'hips': ['pelvis', 'waist', 'root', 'bip01_pelvis'],
+                'pelvis': ['hips', 'waist', 'bip01_pelvis'],
                 'spine': ['chest', 'waist', 'spine01', 'spine02', 'bip01_spine'],
                 'chest': ['spine01', 'spine02', 'spine03', 'bip01_spine2'],
                 'neck': ['head', 'bip01_neck'],
                 'head': ['neck', 'bip01_head'],
                 'clavicle': ['shoulder', 'bip01_l_clavicle', 'bip01_r_clavicle'],
+                'shoulder': ['clavicle', 'upperarm', 'arm'],
                 'upperarm': ['arm', 'bicep', 'bip01_l_upperarm', 'bip01_r_upperarm'],
                 'forearm': ['elbow', 'arm2', 'bip01_l_forearm', 'bip01_r_forearm'],
                 'hand': ['wrist', 'bip01_l_hand', 'bip01_r_hand'],
-                'thigh': ['hip', 'leg', 'upperleg', 'bip01_l_thigh', 'bip01_r_thigh'],
-                'calf': ['knee', 'leg2', 'lowerleg', 'bip01_l_calf', 'bip01_r_calf'],
+                'thigh': ['upperleg', 'leg', 'bip01_l_thigh', 'bip01_r_thigh'],
+                'calf': ['knee', 'lowerleg', 'bip01_l_calf', 'bip01_r_calf'],
                 'foot': ['ankle', 'bip01_l_foot', 'bip01_r_foot']
             };
 
             results.forEach(res => {
                 if (!res.error && res.fbx && res.fbx.animations.length > 0) {
-                    const clip = res.fbx.animations[0].clone();
+                    // PICK THE BEST CLIP (AccuRig often has poses at index 0, real anim at 1)
+                    let bestClip = res.fbx.animations[0];
+                    if (res.fbx.animations.length > 1) {
+                        res.fbx.animations.forEach(c => {
+                            if (c.duration > bestClip.duration) bestClip = c;
+                        });
+                        log(`  CLIPS [${res.key}]: Found ${res.fbx.animations.length}. Picking longest: ${Math.round(bestClip.duration)}s`, "info");
+                    }
+
+                    const clip = bestClip.clone();
                     clip.name = res.key;
 
                     let boundOk = 0;
@@ -584,21 +594,25 @@
                         const property = trackNameParts.pop();
                         let targetBoneName = null;
 
-                        // Ultra-Robust Matching (Scrub prefixes like mixamorig, cc_base, rl)
+                        // Hyper-Robust Matching with L/R preservation
                         for (const p of trackNameParts) {
-                            const raw = p.toLowerCase().replace(/mixamorig[|_:]|cc[|_:]base[|_:]|rl[|_:]/g, '').replace(/[^a-z0-9]/g, '');
-                            const core = raw.replace(/mixamo|armature|ccbase|rl/g, '');
+                            let raw = p.toLowerCase().replace(/mixamorig[|_:]|cc[|_:]base[|_:]|rl[|_:]/g, '');
+                            // Standardize L/R
+                            raw = raw.replace(/^left/, 'l').replace(/^right/, 'r');
+                            const clean = raw.replace(/[^a-z0-9]/g, '');
+                            const core = clean.replace(/mixamo|armature|ccbase|rl/g, '');
 
-                            if (nodeMap.has(raw)) targetBoneName = nodeMap.get(raw);
+                            if (nodeMap.has(clean)) targetBoneName = nodeMap.get(clean);
                             else if (nodeMap.has(core)) targetBoneName = nodeMap.get(core);
 
-                            // Alias Search
                             if (!targetBoneName) {
                                 for (let aliasKey in boneAliases) {
-                                    if (raw.includes(aliasKey) || core.includes(aliasKey)) {
+                                    if (clean.includes(aliasKey) || core.includes(aliasKey)) {
                                         for (let alt of boneAliases[aliasKey]) {
-                                            if (nodeMap.has(alt)) {
-                                                targetBoneName = nodeMap.get(alt);
+                                            const side = clean.startsWith('l') ? 'l' : (clean.startsWith('r') ? 'r' : '');
+                                            const searchKey = side + alt;
+                                            if (nodeMap.has(searchKey)) {
+                                                targetBoneName = nodeMap.get(searchKey);
                                                 break;
                                             }
                                         }
@@ -607,11 +621,9 @@
                                 }
                             }
 
-                            // Last ditch: partial match
                             if (!targetBoneName) {
                                 for (let [key, val] of nodeMap) {
-                                    // Relaxed to length >= 3 to catch 'hip', 'arm', etc.
-                                    if (key.length >= 3 && (raw.includes(key) || key.includes(raw))) {
+                                    if (key.length >= 4 && (clean.includes(key) || key.includes(clean))) {
                                         targetBoneName = val;
                                         break;
                                     }
@@ -632,9 +644,13 @@
                         const parts = track.name.split('.');
                         if (parts.length === 1) return false;
                         const boneName = parts[0];
-                        if (!boneName || boneName === model.name) return false;
+                        // Relaxed: Only filter out model root, allow everything else
+                        if (boneName === model.name) return false;
+
+                        // Positional tracks restricted to core hub bones
                         if (track.name.toLowerCase().includes('.position')) {
-                            return track.name.toLowerCase().includes('hips') || track.name.toLowerCase().includes('pelvis');
+                            const low = track.name.toLowerCase();
+                            return low.includes('hips') || low.includes('pelvis') || low.includes('waist') || low.includes('root');
                         }
                         return true;
                     });
@@ -660,6 +676,14 @@
                     overlay.appendChild(item);
 
                     log(`Linked ${res.key}: ${percent}% bound (${boundOk}/${totalTracks} tracks)`, percent > 50 ? "success" : "error");
+
+                    if (res.key === 'resting') {
+                        const sample = clip.tracks.slice(0, 8).map(t => {
+                            const b = t.name.split('.')[0];
+                            return b.length > 10 ? '...' + b.slice(-8) : b;
+                        }).join(' | ');
+                        log(`  AUDIT [resting]: ${sample}`, "info");
+                    }
 
                     // Smart Idle Picker: Pick resting as primary if bound
                     if (res.key === 'resting') {
