@@ -770,77 +770,86 @@
                         }
                     });
 
-                    // NOSE ON FLOOR FIX:
-                    // Filter out tracks that target the root object to prevent them overriding model.rotation.x
-                });
+                    // NOSE ON FLOOR FIX: (Bone-level stability)
+                    clip.tracks = clip.tracks.filter(track => {
+                        const parts = track.name.split('.');
+                        if (parts.length === 1) return false;
+                        const boneName = parts[0];
+                        if (boneName === model.name) return false;
 
-            const rawPercent = Math.round((boundOk / totalTracks) * 100);
-            const activeTracks = clip.tracks.length;
-            const activePercent = Math.round((activeTracks / totalTracks) * 100);
+                        // Positional tracks restricted to core hub bones
+                        if (track.name.toLowerCase().includes('.position')) {
+                            const low = track.name.toLowerCase();
+                            return low.includes('hips') || low.includes('pelvis') || low.includes('waist') || low.includes('root');
+                        }
+                        return true;
+                    });
 
-            const action = mixer.clipAction(clip);
-            if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
-            else action.setLoop(THREE.LoopRepeat);
+                    const rawPercent = Math.round((boundOk / totalTracks) * 100);
+                    const activeTracks = clip.tracks.length;
 
-            // Animation Speeds
-            if (res.key === 'walk') action.setEffectiveTimeScale(3.0);
-            if (res.key === 'run') action.setEffectiveTimeScale(4.5);
-            if (res.key === 'alt_run') action.setEffectiveTimeScale(5.0);
+                    const action = mixer.clipAction(clip);
+                    if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
+                    else action.setLoop(THREE.LoopRepeat);
 
-            actions[res.key] = action;
-            animationScores[res.key] = rawPercent;
+                    // Animation Speeds
+                    if (res.key === 'walk') action.setEffectiveTimeScale(3.0);
+                    if (res.key === 'run') action.setEffectiveTimeScale(4.5);
+                    if (res.key === 'alt_run') action.setEffectiveTimeScale(5.0);
 
-            // Update Diagnostic Overlay
-            const overlay = document.getElementById('anim-overlay');
-            const item = document.createElement('div');
-            item.className = 'anim-item';
-            const color = rawPercent > 90 ? '#00ffcc' : (rawPercent > 40 ? '#ffcc00' : '#ff4444');
-            // Show Raw Binding (Bone match) and Active (after stability filtering)
-            item.innerHTML = `<span>${res.key}</span><span class="anim-pct" style="color:${color}">${rawPercent}%</span> <small style="opacity:0.5">(${activeTracks} act)</small>`;
-            overlay.appendChild(item);
+                    actions[res.key] = action;
+                    animationScores[res.key] = rawPercent;
 
-            log(`Linked ${res.key}: ${rawPercent}% raw binding (${activeTracks}/${totalTracks} active tracks)`, rawPercent > 90 ? "success" : "error");
+                    // Update Diagnostic Overlay
+                    const overlay = document.getElementById('anim-overlay');
+                    const item = document.createElement('div');
+                    item.className = 'anim-item';
+                    const color = rawPercent > 90 ? '#00ffcc' : (rawPercent > 40 ? '#ffcc00' : '#ff4444');
+                    // Show Raw Binding (Bone match) and Active (after stability filtering)
+                    item.innerHTML = `<span>${res.key}</span><span class="anim-pct" style="color:${color}">${rawPercent}%</span> <small style="opacity:0.5">(${activeTracks} act)</small>`;
+                    overlay.appendChild(item);
 
-            if (res.key === 'resting') {
-                const sample = clip.tracks.slice(0, 8).map(t => {
-                    const b = t.name.split('.')[0];
-                    return b.length > 10 ? '...' + b.slice(-8) : b;
-                }).join(' | ');
-                log(`  AUDIT [resting]: ${sample}`, "info");
-            }
+                    log(`Linked ${res.key}: ${rawPercent}% raw binding (${activeTracks}/${totalTracks} active tracks)`, rawPercent > 90 ? "success" : "error");
 
-            // Smart Idle Picker: Pick resting as primary if bound
-            if (res.key === 'resting') {
-                const score = percent;
-                if (score > maxIdleScore && percent > 15) {
-                    maxIdleScore = score;
-                    activeIdleKey = res.key;
+                    if (res.key === 'resting') {
+                        const sample = clip.tracks.slice(0, 8).map(t => {
+                            const b = t.name.split('.')[0];
+                            return b.length > 10 ? '...' + b.slice(-8) : b;
+                        }).join(' | ');
+                        log(`  AUDIT [resting]: ${sample}`, "info");
+                    }
+
+                    // Smart Idle Picker: Pick resting as primary if bound
+                    if (res.key === 'resting') {
+                        if (rawPercent > maxIdleScore && rawPercent > 15) {
+                            maxIdleScore = rawPercent;
+                            activeIdleKey = res.key;
+                        }
+                    }
+
+                    if (rawPercent < 30 && totalTracks > 0) {
+                        const rawTracks = res.fbx.animations[0].tracks.slice(0, 3).map(t => t.name).join(' | ');
+                        log(`  DIAG: ${res.key} failed. Source tracks sample: ${rawTracks}`, "error");
+                    }
+                } else {
+                    log(`Skipped ${res.key}: clip not found or empty`, "error");
                 }
-            }
-
-            if (percent < 30 && totalTracks > 0) {
-                const rawTracks = res.fbx.animations[0].tracks.slice(0, 3).map(t => t.name).join(' | ');
-                log(`  DIAG: ${res.key} failed. Source tracks sample: ${rawTracks}`, "error");
-            }
-        } else {
-            log(`Skipped ${res.key}: clip not found or empty`, "error");
-        }
             });
 
-        resetNiko();
-        // Force start best idle action
-        if (actions[activeIdleKey]) {
-            fadeToAction(activeIdleKey, 0);
-            log(`Best Idle System: Using '${activeIdleKey}'`, "success");
-        } else if (actions['twerk']) {
-            activeIdleKey = 'twerk';
-            fadeToAction('twerk', 0);
-            log("Best Idle System: Falling back to 'twerk'", "warning");
-        }
+            resetNiko();
+            // Force start best idle action
+            if (actions[activeIdleKey]) {
+                fadeToAction(activeIdleKey, 0);
+                log(`Best Idle System: Using '${activeIdleKey}'`, "success");
+            } else if (actions['twerk']) {
+                activeIdleKey = 'twerk';
+                fadeToAction('twerk', 0);
+                log("Best Idle System: Falling back to 'twerk'", "warning");
+            }
 
-        isReady = true;
-        document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
-        document.getElementById('click-prompt').style.display = "block";
+            isReady = true;
+            document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
+            document.getElementById('click-prompt').style.display = "block";
         }
 
         function fadeToAction(name, duration = 0.3) {
