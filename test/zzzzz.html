@@ -918,8 +918,11 @@
                     if (isSprinting) fadeToAction('run');
                     else fadeToAction('walk');
                 } else {
-                    velX = THREE.MathUtils.lerp(velX, 0, 0.1);
-                    velZ = THREE.MathUtils.lerp(velZ, 0, 0.1);
+                    // Crisp deceleration to match 0.3s cross-fade
+                    velX = THREE.MathUtils.lerp(velX, 0, 0.2);
+                    velZ = THREE.MathUtils.lerp(velZ, 0, 0.2);
+                    if (Math.abs(velX) < 2) velX = 0;
+                    if (Math.abs(velZ) < 2) velZ = 0;
 
                     idleTimer += delta;
                     let targetIdle = activeIdleKey;
