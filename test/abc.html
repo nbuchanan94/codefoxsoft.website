@@ -679,7 +679,6 @@
             const stand = (s) => s.toLowerCase()
                 .replace(/mixamorig|ccbase|armature|rl/g, '')
                 .replace(/^left/, 'l').replace(/^right/, 'r')
-                .replace(/hand|foot|toe/g, '') // Remove joint noise for better sub-bone matching
                 .replace(/[^a-z0-9]/g, '');
 
             model.traverse(node => {
