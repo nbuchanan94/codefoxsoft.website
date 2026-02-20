@@ -108,6 +108,78 @@
             pointer-events: none;
         }
 
+        /* Pause Menu Styles */
+        #pause-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            color: #fff;
+            text-align: center;
+        }
+
+        .pause-content {
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 80%;
+        }
+
+        .pause-title {
+            font-size: 3em;
+            color: #00ffcc;
+            text-shadow: 0 0 15px #00ffcc;
+            margin: 0 0 30px 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .pause-btn {
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .pause-btn:hover {
+            transform: scale(1.05);
+            background: #fff;
+            box-shadow: 0 0 20px #00ffcc;
+        }
+
+        .pause-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 1, 0.3);
+        }
+
+        #chromatic-hit {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1000;
+            mix-blend-mode: color-dodge;
+            transition: opacity 0.4s;
+            background: radial-gradient(circle, transparent 20%, rgba(255, 0, 0, 0.2) 60%, rgba(0, 255, 255, 0.2) 100%);
+            opacity: 0;
+        }
+
         /* Victory Screen Styles */
         #victory-screen {
             position: absolute;
@@ -168,6 +240,65 @@
             background: #fff;
             transform: scale(1.05);
         }
+
+        /* Mini-map Glassmorphism */
+        #minimap-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 180px;
+            height: 180px;
+            background: rgba(0, 255, 204, 0.05);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 12px;
+            padding: 5px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        #minimap-container:hover {
+            transform: scale(1.05);
+        }
+
+        #minimap {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+
+        /* Animation Diagnostic Overlay */
+        #anim-overlay {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            z-index: 100;
+            border: 1px solid #444;
+            max-width: 250px;
+            pointer-events: auto;
+        }
+
+        .anim-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+            border-bottom: 1px solid #222;
+        }
+
+        .anim-pct {
+            font-weight: bold;
+            margin-left: 10px;
+        }
     </style>
 </head>
 
@@ -180,6 +311,10 @@
         <div id="timer">00:00</div>
         <div id="score">SHARDS: 0</div>
     </div>
+    <div id="minimap-container">
+        <canvas id="minimap"></canvas>
+    </div>
+    <div id="anim-overlay">BINDING LOG:</div>
     <div id="debug-log">DEBUG CONSOLE:<br></div>
     <div id="intro-overlay">
         <h1 id="intro-title">THE BRONX</h1>
@@ -191,6 +326,18 @@
     </div>
 
     <!-- Victory Screen -->
+    <div id="chromatic-hit"></div>
+
+    <div id="pause-overlay">
+        <div class="pause-content">
+            <h1 class="pause-title">PAUSED</h1>
+            <p style="color: #aaa; margin-bottom: 30px;">DIMENSION STABILITY: LOCKED</p>
+            <button class="pause-btn" onclick="togglePause()">RESUME</button>
+            <button class="pause-btn secondary" onclick="location.reload()">RESTART LEVEL</button>
+            <div style="margin-top: 20px; font-size: 0.8em; color: #666;">PRESS ESC TO RETURN</div>
+        </div>
+    </div>
+
     <div id="victory-screen">
         <h1 style="font-size: 3em; letter-spacing: 5px; margin-bottom: 10px;">LOOP COMPLETED</h1>
         <div class="stats-container">
@@ -220,25 +367,35 @@
     <script type="module">
         import * as THREE from 'three';
         import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        let scene, camera, renderer, mixer, clock, model, goalOrb, nikoLight;
+        let scene, camera, renderer, mixer, clock, model, modelContainer, fixGroup, goalOrb, nikoLight;
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
-        let actions = {}, currentAction, idleTimer = 0;
-        let isReady = false, isTransitioning = false;
-        let score = 0;
-        let shards = [];
-        let walls = [], roads = []; // Track meshes for transition effect
-        let transitionTime = 0;
+        let actions = {}, currentAction, activeIdleKey = 'twerk';
+        let animationScores = {}; // Tracks link success %
+        let idleTimer = 0;
+        let restingThreshold = 10 + Math.random() * 5; // New: Randomized resting duration
+        let isReady = false;
+        let velX = 0, velZ = 0; // New for movement inertia
+        let isPaused = false;
 
-        // Camera settings - Defaulting to .5 of closest proximity
-        let camDistance = 400; // Adjusted: Closest is 200, so 400 is a close follow mode
-        let camPitch = 18;     // Adjusted: Lower pitch for tighter camera
-        let camYaw = 0;
+        // Game Feel & Transition Variables
+        let walls = [], roads = [], shards = [];
+        let isTransitioning = false, transitionTime = 0, hasShifted = false;
         let shakeIntensity = 0;
+        let camYaw = 0, camDistance = 800;
+        let targetPitch = 18, targetDistance = 400; // New for lerping
+        let floatingTexts = [], ghosts = []; // Juice controllers
+
+        // Camera settings
+        let camPitch = 18;
+        camYaw = 0;
+        shakeIntensity = 0;
+        let score = 0;
 
         const keys = {}, cellSize = 1800;
         const mapOffset = 4000;
+
+        let minimapCanvas, minimapCtx;
 
         const themes = {
             1: { name: "THE BRONX", sky: 0x050510, fog: 0x050510, fogDens: 0.00018, roadColor: '#1a1a1a', sidewalkColor: '#333', buildColor: '#15151a', win1: '#ffaa00', win2: '#00aaff', lightColor: 0xffaa00, ambient: 0.6 },
@@ -247,8 +404,20 @@
             4: { name: "THE GRID", sky: 0x000a0a, fog: 0x000a0a, fogDens: 0.0002, roadColor: '#001a1a', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ffffff', lightColor: 0x00ffff, ambient: 0.6 },
             5: { name: "VOID JUNCTION", sky: 0x0a000a, fog: 0x0a000a, fogDens: 0.00022, roadColor: '#1a001a', sidewalkColor: '#2a002a', buildColor: '#110011', win1: '#ff00ff', win2: '#ffaa00', lightColor: 0xff00ff, ambient: 0.5 },
             6: { name: "OVERDRIVE", sky: 0x000000, fog: 0x000000, fogDens: 0.00035, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#000000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xffffff, ambient: 0.7 },
-            7: { name: "NEON OVERLOAD", sky: 0x001010, fog: 0x001010, fogDens: 0.00025, roadColor: '#002222', sidewalkColor: '#003333', buildColor: '#001111', win1: '#00ffff', win2: '#ff00ff', lightColor: 0x00ffff, ambient: 0.7 },
-            8: { name: "THE FINAL LOOP", sky: 0x050510, fog: 0x050510, fogDens: 0.00015, roadColor: '#000000', sidewalkColor: '#111', buildColor: '#000', win1: '#ffffff', win2: '#ffcc00', lightColor: 0xffffff, ambient: 0.8 }
+            7: { name: "THE ARCHIVE", sky: 0x010101, fog: 0x010101, fogDens: 0.00045, roadColor: '#050505', sidewalkColor: '#000', buildColor: '#111', win1: '#fff', win2: '#888', lightColor: 0xffffff, ambient: 1.2 },
+            8: { name: "CHROME DESERT", sky: 0x201005, fog: 0x201005, fogDens: 0.00015, roadColor: '#2a1a0a', sidewalkColor: '#332211', buildColor: '#151515', win1: '#ffcc00', win2: '#ffffff', lightColor: 0xffaa00, ambient: 0.8 },
+            9: { name: "GLITCH DOMAIN", sky: 0x050005, fog: 0x050005, fogDens: 0.00028, roadColor: '#0a000a', sidewalkColor: '#150015', buildColor: '#000', win1: '#ff00ff', win2: '#00ffff', lightColor: 0xff00ff, ambient: 1.0 },
+            10: { name: "DIMENSION ZERO", sky: 0x000000, fog: 0x000000, fogDens: 0.0005, roadColor: '#000', sidewalkColor: '#111', buildColor: '#000', win1: '#ff0000', win2: '#00ff00', lightColor: 0xffffff, ambient: 0.4 },
+            11: { name: "CYBER RUINS", sky: 0x100800, fog: 0x100800, fogDens: 0.00018, roadColor: '#1a0d00', sidewalkColor: '#2a1a00', buildColor: '#110800', win1: '#ffd700', win2: '#8b4513', lightColor: 0xffd700, ambient: 0.8 },
+            12: { name: "NEON PRISON", sky: 0x001000, fog: 0x001000, fogDens: 0.00025, roadColor: '#000a00', sidewalkColor: '#001a00', buildColor: '#000500', win1: '#00ff00', win2: '#ffffff', lightColor: 0x00ff00, ambient: 0.6 },
+            13: { name: "COBALT CATHEDRAL", sky: 0x000020, fog: 0x000020, fogDens: 0.00015, roadColor: '#00001a', sidewalkColor: '#000033', buildColor: '#000011', win1: '#00ffff', win2: '#ffffff', lightColor: 0x0000ff, ambient: 1.0 },
+            14: { name: "EMERALD EXPANSE", sky: 0x002000, fog: 0x002000, fogDens: 0.00012, roadColor: '#001a00', sidewalkColor: '#002a00', buildColor: '#001100', win1: '#00ff00', win2: '#ffffff', lightColor: 0x00ff00, ambient: 0.8 },
+            15: { name: "RUBY RESERVOIR", sky: 0x200000, fog: 0x200000, fogDens: 0.0002, roadColor: '#1a0000', sidewalkColor: '#2a0000', buildColor: '#110000', win1: '#ff0000', win2: '#ffffff', lightColor: 0xff0000, ambient: 0.7 },
+            16: { name: "SAPPHIRE STATION", sky: 0x000030, fog: 0x000030, fogDens: 0.00022, roadColor: '#000a1a', sidewalkColor: '#111', buildColor: '#000015', win1: '#0077ff', win2: '#ffffff', lightColor: 0x0077ff, ambient: 0.6 },
+            17: { name: "AMETHYST ABBEY", sky: 0x100020, fog: 0x100020, fogDens: 0.00018, roadColor: '#1a0d1a', sidewalkColor: '#2a1a2a', buildColor: '#110811', win1: '#cc00ff', win2: '#ffffff', lightColor: 0xcc00ff, ambient: 0.9 },
+            18: { name: "OBSIDIAN OUTPOST", sky: 0x000000, fog: 0x000000, fogDens: 0.0003, roadColor: '#000', sidewalkColor: '#111', buildColor: '#000', win1: '#ff4400', win2: '#ffffff', lightColor: 0xff4400, ambient: 0.4 },
+            19: { name: "QUARTZ QUARRY", sky: 0x202020, fog: 0x202020, fogDens: 0.0001, roadColor: '#1a1a1a', sidewalkColor: '#333', buildColor: '#151515', win1: '#ffffff', win2: '#888', lightColor: 0xffffff, ambient: 1.2 },
+            20: { name: "THE ENDLESS", sky: 0x000000, fog: 0x000000, fogDens: 0.0005, roadColor: '#000', sidewalkColor: '#111', buildColor: '#000', win1: '#00ffcc', win2: '#ffffff', lightColor: 0x00ffcc, ambient: 0.5 }
         };
 
         const maps = {
@@ -258,9 +427,22 @@
             4: { grid: [[1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 1, 0, 1], [1, 0, 1, 0, 0, 1, 0, 1], [1, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 6, z: 6 } },
             5: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 1, z: 7 } },
             6: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 9, z: 1 } },
-            7: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 7, z: 7 } },
-            8: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 9, z: 7 } }
+            7: { grid: [[1, 1, 1, 1, 1], [1, 0, 1, 0, 1], [1, 0, 1, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 3, z: 3 } },
+            8: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 7, z: 5 } },
+            9: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 7, z: 1 } },
+            10: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 9, z: 1 } },
+            11: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 17, z: 17 } },
+            12: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 17, z: 17 } },
+            13: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 17, z: 17 } },
+            14: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 17, z: 17 } },
+            15: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 19, z: 19 } },
+            16: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 19, z: 19 } },
+            17: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 19, z: 19 } },
+            18: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 19, z: 19 } },
+            19: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 19, z: 19 } },
+            20: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 23, z: 23 } }
         };
+
         function log(msg, type = 'info') {
             const div = document.getElementById('debug-log');
             const span = document.createElement('div');
@@ -286,9 +468,10 @@
             const records = JSON.parse(localStorage.getItem('niko_records') || '{}');
             const tbody = document.getElementById('best-tbody');
             tbody.innerHTML = '';
-            for (let i = 1; i <= 8; i++) {
+            for (let i = 1; i <= 20; i++) {
                 const time = records[i] ? formatTime(records[i]) : "--:--";
-                tbody.innerHTML += `<tr><td>DIMENSION ${i}: ${themes[i].name}</td><td class="best-row">${time}</td></tr>`;
+                const label = themes[i] ? themes[i].name : `DIMENSION ${i}`;
+                tbody.innerHTML += `<tr><td>DIMENSION ${i}: ${label}</td><td class="best-row">${time}</td></tr>`;
             }
             document.getElementById('victory-screen').style.display = 'flex';
         }
@@ -334,6 +517,12 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
+            // Initialize Mini-map
+            minimapCanvas = document.getElementById('minimap');
+            minimapCtx = minimapCanvas.getContext('2d');
+            minimapCanvas.width = 150;
+            minimapCanvas.height = 150;
+
             const ambient = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambient);
             const sun = new THREE.DirectionalLight(0xffffff, 0.5);
@@ -350,29 +539,44 @@
             scene.add(levelGroup);
 
             const startAction = () => {
-                if (isReady && !gameActive) {
+                if (!isReady) return;
+                // Allow start if not transitioning OR if we've already shifted (waiting for wall rise)
+                if (!gameActive && (!isTransitioning || hasShifted)) {
                     gameActive = true;
                     startTime = Date.now();
+                    // If we were transitioning, just finish it
+                    if (isTransitioning) {
+                        isTransitioning = false;
+                        walls.forEach(w => w.position.y = 3000); // Snap walls to final pos
+                    }
+                }
+                if (gameActive) {
                     document.getElementById('intro-overlay').classList.add('hidden');
                 }
             };
 
             window.addEventListener('keydown', (e) => {
-                const k = e.key.toLowerCase();
-                keys[k] = true;
-                if (e.key.startsWith('Arrow')) keys[e.key] = true;
+                if (e.code === 'Escape') {
+                    togglePause();
+                    return;
+                }
+                if (isPaused) return;
+
+                keys[e.code] = true;
+                keys[e.key.toLowerCase()] = true; // Fallback for some non-standard keys
 
                 startAction();
 
-                if (k === 't') {
-                    camPitch = (camPitch < 40 ? 85 : 18);
-                    camDistance = (camPitch === 85 ? 3500 : 400);
+                if (e.code === 'KeyT') {
+                    targetPitch = (targetPitch < 40 ? 85 : 18);
+                    targetDistance = (targetPitch === 85 ? 4000 : 400);
+                    log(`Birds-eye: ${targetPitch === 85 ? "ON" : "OFF"}`, "info");
                 }
             });
             window.addEventListener('mousedown', startAction);
             window.addEventListener('keyup', (e) => {
+                keys[e.code] = false;
                 keys[e.key.toLowerCase()] = false;
-                if (e.key.startsWith('Arrow')) keys[e.key] = false;
             });
 
             buildLevel(currentLevel);
@@ -383,12 +587,9 @@
         async function loadFile(loader, key, path) {
             return new Promise((resolve) => {
                 loader.load(path,
-                    (result) => { resolve({ key, result }); },
+                    (fbx) => { resolve({ key, fbx }); },
                     undefined,
-                    (err) => {
-                        console.error(`Error loading ${key}:`, err);
-                        resolve({ key, error: true });
-                    }
+                    (err) => { resolve({ key, error: true }); }
                 );
             });
         }
@@ -397,156 +598,260 @@
             const fbxLoader = new FBXLoader();
             const baseUrl = ''; // Use local files
 
-            // 1. Load the main FBX model instead of GLB
-            log("Loading main model (idle2.fbx)...", "info");
-            const modelResult = await loadFile(fbxLoader, 'main', baseUrl + 'idle2.fbx');
+            log("Loading main model (twerk.fbx)...", "info");
+            const modelResult = await loadFile(fbxLoader, 'main', baseUrl + 'twerk.fbx');
 
-            if (!modelResult.error && modelResult.result) {
-                model = modelResult.result;
-                scene.add(model);
+            if (!modelResult.error && modelResult.fbx) {
+                model = modelResult.fbx;
+
+                // 1. Scene -> modelContainer (moves/turns)
+                modelContainer = new THREE.Group();
+                scene.add(modelContainer);
+
+                // 2. modelContainer -> fixGroup (handles standing the prone character up)
+                fixGroup = new THREE.Group();
+                modelContainer.add(fixGroup);
+
+                // 3. fixGroup -> model (handles animations)
+                fixGroup.add(model);
+
                 mixer = new THREE.AnimationMixer(model);
 
-                // Scale handling for FBX - normalized to 240 units height
+                // NOSE ON FLOOR FIX: Stand him up inside the fixGroup
+                // If PI/2 was upside down UNDER floor, then -PI/2 is right-side up ABOVE floor.
+                fixGroup.rotation.x = -Math.PI / 2;
+
+                // NO MODEL ROTATION HERE: Child rotation relative to X-rotated parent causes "rolling"
+                model.rotation.set(0, 0, 0);
+
+                // HEIGHT FIX: Ensure feet are on the floor (Y=0)
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
-                model.scale.setScalar(240 / size.y);
-                log("Main FBX model loaded and scaled.", "success");
+                // Scale to 80 units tall (user request for one notch smaller)
+                model.scale.setScalar(80 / size.y);
+
+                // Compute box again after scale to get precise offset
+                const scaledBox = new THREE.Box3().setFromObject(model);
+                // Lift so min Y (feet) is at floor level (Y=0)
+                model.position.y = -scaledBox.min.y;
+
+                // OPTIMIZED MATERIAL HANDLING: Preserve FBX materials/textures
+                model.traverse(node => {
+                    if (node.isMesh) {
+                        node.material.side = THREE.DoubleSide;
+                        node.material.depthWrite = true;
+                        if (node.material.map) node.material.map.anisotropy = 16;
+                    }
+                });
+
+                // BONE DIAGNOSTIC: Log all bone names to help with binding
+                const boneNames = [];
+                model.traverse(n => { if (n.isBone) boneNames.push(n.name); });
+                log(`SKELETON READY: Found ${boneNames.length} bones. (e.g. ${boneNames.slice(0, 3).join(', ')})`, "info");
+
+                log("Main FBX loaded, stood upright, and height shifted.", "success");
             } else {
-                log("Failed to load FBX, using fallback box", "error");
+                log("Failed to load local FBX, using fallback box", "error");
+                modelContainer = new THREE.Group();
+                scene.add(modelContainer);
                 model = new THREE.Mesh(new THREE.BoxGeometry(100, 240, 100), new THREE.MeshStandardMaterial({ color: 0x00ffcc }));
-                scene.add(model);
+                modelContainer.add(model);
                 mixer = new THREE.AnimationMixer(model);
             }
 
-            // 2. Load FBX animations
             const files = [
                 { key: 'walk', path: baseUrl + 'catwalk.fbx' },
-                { key: 'idle', path: baseUrl + 'idle2.fbx' },
+                { key: 'resting', path: baseUrl + 'resting.fbx' },
                 { key: 'twerk', path: baseUrl + 'twerk.fbx' },
-                { key: 'run', path: baseUrl + 'catwalk.fbx' }, // Fallback to catwalk for run
-                { key: 'leftturn', path: baseUrl + 'leftturn.fbx' },
-                { key: 'rightturn', path: baseUrl + 'rightturn.fbx' },
-                { key: 'walk_start', path: baseUrl + 'catwalk-start-378915.fbx' },
-                { key: 'walk_end', path: baseUrl + 'catwalk-end-378898.fbx' }
+                { key: 'run', path: baseUrl + 'catwalk.fbx' },
+                { key: 'alt_run', path: baseUrl + 'run.fbx' }
             ];
 
-            log("Loading animations from FBX files...", "info");
+            let maxIdleScore = -1;
+            const idlePriority = { 'resting': 1, 'twerk': 2 };
+
+            log("Loading animations from local files...", "info");
             const results = await Promise.all(files.map(f => loadFile(fbxLoader, f.key, f.path)));
             document.getElementById('load-bar').style.width = "100%";
 
-            // Dictionary of every node found in the model
+            // Map bones for retargeting
             const nodeMap = new Map();
-            let boneCheck = "SKELETON: ";
-            let meshCheck = "MESHES: ";
-            let bcCount = 0;
-            let meshCount = 0;
-            let skeletonFound = false;
-
-            // 1. Scan Model for Bones and EVERY types of Mesh
             model.traverse(node => {
                 const norm = node.name ? node.name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
                 if (norm) {
                     nodeMap.set(norm, node.name);
-                    const parts = norm.split(/mixamorig|mixamo|armature/);
-                    const core = parts[parts.length - 1];
-                    if (core && core.length > 2) nodeMap.set(core, node.name);
-                }
-
-                if (node.isBone) {
-                    skeletonFound = true;
-                    if (bcCount < 8) { boneCheck += node.name + " | "; bcCount++; }
-                }
-                if (node.isMesh) {
-                    meshCount++;
-                    if (meshCount < 3) meshCheck += `${node.name}(${node.type}) | `;
+                    // Core: Remove common prefixes like mixamorig, mixamo, armature, and cc_base (from AccuRig)
+                    const core = norm.replace(/mixamorig|mixamo|armature|ccbase|rl/g, '');
+                    if (core.length > 2) nodeMap.set(core, node.name);
                 }
             });
-            log(boneCheck, "info");
-            log(meshCheck, "info");
-            log(`Found ${bcCount}+ bones, ${meshCount} meshes (SkinMode: ${skeletonFound})`, "info");
 
-            // 2. MIXER ROOT DETECTION
-            let animRoot = model;
-            mixer = new THREE.AnimationMixer(animRoot);
-            model.updateMatrixWorld(true);
+            const boneAliases = {
+                'hips': ['pelvis', 'waist', 'root', 'bip01_pelvis'],
+                'pelvis': ['hips', 'waist', 'bip01_pelvis'],
+                'spine': ['chest', 'waist', 'spine01', 'spine02', 'bip01_spine'],
+                'chest': ['spine01', 'spine02', 'spine03', 'bip01_spine2'],
+                'neck': ['head', 'bip01_neck'],
+                'head': ['neck', 'bip01_head'],
+                'clavicle': ['shoulder', 'bip01_l_clavicle', 'bip01_r_clavicle'],
+                'shoulder': ['clavicle', 'upperarm', 'arm'],
+                'upperarm': ['arm', 'bicep', 'bip01_l_upperarm', 'bip01_r_upperarm'],
+                'forearm': ['elbow', 'arm2', 'bip01_l_forearm', 'bip01_r_forearm'],
+                'hand': ['wrist', 'bip01_l_hand', 'bip01_r_hand'],
+                'thigh': ['upperleg', 'leg', 'bip01_l_thigh', 'bip01_r_thigh'],
+                'calf': ['knee', 'lowerleg', 'bip01_l_calf', 'bip01_r_calf'],
+                'foot': ['ankle', 'bip01_l_foot', 'bip01_r_foot']
+            };
 
             results.forEach(res => {
-                if (!res.error && res.result && res.result.animations.length > 0) {
-                    const clip = res.result.animations[0].clone();
-                    // Rename clip if it's named 'mixamo.com' or generic
+                if (!res.error && res.fbx && res.fbx.animations.length > 0) {
+                    // PICK THE BEST CLIP (AccuRig often has poses at index 0, real anim at 1)
+                    let bestClip = res.fbx.animations[0];
+                    if (res.fbx.animations.length > 1) {
+                        res.fbx.animations.forEach(c => {
+                            if (c.duration > bestClip.duration) bestClip = c;
+                        });
+                        log(`  CLIPS [${res.key}]: Found ${res.fbx.animations.length}. Picking longest: ${Math.round(bestClip.duration)}s`, "info");
+                    }
+
+                    const clip = bestClip.clone();
                     clip.name = res.key;
 
-                    let totalTracks = clip.tracks.length;
                     let boundOk = 0;
+                    let totalTracks = clip.tracks.length;
 
-                    // --- DEEPER PROPERTY BINDING ---
                     clip.tracks.forEach(track => {
-                        const parts = track.name.split('.');
-                        if (parts.length < 2) return;
-
-                        let trackBoneName = parts[0];
-                        const property = parts[parts.length - 1];
-
-                        const normTrack = trackBoneName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                        const coreTrack = normTrack.replace(/mixamorig|mixamo|armature/g, '');
-
+                        const trackNameParts = track.name.split('.');
+                        const property = trackNameParts.pop();
                         let targetBoneName = null;
-                        if (nodeMap.has(normTrack)) targetBoneName = nodeMap.get(normTrack);
-                        else if (nodeMap.has(coreTrack)) targetBoneName = nodeMap.get(coreTrack);
-                        else {
-                            for (let [key, val] of nodeMap) {
-                                if (key.length > 3 && (coreTrack.includes(key) || key.includes(coreTrack))) {
-                                    targetBoneName = val; break;
+
+                        // Hyper-Robust Matching with L/R preservation
+                        for (const p of trackNameParts) {
+                            let raw = p.toLowerCase().replace(/mixamorig[|_:]|cc[|_:]base[|_:]|rl[|_:]/g, '');
+                            // Standardize L/R
+                            raw = raw.replace(/^left/, 'l').replace(/^right/, 'r');
+                            const clean = raw.replace(/[^a-z0-9]/g, '');
+                            const core = clean.replace(/mixamo|armature|ccbase|rl/g, '');
+
+                            if (nodeMap.has(clean)) targetBoneName = nodeMap.get(clean);
+                            else if (nodeMap.has(core)) targetBoneName = nodeMap.get(core);
+
+                            if (!targetBoneName) {
+                                for (let aliasKey in boneAliases) {
+                                    if (clean.includes(aliasKey) || core.includes(aliasKey)) {
+                                        for (let alt of boneAliases[aliasKey]) {
+                                            const side = clean.startsWith('l') ? 'l' : (clean.startsWith('r') ? 'r' : '');
+                                            const searchKey = side + alt;
+                                            if (nodeMap.has(searchKey)) {
+                                                targetBoneName = nodeMap.get(searchKey);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (targetBoneName) break;
                                 }
                             }
+
+                            if (!targetBoneName) {
+                                for (let [key, val] of nodeMap) {
+                                    if (key.length >= 4 && (clean.includes(key) || key.includes(clean))) {
+                                        targetBoneName = val;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (targetBoneName) break;
                         }
 
                         if (targetBoneName) {
                             track.name = targetBoneName + "." + property;
-                            if (animRoot.getObjectByName(targetBoneName)) boundOk++;
+                            if (model.getObjectByName(targetBoneName)) boundOk++;
                         }
                     });
 
-                    // Only filter out root position if it's not the primary character
+                    // NOSE ON FLOOR FIX:
+                    // Filter out tracks that target the root object to prevent them overriding model.rotation.x
                     clip.tracks = clip.tracks.filter(track => {
-                        const lowTrack = track.name.toLowerCase();
-                        if (lowTrack.includes('.position')) {
-                            return lowTrack.includes('hips') || lowTrack.includes('root') || lowTrack.includes('pelvis');
+                        const parts = track.name.split('.');
+                        if (parts.length === 1) return false;
+                        const boneName = parts[0];
+                        // Relaxed: Only filter out model root, allow everything else
+                        if (boneName === model.name) return false;
+
+                        // Positional tracks restricted to core hub bones
+                        if (track.name.toLowerCase().includes('.position')) {
+                            const low = track.name.toLowerCase();
+                            return low.includes('hips') || low.includes('pelvis') || low.includes('waist') || low.includes('root');
                         }
                         return true;
                     });
 
                     const action = mixer.clipAction(clip);
                     if (res.key === 'twerk') action.setLoop(THREE.LoopOnce);
-                    if (res.key.includes('turn')) action.setLoop(THREE.LoopOnce);
-                    if (res.key === 'walk') action.setEffectiveTimeScale(2.2);
-                    if (res.key === 'run') action.setEffectiveTimeScale(3.5);
+                    else action.setLoop(THREE.LoopRepeat);
+
+                    // Animation Speeds
+                    if (res.key === 'walk') action.setEffectiveTimeScale(3.0);
+                    if (res.key === 'run') action.setEffectiveTimeScale(4.5);
+                    if (res.key === 'alt_run') action.setEffectiveTimeScale(5.0);
 
                     actions[res.key] = action;
                     const percent = Math.round((boundOk / totalTracks) * 100);
-                    log(`Linked ${res.key}: ${percent}% (${boundOk}/${totalTracks} bound)`, percent > 50 ? "success" : "error");
+                    animationScores[res.key] = percent;
+
+                    // Update Diagnostic Overlay
+                    const overlay = document.getElementById('anim-overlay');
+                    const item = document.createElement('div');
+                    item.className = 'anim-item';
+                    const color = percent > 60 ? '#00ffcc' : (percent > 20 ? '#ffcc00' : '#ff4444');
+                    item.innerHTML = `<span>${res.key}</span><span class="anim-pct" style="color:${color}">${percent}%</span>`;
+                    overlay.appendChild(item);
+
+                    log(`Linked ${res.key}: ${percent}% bound (${boundOk}/${totalTracks} tracks)`, percent > 50 ? "success" : "error");
+
+                    if (res.key === 'resting') {
+                        const sample = clip.tracks.slice(0, 8).map(t => {
+                            const b = t.name.split('.')[0];
+                            return b.length > 10 ? '...' + b.slice(-8) : b;
+                        }).join(' | ');
+                        log(`  AUDIT [resting]: ${sample}`, "info");
+                    }
+
+                    // Smart Idle Picker: Pick resting as primary if bound
+                    if (res.key === 'resting') {
+                        const score = percent;
+                        if (score > maxIdleScore && percent > 15) {
+                            maxIdleScore = score;
+                            activeIdleKey = res.key;
+                        }
+                    }
+
+                    if (percent < 30 && totalTracks > 0) {
+                        const rawTracks = res.fbx.animations[0].tracks.slice(0, 3).map(t => t.name).join(' | ');
+                        log(`  DIAG: ${res.key} failed. Source tracks sample: ${rawTracks}`, "error");
+                    }
+                } else {
+                    log(`Skipped ${res.key}: clip not found or empty`, "error");
                 }
             });
 
-            fadeToAction('idle');
-            log("Mixer Ready: " + (Object.keys(actions).length) + " actions registered", "success");
-
             resetNiko();
+            // Force start best idle action
+            if (actions[activeIdleKey]) {
+                fadeToAction(activeIdleKey, 0);
+                log(`Best Idle System: Using '${activeIdleKey}'`, "success");
+            } else if (actions['twerk']) {
+                activeIdleKey = 'twerk';
+                fadeToAction('twerk', 0);
+                log("Best Idle System: Falling back to 'twerk'", "warning");
+            }
+
             isReady = true;
             document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
             document.getElementById('click-prompt').style.display = "block";
         }
 
-        // --- SKELETAL PULSE TEST ---
-        function runSkeletalDiagnostics() {
-            if (!model) return;
-            const hips = model.getObjectByName(glbNodeMap.get('hips') || 'mixamorigHips' || 'Hips');
-            if (hips) {
-                hips.rotation.z = Math.sin(Date.now() * 0.005) * 0.2;
-            }
-        }
-
-        function fadeToAction(name, duration = 0.2) {
+        function fadeToAction(name, duration = 0.3) {
             if (!actions[name]) return;
             const prev = currentAction;
             currentAction = actions[name];
@@ -581,12 +886,10 @@
                         b.position.set(px, 3000, pz);
                         levelGroup.add(b);
                         walls.push(b);
-                        // Start walls below ground for appearing animation if transitioning
                         if (isTransitioning) b.position.y = -3000;
                     } else {
                         const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), mats.road);
-                        r.rotation.x = -Math.PI / 2;
-                        r.position.set(px, 0, pz);
+                        r.rotation.x = -Math.PI / 2; r.position.set(px, 0, pz);
                         levelGroup.add(r);
                         roads.push(r);
                         if (Math.random() > 0.7 && (x !== mapData.start.x || z !== mapData.start.z)) {
@@ -604,19 +907,6 @@
             document.getElementById('intro-title').innerText = theme.name;
         }
 
-        function startLevelTransition() {
-            if (isTransitioning) return;
-            isTransitioning = true;
-            transitionTime = 0;
-            gameActive = false;
-
-            // Celebration!
-            fadeToAction('twerk', 0.1);
-            shakeIntensity = 30;
-
-            log("NEXT DIMENSION SYNCING...", "info");
-        }
-
         function spawnShard(x, z, color) {
             const shard = new THREE.Mesh(new THREE.OctahedronGeometry(80), new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2, wireframe: true }));
             shard.position.set(x, 150, z);
@@ -624,96 +914,296 @@
             levelGroup.add(shard);
         }
 
+        function drawMinimap() {
+            if (!minimapCtx || !isReady) return;
+            const ctx = minimapCtx;
+            const grid = maps[currentLevel].grid;
+            const cw = minimapCanvas.width, ch = minimapCanvas.height;
+            const rows = grid.length, cols = grid[0].length;
+            const cellW = cw / cols, cellH = ch / rows;
+
+            ctx.clearRect(0, 0, cw, ch);
+
+            // Draw Background (Grid)
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    ctx.fillStyle = grid[r][c] === 1 ? 'rgba(0, 255, 204, 0.15)' : 'rgba(0, 0, 0, 0.3)';
+                    ctx.fillRect(c * cellW, r * cellH, cellW - 1, cellH - 1);
+                }
+            }
+
+            // Draw Shards
+            ctx.fillStyle = '#00ffcc';
+            shards.forEach(s => {
+                const sx = (s.position.x + mapOffset) / cellSize;
+                const sz = (s.position.z + mapOffset) / cellSize;
+                ctx.beginPath();
+                ctx.arc(sx * cellW + cellW / 2, sz * cellH + cellH / 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw Goal
+            const gx = maps[currentLevel].goal.x, gz = maps[currentLevel].goal.z;
+            ctx.fillStyle = '#ffcc00';
+            ctx.shadowBlur = 10; ctx.shadowColor = '#ffcc00';
+            ctx.fillRect(gx * cellW + 2, gz * cellH + 2, cellW - 4, cellH - 4);
+            ctx.shadowBlur = 0;
+
+            // Draw Player
+            const px = (modelContainer.position.x + mapOffset) / cellSize;
+            const pz = (modelContainer.position.z + mapOffset) / cellSize;
+            ctx.fillStyle = '#fff';
+            ctx.shadowBlur = 15; ctx.shadowColor = '#fff';
+            ctx.beginPath();
+            ctx.arc(px * cellW + cellW / 2, pz * cellH + cellH / 2, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Player directional indicator
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(px * cellW + cellW / 2, pz * cellH + cellH / 2);
+            ctx.lineTo(
+                px * cellW + cellW / 2 + Math.sin(modelContainer.rotation.y) * 10,
+                pz * cellH + cellH / 2 + Math.cos(modelContainer.rotation.y) * 10
+            );
+            ctx.stroke();
+        }
+
+        function startLevelTransition() {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            transitionTime = 0;
+            hasShifted = false;
+            gameActive = false;
+            log("LEVEL COMPLETE! Dimension shifting...", "success");
+        }
+
         function resetNiko() {
             const start = maps[currentLevel].start;
-            model.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
-            model.rotation.y = 0;
+            modelContainer.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
+            modelContainer.rotation.y = 0;
             camYaw = 0;
+            velX = 0; velZ = 0;
+            idleTimer = 0;
+            startTime = Date.now();
+        }
+
+        function createFloatingText(text, pos, color = '#ffffff') {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.font = 'bold 80px Outfit, sans-serif';
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.fillText(text, 128, 80);
+            const tex = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(400, 200, 1);
+            sprite.position.copy(pos);
+            sprite.position.y += 100;
+            scene.add(sprite);
+            floatingTexts.push({ obj: sprite, life: 1.0 });
+        }
+
+        function spawnGhost() {
+            if (!model) return;
+            const ghost = model.clone();
+            ghost.traverse(child => {
+                if (child.isMesh) {
+                    child.material = new THREE.MeshBasicMaterial({
+                        color: themes[currentLevel].lightColor || 0x00ffff,
+                        transparent: true,
+                        opacity: 0.4
+                    });
+                }
+            });
+            ghost.position.copy(modelContainer.position);
+            ghost.rotation.copy(modelContainer.rotation);
+            scene.add(ghost);
+            ghosts.push({ obj: ghost, life: 0.5 });
+        }
+
+        function togglePause() {
+            if (!gameActive && !isPaused) return;
+            isPaused = !isPaused;
+            document.getElementById('pause-overlay').style.display = isPaused ? 'flex' : 'none';
+            log(isPaused ? "Game Paused" : "Game Resumed", "info");
+        }
+
+        function triggerHitEffect() {
+            const el = document.getElementById('chromatic-hit');
+            el.style.opacity = '1';
+            setTimeout(() => { el.style.opacity = '0'; }, 150);
+            shakeIntensity = 25;
         }
 
         function animate() {
             requestAnimationFrame(animate);
+            if (isPaused) return;
             const delta = clock.getDelta();
             if (mixer) mixer.update(delta);
 
-            if (gameActive && model) {
+            // Camera Controls (Universal)
+            if (isReady) {
+                if (keys['ArrowLeft']) camYaw += 0.05;
+                if (keys['ArrowRight']) camYaw -= 0.05;
+                if (keys['ArrowUp']) targetDistance = Math.max(200, targetDistance - 50);
+                if (keys['ArrowDown']) targetDistance = Math.min(6000, targetDistance + 50);
+            }
+
+            if (gameActive && isReady) {
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 document.getElementById('timer').innerText = formatTime(elapsed);
 
-                if (keys['arrowleft']) camYaw += 0.05;
-                if (keys['arrowright']) camYaw -= 0.05;
-                if (keys['arrowup']) camDistance = Math.max(200, camDistance - 25);
-                if (keys['arrowdown']) camDistance = Math.min(6000, camDistance + 25);
+                // Smooth Lerp Camera
+                camPitch = THREE.MathUtils.lerp(camPitch, targetPitch, 0.08);
+                camDistance = THREE.MathUtils.lerp(camDistance, targetDistance, 0.08);
 
-                let inputX = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-                let inputZ = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+                let inputX = (keys['KeyD'] ? 1 : 0) - (keys['KeyA'] ? 1 : 0);
+                let inputZ = (keys['KeyS'] ? 1 : 0) - (keys['KeyW'] ? 1 : 0);
+
+                const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'] || keys['shift'];
+                const isAltRun = keys['AltLeft'] || keys['AltRight'] || keys['alt'];
+                const spd = isSprinting ? 75 : 40;
 
                 if (inputX !== 0 || inputZ !== 0) {
                     idleTimer = 0;
-                    const angle = Math.atan2(inputX, inputZ) + camYaw;
-                    const spd = keys.shift ? 75 : 40;
-                    if (keys.shift) {
+
+                    if (isSprinting || isAltRun) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
                         camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
+                        if (Date.now() % 100 < 32) spawnGhost(); // Speed trails
                     } else {
                         camera.fov = THREE.MathUtils.lerp(camera.fov, 60, 0.1);
                     }
                     camera.updateProjectionMatrix();
 
-                    const vx = Math.sin(angle) * spd;
-                    const vz = Math.cos(angle) * spd;
-                    const nX = model.position.x + vx;
-                    const nZ = model.position.z + vz;
+                    const angle = Math.atan2(inputX, inputZ) + camYaw;
+
+                    const targetVelX = Math.sin(angle) * spd;
+                    const targetVelZ = Math.cos(angle) * spd;
+                    velX = THREE.MathUtils.lerp(velX, targetVelX, 0.2);
+                    velZ = THREE.MathUtils.lerp(velZ, targetVelZ, 0.2);
+
+                    const targetRotation = angle;
+                    const currentRotation = modelContainer.rotation.y;
+                    let diff = targetRotation - currentRotation;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    modelContainer.rotation.y += diff * 0.15;
+
+                    if (isAltRun) fadeToAction('alt_run');
+                    else if (isSprinting) fadeToAction('run');
+                    else fadeToAction('walk');
+                } else {
+                    // Level-specific friction (Chrome Slide in level 8)
+                    const friction = (currentLevel === 8) ? 0.04 : 0.2;
+                    velX = THREE.MathUtils.lerp(velX, 0, friction);
+                    velZ = THREE.MathUtils.lerp(velZ, 0, friction);
+                    if (Math.abs(velX) < 2) velX = 0;
+                    if (Math.abs(velZ) < 2) velZ = 0;
+
+                    idleTimer += delta;
+                    let targetIdle = activeIdleKey;
+
+                    // SEQUENCE LOGIC: Randomized 10-15s resting -> twerk
+                    if (idleTimer < restingThreshold) {
+                        if (actions['resting'] && animationScores['resting'] > 20) targetIdle = 'resting';
+                        else targetIdle = 'twerk';
+                    } else {
+                        targetIdle = actions['twerk'] ? 'twerk' : activeIdleKey;
+                    }
+
+                    fadeToAction(targetIdle);
+
+                    if (targetIdle === 'twerk' && actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
+                        idleTimer = 0;
+                        restingThreshold = 10 + Math.random() * 5; // RE-RANDOMIZE for next cycle
+                    }
+                }
+
+                // Apply unified velocity movement & Collision (Inertia)
+                if (Math.abs(velX) > 0.1 || Math.abs(velZ) > 0.1) {
+                    const nX = modelContainer.position.x + velX;
+                    const nZ = modelContainer.position.z + velZ;
                     const gx = Math.round((nX + mapOffset) / cellSize);
                     const gz = Math.round((nZ + mapOffset) / cellSize);
                     const currentGrid = maps[currentLevel].grid;
 
                     if (gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
                         if (currentGrid[gz][gx] === 0) {
-                            model.position.x = nX;
-                            model.position.z = nZ;
+                            modelContainer.position.x = nX;
+                            modelContainer.position.z = nZ;
+                        } else {
+                            // Wall hit: Stop velocity & Trigger Juice
+                            if (Math.abs(velX) > 5 || Math.abs(velZ) > 5) triggerHitEffect();
+                            velX = 0; velZ = 0;
                         }
-                    }
-
-                    const targetRotation = angle;
-                    const currentRotation = model.rotation.y;
-                    let diff = targetRotation - currentRotation;
-                    while (diff < -Math.PI) diff += Math.PI * 2;
-                    while (diff > Math.PI) diff -= Math.PI * 2;
-                    model.rotation.y += diff * 0.15;
-
-                    if (keys.shift) fadeToAction('run');
-                    else fadeToAction('walk');
-                } else {
-                    if (currentAction !== actions['twerk']) {
-                        fadeToAction('idle');
-                        idleTimer += delta;
-                        if (idleTimer >= 8) { fadeToAction('twerk'); idleTimer = 0; }
-                    } else if (actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
-                        fadeToAction('idle');
                     }
                 }
 
-                if (nikoLight) nikoLight.position.set(model.position.x, model.position.y + 300, model.position.z);
+                // Update Ghosts & Floating Text
+                for (let i = ghosts.length - 1; i >= 0; i--) {
+                    ghosts[i].life -= delta;
+                    ghosts[i].obj.traverse(c => { if (c.isMesh) c.material.opacity = ghosts[i].life * 0.8; });
+                    if (ghosts[i].life <= 0) {
+                        scene.remove(ghosts[i].obj);
+                        ghosts.splice(i, 1);
+                    }
+                }
+                for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                    floatingTexts[i].life -= delta;
+                    floatingTexts[i].obj.position.y += 2;
+                    floatingTexts[i].obj.material.opacity = floatingTexts[i].life;
+                    if (floatingTexts[i].life <= 0) {
+                        scene.remove(floatingTexts[i].obj);
+                        floatingTexts.splice(i, 1);
+                    }
+                }
+
+                if (nikoLight) nikoLight.position.set(modelContainer.position.x, modelContainer.position.y + 300, modelContainer.position.z);
 
                 for (let i = shards.length - 1; i >= 0; i--) {
                     const s = shards[i];
-                    s.rotation.y += 0.02;
-                    if (model.position.distanceTo(s.position) < 250) {
+                    s.rotation.y += 0.04;
+                    s.position.y = 150 + Math.sin(Date.now() * 0.003 + i) * 50;
+
+                    const dist = modelContainer.position.distanceTo(s.position);
+                    // Magnetism
+                    if (dist < 800) {
+                        s.position.lerp(modelContainer.position, 0.15);
+                    }
+
+                    if (dist < 250) {
                         score += 100;
                         document.getElementById('score').innerText = `SHARDS: ${score}`;
+                        createFloatingText("+100", s.position, themes[currentLevel].win1);
                         levelGroup.remove(s);
                         shards.splice(i, 1);
                         shakeIntensity = 15;
                     }
                 }
 
-                if (model.position.distanceTo(goalOrb.position) < 450) {
+                if (modelContainer.position.distanceTo(goalOrb.position) < 450) {
                     saveBestTime(currentLevel, elapsed);
                     startLevelTransition();
                 }
 
                 shakeIntensity *= 0.9;
+            }
+
+            // --- HAZARD: MOVING WALLS (LEVELS 8-10) ---
+            if (gameActive && currentLevel >= 8 && !isTransitioning && !isPaused) {
+                const time = Date.now() * 0.002;
+                walls.forEach((w, idx) => {
+                    // Only move every 3rd wall to keep paths somewhat predictable
+                    if (idx % 3 === 0) {
+                        w.position.y = 3000 + Math.sin(time + idx) * 1500;
+                    }
+                });
             }
 
             // --- LEVEL TRANSITION ANIMATION (MELTING WALLS) ---
@@ -726,23 +1216,24 @@
                     walls.forEach(w => {
                         w.position.y = 3000 - (p * 6000);
                     });
-                } else if (transitionTime < 1.1) {
-                    // Phase 2: Load next level
-                    if (currentLevel < Object.keys(maps).length) {
+                } else if (!hasShifted) {
+                    // Phase 2: Load next level (ONCE)
+                    if (currentLevel < 20) {
                         currentLevel++;
                         buildLevel(currentLevel);
                         resetNiko();
-                        fadeToAction('idle');
+                        fadeToAction('resting');
                         document.getElementById('intro-overlay').classList.remove('hidden');
                         document.getElementById('status-text').innerText = "DIMENSION SHIFTED";
                     } else {
                         showVictory();
                         isTransitioning = false;
+                        gameActive = false;
                     }
+                    hasShifted = true;
                 } else if (transitionTime < 2.5) {
                     // Phase 3: New walls rise with SPRING
-                    const p = (transitionTime - 1.1) / 1.4; // normalized 0 to 1
-                    // Elastic ease out
+                    const p = (transitionTime - 1.0) / 1.5; // normalized 0 to 1
                     const elastic = 1 - Math.pow(1 - p, 4) * Math.cos(p * Math.PI * 4);
                     const targetY = 3000;
                     const startY = -3000;
@@ -750,15 +1241,16 @@
                         w.position.y = startY + (targetY - startY) * elastic;
                     });
                 } else {
-                    // Finished
-                    walls.forEach(w => w.position.y = 3000);
                     isTransitioning = false;
-                    gameActive = false;
+                    // gameActive = true; // REMOVED: Wait for user click to start
+                    log("Dimension shift complete. Ready to start.", "info");
                 }
             }
+
+            // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focus = model.position.clone().add(new THREE.Vector3(0, 150, 0));
+            const focus = modelContainer.position.clone().add(new THREE.Vector3(0, 150, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
             const tPos = new THREE.Vector3(
                 focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
@@ -773,6 +1265,9 @@
                 const sc = 1 + Math.sin(clock.getElapsedTime() * 4) * 0.15;
                 goalOrb.scale.set(sc, sc, sc);
             }
+
+            drawMinimap();
+
             renderer.render(scene, camera);
         }
         init();

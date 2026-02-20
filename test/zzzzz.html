@@ -1068,7 +1068,6 @@
 
                 if (inputX !== 0 || inputZ !== 0) {
                     idleTimer = 0;
-                    const angle = Math.atan2(inputX, inputZ) + camYaw;
 
                     if (isSprinting) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
@@ -1078,6 +1077,8 @@
                         camera.fov = THREE.MathUtils.lerp(camera.fov, 60, 0.1);
                     }
                     camera.updateProjectionMatrix();
+
+                    const angle = Math.atan2(inputX, inputZ) + camYaw;
 
                     const targetVelX = Math.sin(angle) * spd;
                     const targetVelZ = Math.cos(angle) * spd;
