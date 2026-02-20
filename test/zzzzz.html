@@ -531,15 +531,13 @@
 
             const files = [
                 { key: 'walk', path: baseUrl + 'catwalk.fbx' },
-                { key: 'idle2', path: baseUrl + 'idle2.fbx' },
-                { key: 'idle3', path: baseUrl + 'idle3.fbx' },
-                { key: 'idlemotion', path: baseUrl + 'idlemotion.fbx' },
+                { key: 'resting', path: baseUrl + 'resting.fbx' },
                 { key: 'twerk', path: baseUrl + 'twerk.fbx' },
                 { key: 'run', path: baseUrl + 'catwalk.fbx' }
             ];
 
             let maxIdleScore = -1;
-            const idlePriority = { 'idle3': 3, 'idle2': 2, 'idlemotion': 1 };
+            const idlePriority = { 'resting': 1, 'twerk': 2 };
 
             log("Loading animations from local files...", "info");
             const results = await Promise.all(files.map(f => loadFile(fbxLoader, f.key, f.path)));
@@ -663,10 +661,10 @@
 
                     log(`Linked ${res.key}: ${percent}% bound (${boundOk}/${totalTracks} tracks)`, percent > 50 ? "success" : "error");
 
-                    // Smart Idle Picker: Pick the one with best binding, or follow priority if scores are similar
-                    if (res.key.startsWith('idle') || res.key === 'idlemotion') {
-                        const score = percent + (idlePriority[res.key] || 0) * 0.1; // Tiny boost for priority
-                        if (score > maxIdleScore && percent > 20) {
+                    // Smart Idle Picker: Pick resting as primary if bound
+                    if (res.key === 'resting') {
+                        const score = percent;
+                        if (score > maxIdleScore && percent > 15) {
                             maxIdleScore = score;
                             activeIdleKey = res.key;
                         }
@@ -894,14 +892,12 @@
                     idleTimer += delta;
                     let targetIdle = activeIdleKey;
 
-                    // SEQUENCE LOGIC: 5s idle3 -> 5s idle2 -> twerk
-                    // ONLY play if binding percentage > 25% (prevents T-pose)
+                    // SEQUENCE LOGIC: 5s resting -> twerk
                     if (idleTimer < 5) {
-                        if (actions['idle3'] && animationScores['idle3'] > 25) targetIdle = 'idle3';
-                    } else if (idleTimer < 10) {
-                        if (actions['idle2'] && animationScores['idle2'] > 25) targetIdle = 'idle2';
+                        if (actions['resting'] && animationScores['resting'] > 20) targetIdle = 'resting';
+                        else targetIdle = 'twerk'; // Fallback to twerk if resting is broken
                     } else {
-                        if (actions['twerk'] && animationScores['twerk'] > 25) targetIdle = 'twerk';
+                        targetIdle = actions['twerk'] ? 'twerk' : activeIdleKey;
                     }
 
                     fadeToAction(targetIdle);

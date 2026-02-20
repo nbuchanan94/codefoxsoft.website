@@ -1,13 +1,13 @@
 {
-    "idle2": {
+    "catwalk-loop-378982": {
         "Version": "1.10.1822.1",
         "Scene": {
             "Name": true,
             "SupportShaderSelect": true
         },
-        "Export Directory": "C:/Users/psych/Documents/codefoxsoftsite/codefoxsoft.website/test",
+        "Export Directory": "C:/Users/psych/Documents/codefoxsoftsite/codefoxsoft.website",
         "Object": {
-            "idle2": {
+            "catwalk-loop-378982": {
                 "Generation": "AccuRig",
                 "Physics": {
                     "Collision Shapes": {
