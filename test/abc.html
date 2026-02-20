@@ -676,13 +676,16 @@
 
             // Map bones for retargeting
             const nodeMap = new Map();
+            const stand = (s) => s.toLowerCase().replace(/mixamorig[|_:]|cc[|_:]base[|_:]|rl[|_:]/g, '')
+                .replace(/^left/, 'l').replace(/^right/, 'r')
+                .replace(/[^a-z0-9]/g, '');
+
             model.traverse(node => {
-                const norm = node.name ? node.name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
-                if (norm) {
+                if (node.isBone) {
+                    const norm = node.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const sName = stand(node.name);
                     nodeMap.set(norm, node.name);
-                    // Core: Remove common prefixes like mixamorig, mixamo, armature, and cc_base (from AccuRig)
-                    const core = norm.replace(/mixamorig|mixamo|armature|ccbase|rl/g, '');
-                    if (core.length > 2) nodeMap.set(core, node.name);
+                    if (sName.length > 2) nodeMap.set(sName, node.name);
                 }
             });
 
@@ -696,11 +699,13 @@
                 'clavicle': ['shoulder', 'bip01_l_clavicle', 'bip01_r_clavicle'],
                 'shoulder': ['clavicle', 'upperarm', 'arm'],
                 'upperarm': ['arm', 'bicep', 'bip01_l_upperarm', 'bip01_r_upperarm'],
-                'forearm': ['elbow', 'arm2', 'bip01_l_forearm', 'bip01_r_forearm'],
+                'forearm': ['elbow', 'arm2', 'bip01_l_forearm', 'bip01_r_forearm', 'lowerarm'],
                 'hand': ['wrist', 'bip01_l_hand', 'bip01_r_hand'],
-                'thigh': ['upperleg', 'leg', 'bip01_l_thigh', 'bip01_r_thigh'],
-                'calf': ['knee', 'lowerleg', 'bip01_l_calf', 'bip01_r_calf'],
-                'foot': ['ankle', 'bip01_l_foot', 'bip01_r_foot']
+                'thigh': ['upperleg', 'leg', 'bip01_l_thigh', 'bip01_r_thigh', 'upleg'],
+                'calf': ['knee', 'lowerleg', 'bip01_l_calf', 'bip01_r_calf', 'leg'],
+                'foot': ['ankle', 'bip01_l_foot', 'bip01_r_foot'],
+                'upleg': ['thigh', 'upperleg'],
+                'leg': ['calf', 'lowerleg', 'knee']
             };
 
             results.forEach(res => {
@@ -727,18 +732,13 @@
 
                         // Hyper-Robust Matching with L/R preservation
                         for (const p of trackNameParts) {
-                            let raw = p.toLowerCase().replace(/mixamorig[|_:]|cc[|_:]base[|_:]|rl[|_:]/g, '');
-                            // Standardize L/R
-                            raw = raw.replace(/^left/, 'l').replace(/^right/, 'r');
-                            const clean = raw.replace(/[^a-z0-9]/g, '');
-                            const core = clean.replace(/mixamo|armature|ccbase|rl/g, '');
-
-                            if (nodeMap.has(clean)) targetBoneName = nodeMap.get(clean);
-                            else if (nodeMap.has(core)) targetBoneName = nodeMap.get(core);
-
-                            if (!targetBoneName) {
+                            const clean = stand(p);
+                            if (nodeMap.has(clean)) {
+                                targetBoneName = nodeMap.get(clean);
+                            } else {
+                                // Try aliases
                                 for (let aliasKey in boneAliases) {
-                                    if (clean.includes(aliasKey) || core.includes(aliasKey)) {
+                                    if (clean.includes(aliasKey)) {
                                         for (let alt of boneAliases[aliasKey]) {
                                             const side = clean.startsWith('l') ? 'l' : (clean.startsWith('r') ? 'r' : '');
                                             const searchKey = side + alt;
