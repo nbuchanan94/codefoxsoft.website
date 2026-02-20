@@ -289,6 +289,7 @@
         let actions = {}, currentAction, activeIdleKey = 'twerk';
         let animationScores = {}; // Tracks link success %
         let idleTimer = 0;
+        let restingThreshold = 10 + Math.random() * 5; // New: Randomized resting duration
         let isReady = false;
 
         // Game Feel & Transition Variables
@@ -422,9 +423,14 @@
             scene.add(levelGroup);
 
             const startAction = () => {
-                if (isReady && !gameActive) {
+                if (!isReady) return;
+                // Only activate if not already active and not in the middle of a transition
+                if (!gameActive && !isTransitioning) {
                     gameActive = true;
                     startTime = Date.now();
+                }
+                // Always hide overlay if game is active
+                if (gameActive) {
                     document.getElementById('intro-overlay').classList.add('hidden');
                 }
             };
@@ -913,13 +919,10 @@
                     if (keys.shift) fadeToAction('run');
                     else fadeToAction('walk');
                 } else {
-                    idleTimer += delta;
-                    let targetIdle = activeIdleKey;
-
-                    // SEQUENCE LOGIC: 5s resting -> twerk
-                    if (idleTimer < 5) {
+                    // SEQUENCE LOGIC: Randomized 10-15s resting -> twerk
+                    if (idleTimer < restingThreshold) {
                         if (actions['resting'] && animationScores['resting'] > 20) targetIdle = 'resting';
-                        else targetIdle = 'twerk'; // Fallback to twerk if resting is broken
+                        else targetIdle = 'twerk';
                     } else {
                         targetIdle = actions['twerk'] ? 'twerk' : activeIdleKey;
                     }
@@ -928,6 +931,7 @@
 
                     if (targetIdle === 'twerk' && actions['twerk'] && actions['twerk'].time >= actions['twerk'].getClip().duration - 0.1) {
                         idleTimer = 0;
+                        restingThreshold = 10 + Math.random() * 5; // RE-RANDOMIZE for next cycle
                     }
                 }
 
@@ -969,7 +973,7 @@
                         currentLevel++;
                         buildLevel(currentLevel);
                         resetNiko();
-                        fadeToAction('idle2');
+                        fadeToAction('resting');
                         document.getElementById('intro-overlay').classList.remove('hidden');
                         document.getElementById('status-text').innerText = "DIMENSION SHIFTED";
                     } else {
@@ -989,8 +993,8 @@
                     });
                 } else {
                     isTransitioning = false;
-                    gameActive = true;
-                    startTime = Date.now(); // Reset timer for new level
+                    // gameActive = true; // REMOVED: Wait for user click to start
+                    log("Dimension shift complete. Ready to start.", "info");
                 }
             }
 
