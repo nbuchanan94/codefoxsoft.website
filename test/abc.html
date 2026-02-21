@@ -702,12 +702,13 @@
                 'chest': ['spine01', 'spine02', 'spine03'],
                 'spine01': ['spine', 'chest'], 'spine02': ['spine01', 'spine', 'chest'],
                 'neck': ['head', 'neck01'], 'head': ['neck01', 'neck'],
-                'clavicle': ['shoulder'], 'shoulder': ['clavicle', 'upperarm'],
+                'clavicle': ['shoulder', 'clv'], 'shoulder': ['clavicle', 'upperarm'],
                 'arm': ['upperarm', 'bicep'], 'upperarm': ['arm', 'bicep'],
                 'forearm': ['elbow', 'lowerarm'], 'hand': ['wrist'],
                 'thigh': ['upperleg', 'upleg', 'highleg'], 'upleg': ['thigh', 'upperleg'],
-                'calf': ['lowerleg', 'knee'], 'leg': ['calf', 'lowerleg'],
-                'foot': ['ankle'], 'ankle': ['foot'], 'wrist': ['hand'],
+                'calf': ['knee', 'lowerleg'], 'leg': ['calf', 'lowerleg'],
+                'foot': ['ankle', 'ball', 'toe01'], 'ankle': ['foot'], 'wrist': ['hand'],
+                'ball': ['toe', 'toe01', 'toebase'], 'toe': ['ball', 'toe01'],
                 'larm': ['lupperarm', 'larm'], 'rarm': ['rupperarm', 'rarm'],
                 // Finger/Toe bridging
                 'thumb': ['thmb'], 'index': ['indx'], 'middle': ['mid'], 'ring': ['rng'], 'pinky': ['pnk', 'little'],
@@ -829,7 +830,7 @@
 
                                 // IN-PLACE: Zero out horizontal movement
                                 track.values[i] = 0;      // Local X
-                                track.values[i + 1] = newY; // Height (Kept)
+                                track.values[i + 1] = newY + 80; // Lift character up (80 units)
                                 track.values[i + 2] = 0;  // Forward (Zeroed)
                             }
                         }
