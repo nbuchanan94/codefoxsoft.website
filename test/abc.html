@@ -797,7 +797,7 @@
                                     const yBounce = track.values[i + 1];
 
                                     track.values[i] = 0;      // Zero side
-                                    track.values[i + 1] = yBounce + 35; // Keep vertical bounce + modest lift 
+                                    track.values[i + 1] = 65; // Locked height lift
                                     track.values[i + 2] = 0;  // Zero forward
                                 }
                             }
@@ -807,8 +807,8 @@
                         if (lowName.includes('.quaternion') && isMixamo && lowName.includes('hip')) {
                             const q = new THREE.Quaternion();
                             // Mixamo to AccuRig orientation bridge
-                            const offset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
-                            const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                            const offset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+                            const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0);
                             offset.multiply(turn);
 
                             for (let i = 0; i < track.values.length; i += 4) {
