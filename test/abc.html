@@ -1053,31 +1053,38 @@
                 const isExperimental = keys['KeyC'] || keys['KeyC'];
                 const spd = isSprinting ? 75 : 40;
 
-                if (inputX !== 0 || inputZ !== 0) {
+                if (isExperimental || inputX !== 0 || inputZ !== 0) {
                     idleTimer = 0;
 
-                    if (isSprinting || isExperimental) {
+                    if (isSprinting) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
                         camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
-                        if (Date.now() % 100 < 32) spawnGhost(); // Speed trails
+                        if (Date.now() % 100 < 32) spawnGhost(); // Speed trails only for Shift sprint
+                    } else if (isExperimental) {
+                        camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
                     } else {
                         camera.fov = THREE.MathUtils.lerp(camera.fov, 60, 0.1);
                     }
                     camera.updateProjectionMatrix();
 
-                    const angle = Math.atan2(inputX, inputZ) + camYaw;
+                    if (inputX !== 0 || inputZ !== 0) {
+                        const angle = Math.atan2(inputX, inputZ) + camYaw;
+                        const targetVelX = Math.sin(angle) * spd;
+                        const targetVelZ = Math.cos(angle) * spd;
+                        velX = THREE.MathUtils.lerp(velX, targetVelX, 0.2);
+                        velZ = THREE.MathUtils.lerp(velZ, targetVelZ, 0.2);
 
-                    const targetVelX = Math.sin(angle) * spd;
-                    const targetVelZ = Math.cos(angle) * spd;
-                    velX = THREE.MathUtils.lerp(velX, targetVelX, 0.2);
-                    velZ = THREE.MathUtils.lerp(velZ, targetVelZ, 0.2);
-
-                    const targetRotation = angle;
-                    const currentRotation = modelContainer.rotation.y;
-                    let diff = targetRotation - currentRotation;
-                    while (diff < -Math.PI) diff += Math.PI * 2;
-                    while (diff > Math.PI) diff -= Math.PI * 2;
-                    modelContainer.rotation.y += diff * 0.15;
+                        const targetRotation = angle;
+                        const currentRotation = modelContainer.rotation.y;
+                        let diff = targetRotation - currentRotation;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        modelContainer.rotation.y += diff * 0.15;
+                    } else {
+                        // Friction while performing 'C' run in place
+                        velX = THREE.MathUtils.lerp(velX, 0, 0.2);
+                        velZ = THREE.MathUtils.lerp(velZ, 0, 0.2);
+                    }
 
                     if (isExperimental) fadeToAction('alt_run');
                     else if (isSprinting) fadeToAction('run');
@@ -1108,7 +1115,6 @@
                         restingThreshold = 10 + Math.random() * 5; // RE-RANDOMIZE for next cycle
                     }
                 }
-
                 // Apply unified velocity movement & Collision (Inertia)
                 if (Math.abs(velX) > 0.1 || Math.abs(velZ) > 0.1) {
                     const nX = modelContainer.position.x + velX;
