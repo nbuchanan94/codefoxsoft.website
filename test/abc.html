@@ -677,49 +677,42 @@
             // Map bones for retargeting
             const nodeMap = new Map();
             const stand = (s) => s.toLowerCase()
-                .replace(/^mixamoriginal|^mixamorig|^cc_base_|^ccbase|^armature|^rl_|^bip01_/, '')
-                .replace(/^left|^l_/, 'l').replace(/^right|^r_/, 'r')
+                .replace(/[^a-z0-9]/g, '') // Strip symbols first
+                .replace(/^mixamorig|^ccbase|^armature|^rl|^bip01/, '')
+                .replace(/^left|^l/, 'l').replace(/^right|^r/, 'r')
+                .replace(/hand|foot|toe|joint/g, '')
                 .replace(/hips?/, 'hip')
                 .replace(/spine[s]?/, 'spine')
                 .replace(/arm[s]?/, 'arm')
                 .replace(/leg[s]?/, 'leg')
-                .replace(/toe[s]?/, 'toe')
-                .replace(/[^a-z0-9]/g, '');
+                .replace(/([a-z])(\d)$/, '$10$2'); // Normalized digits
 
             model.traverse(node => {
                 if (node.isBone) {
-                    const norm = node.name.toLowerCase().replace(/[^a-z0-9]/g, '');
                     const sName = stand(node.name);
-                    nodeMap.set(norm, node.name);
-                    nodeMap.set(node.name.toLowerCase(), node.name); // Exact lower case match
+                    nodeMap.set(node.name.toLowerCase(), node.name);
+                    nodeMap.set(node.name.toLowerCase().replace(/[^a-z0-9]/g, ''), node.name);
                     if (sName.length > 2) nodeMap.set(sName, node.name);
                 }
             });
 
             const boneAliases = {
-                'hip': ['pelvis', 'waist', 'root', 'bip01_pelvis'],
-                'pelvis': ['hip', 'waist', 'bip01_pelvis'],
-                'spine': ['chest', 'waist', 'spine01', 'spine02', 'bip01_spine'],
-                'chest': ['spine01', 'spine02', 'spine03', 'bip01_spine2'],
-                'neck': ['head', 'bip01_neck'],
-                'head': ['neck', 'bip01_head'],
-                'clavicle': ['shoulder', 'bip01_l_clavicle', 'bip01_r_clavicle'],
-                'shoulder': ['clavicle', 'upperarm', 'arm'],
-                'upperarm': ['arm', 'bicep', 'bip01_l_upperarm', 'bip01_r_upperarm'],
-                'forearm': ['elbow', 'arm2', 'bip01_l_forearm', 'bip01_r_forearm', 'lowerarm'],
-                'hand': ['wrist', 'bip01_l_hand', 'bip01_r_hand'],
-                'thigh': ['upperleg', 'leg', 'bip01_l_thigh', 'bip01_r_thigh', 'upleg', 'up leg', 'highleg'],
-                'calf': ['knee', 'lowerleg', 'bip01_l_calf', 'bip01_r_calf', 'leg'],
-                'foot': ['ankle', 'bip01_l_foot', 'bip01_r_foot'],
-                'upleg': ['thigh', 'upperleg'],
-                'leg': ['calf', 'lowerleg', 'knee'],
-                'ankle': ['foot'],
-                'wrist': ['hand'],
-                'uplegroll': ['thigh', 'upperleg'], 'forearmroll': ['forearm', 'elbow'],
-                'armroll': ['upperarm', 'arm'], 'legroll': ['calf', 'lowerleg'],
+                'hip': ['pelvis', 'waist', 'root'],
+                'spine': ['chest', 'spine01', 'spine02', 'waist'],
+                'chest': ['spine01', 'spine02', 'spine03'],
+                'spine01': ['spine', 'chest'], 'spine02': ['spine01', 'spine', 'chest'],
+                'neck': ['head', 'neck01'], 'head': ['neck01', 'neck'],
+                'clavicle': ['shoulder'], 'shoulder': ['clavicle', 'upperarm'],
+                'arm': ['upperarm', 'bicep'], 'upperarm': ['arm', 'bicep'],
+                'forearm': ['elbow', 'lowerarm'], 'hand': ['wrist'],
+                'thigh': ['upperleg', 'upleg', 'highleg'], 'upleg': ['thigh', 'upperleg'],
+                'calf': ['lowerleg', 'knee'], 'leg': ['calf', 'lowerleg'],
+                'foot': ['ankle'], 'ankle': ['foot'], 'wrist': ['hand'],
+                'larm': ['lupperarm', 'larm'], 'rarm': ['rupperarm', 'rarm'],
                 // Finger/Toe bridging
                 'thumb': ['thmb'], 'index': ['indx'], 'middle': ['mid'], 'ring': ['rng'], 'pinky': ['pnk', 'little'],
-                'mid': ['middle'], 'pnk': ['pinky', 'little'], 'bigtoe': ['toe1'], 'toe': ['bigtoe']
+                'thmb': ['thumb'], 'indx': ['index'], 'mid': ['middle'], 'rng': ['ring'], 'pnk': ['pinky', 'little'],
+                'bigtoe': ['toe1'], 'toe': ['bigtoe']
             };
 
             results.forEach(res => {
@@ -809,9 +802,13 @@
                         }
 
                         if (lowName.includes('.quaternion') && isMixamo && lowName.includes('hip')) {
-                            // Apply root rotation offset to stand upright (Math.PI/2 instead of -Math.PI/2)
                             const q = new THREE.Quaternion();
+                            // Pitch 90 degrees forward to stand upright (Mixamo Y-up vs FBX space)
                             const offset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+                            // Turn 180 degrees to face forward
+                            const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                            offset.multiply(turn);
+
                             for (let i = 0; i < track.values.length; i += 4) {
                                 q.set(track.values[i], track.values[i + 1], track.values[i + 2], track.values[i + 3]);
                                 q.premultiply(offset);
@@ -819,6 +816,21 @@
                                 track.values[i + 1] = q.y;
                                 track.values[i + 2] = q.z;
                                 track.values[i + 3] = q.w;
+                            }
+                        }
+
+                        if (lowName.includes('.position') && isMixamo && lowName.includes('hip')) {
+                            for (let i = 0; i < track.values.length; i += 3) {
+                                let x = track.values[i], y = track.values[i + 1], z = track.values[i + 2];
+
+                                // Gravity Axis Remap (Before zeroing)
+                                const newY = -z;
+                                const newZ = y;
+
+                                // IN-PLACE: Zero out horizontal movement
+                                track.values[i] = 0;      // Local X
+                                track.values[i + 1] = newY; // Height (Kept)
+                                track.values[i + 2] = 0;  // Forward (Zeroed)
                             }
                         }
 
