@@ -781,32 +781,33 @@
                     // Step 2: Stability Filter & AXIS CORRECTION
                     clip.tracks = clip.tracks.filter(track => {
                         const lowName = track.name.toLowerCase();
-
-                        // MIXAMO AXIS FIX: detect if this is the Mixamo animation
                         const isMixamo = res.key === 'alt_run';
 
+                        // 1. Position Handling (Hub only)
                         if (lowName.includes('.position')) {
-                            // Only allow position on "Hub" bones
                             const isHub = lowName.includes('hip') || lowName.includes('pelvis') || lowName.includes('root') || lowName.includes('waist');
                             if (!isHub) return false;
 
-                            // AXIS REMAP: Mixamo (Z-up vs Y-up)
                             if (isMixamo) {
                                 for (let i = 0; i < track.values.length; i += 3) {
-                                    // Mixamo typically needs Y/Z swap when "on back"
-                                    const y = track.values[i + 1];
-                                    const z = track.values[i + 2];
-                                    track.values[i + 1] = -z;
-                                    track.values[i + 2] = y;
+                                    // Mixamo FBX Axis Remap (Assumes Y/Z inversion in source)
+                                    // Original: [x, y, z] -> [0, y_bounce + offset, 0]
+                                    // Most Mixamo runs have Y as Up and Z as Forward.
+                                    // If we want in-place, we ignore the original Z (forward) and X (side).
+                                    const yBounce = track.values[i + 1];
+
+                                    track.values[i] = 0;      // Zero side
+                                    track.values[i + 1] = yBounce + 35; // Keep vertical bounce + modest lift 
+                                    track.values[i + 2] = 0;  // Zero forward
                                 }
                             }
                         }
 
+                        // 2. Rotation Handling (Mixamo Root Fix)
                         if (lowName.includes('.quaternion') && isMixamo && lowName.includes('hip')) {
                             const q = new THREE.Quaternion();
-                            // Pitch 90 degrees forward to stand upright (Mixamo Y-up vs FBX space)
+                            // Mixamo to AccuRig orientation bridge
                             const offset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
-                            // Turn 180 degrees to face forward
                             const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
                             offset.multiply(turn);
 
@@ -817,21 +818,6 @@
                                 track.values[i + 1] = q.y;
                                 track.values[i + 2] = q.z;
                                 track.values[i + 3] = q.w;
-                            }
-                        }
-
-                        if (lowName.includes('.position') && isMixamo && lowName.includes('hip')) {
-                            for (let i = 0; i < track.values.length; i += 3) {
-                                let x = track.values[i], y = track.values[i + 1], z = track.values[i + 2];
-
-                                // Gravity Axis Remap (Before zeroing)
-                                const newY = -z;
-                                const newZ = y;
-
-                                // IN-PLACE: Zero out horizontal movement
-                                track.values[i] = 0;      // Local X
-                                track.values[i + 1] = newY + 80; // Lift character up (80 units)
-                                track.values[i + 2] = 0;  // Forward (Zeroed)
                             }
                         }
 
