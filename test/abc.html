@@ -774,9 +774,12 @@
                             seenBones.add(uniqueKey);
 
                             track.name = targetBoneName + "." + property;
-                            return true;
+                            boundTracks.push(track);
+                        } else if (res.key === 'alt_run') {
+                            // KEEP ALL TRACKS FOR MIXAMO TO PREVENT LEAKING MOTION
+                            boundTracks.push(track);
                         }
-                        return false;
+                        return true;
                     });
 
                     // Step 2: Stability Filter & AXIS CORRECTION
@@ -784,11 +787,11 @@
                         const lowName = track.name.toLowerCase();
                         const isMixamo = res.key === 'alt_run';
 
-                        if (lowName.includes('.position')) {
+                        if (lowName.includes('.position') || lowName.includes('.translation') || lowName.includes('.scale')) {
                             if (isMixamo) {
                                 for (let i = 0; i < track.values.length; i += 3) {
                                     track.values[i] = 0;
-                                    track.values[i + 1] = 60; // Absolute ground lock
+                                    track.values[i + 1] = 65; // Stationary Lift
                                     track.values[i + 2] = 0;
                                 }
                                 return true;
@@ -802,7 +805,7 @@
                             const q = new THREE.Quaternion();
                             // Mixamo to AccuRig orientation bridge
                             const offset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-                            const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                            const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0);
                             offset.multiply(turn);
 
                             for (let i = 0; i < track.values.length; i += 4) {
