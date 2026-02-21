@@ -680,6 +680,10 @@
                 .replace(/^mixamoriginal|^mixamorig|^cc_base_|^ccbase|^armature|^rl_|^bip01_/, '')
                 .replace(/^left|^l_/, 'l').replace(/^right|^r_/, 'r')
                 .replace(/hips?/, 'hip')
+                .replace(/spine[s]?/, 'spine')
+                .replace(/arm[s]?/, 'arm')
+                .replace(/leg[s]?/, 'leg')
+                .replace(/toe[s]?/, 'toe')
                 .replace(/[^a-z0-9]/g, '');
 
             model.traverse(node => {
@@ -704,11 +708,13 @@
                 'upperarm': ['arm', 'bicep', 'bip01_l_upperarm', 'bip01_r_upperarm'],
                 'forearm': ['elbow', 'arm2', 'bip01_l_forearm', 'bip01_r_forearm', 'lowerarm'],
                 'hand': ['wrist', 'bip01_l_hand', 'bip01_r_hand'],
-                'thigh': ['upperleg', 'leg', 'bip01_l_thigh', 'bip01_r_thigh', 'upleg', 'up leg'],
+                'thigh': ['upperleg', 'leg', 'bip01_l_thigh', 'bip01_r_thigh', 'upleg', 'up leg', 'highleg'],
                 'calf': ['knee', 'lowerleg', 'bip01_l_calf', 'bip01_r_calf', 'leg'],
                 'foot': ['ankle', 'bip01_l_foot', 'bip01_r_foot'],
                 'upleg': ['thigh', 'upperleg'],
                 'leg': ['calf', 'lowerleg', 'knee'],
+                'ankle': ['foot'],
+                'wrist': ['hand'],
                 // Finger/Toe bridging
                 'thumb': ['thmb'], 'index': ['indx'], 'middle': ['mid'], 'ring': ['rng'], 'pinky': ['pnk', 'little'],
                 'mid': ['middle'], 'pnk': ['pinky', 'little'], 'bigtoe': ['toe1'], 'toe': ['bigtoe']
@@ -776,12 +782,44 @@
                         return false;
                     });
 
-                    // Step 2: Stability Filter (Position only on core hub)
+                    // Step 2: Stability Filter & AXIS CORRECTION
                     clip.tracks = clip.tracks.filter(track => {
-                        if (track.name.toLowerCase().includes('.position')) {
-                            const low = track.name.toLowerCase();
-                            return low.includes('hip') || low.includes('pelvis') || low.includes('root') || low.includes('waist');
+                        const lowName = track.name.toLowerCase();
+
+                        // MIXAMO AXIS FIX: detect if this is the Mixamo animation
+                        const isMixamo = res.key === 'alt_run';
+
+                        if (lowName.includes('.position')) {
+                            // Only allow position on "Hub" bones
+                            const isHub = lowName.includes('hip') || lowName.includes('pelvis') || lowName.includes('root') || lowName.includes('waist');
+                            if (!isHub) return false;
+
+                            // AXIS REMAP: Mixamo (Z-up vs Y-up)
+                            if (isMixamo) {
+                                for (let i = 0; i < track.values.length; i += 3) {
+                                    // Mixamo typically needs Y/Z swap when "on back"
+                                    const y = track.values[i + 1];
+                                    const z = track.values[i + 2];
+                                    track.values[i + 1] = -z;
+                                    track.values[i + 2] = y;
+                                }
+                            }
                         }
+
+                        if (lowName.includes('.quaternion') && isMixamo && lowName.includes('hip')) {
+                            // Apply root rotation offset to stand upright
+                            const q = new THREE.Quaternion();
+                            const offset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+                            for (let i = 0; i < track.values.length; i += 4) {
+                                q.set(track.values[i], track.values[i + 1], track.values[i + 2], track.values[i + 3]);
+                                q.premultiply(offset);
+                                track.values[i] = q.x;
+                                track.values[i + 1] = q.y;
+                                track.values[i + 2] = q.z;
+                                track.values[i + 3] = q.w;
+                            }
+                        }
+
                         return true;
                     });
 
@@ -792,7 +830,7 @@
 
                     if (res.key === 'walk') action.setEffectiveTimeScale(3.0);
                     if (res.key === 'run') action.setEffectiveTimeScale(4.5);
-                    if (res.key === 'alt_run') action.setEffectiveTimeScale(5.5);
+                    if (res.key === 'alt_run') action.setEffectiveTimeScale(1.5); // DIAGNOSTIC SLOW
 
                     actions[res.key] = action;
                     animationScores[res.key] = rawPercent;
