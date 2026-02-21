@@ -715,6 +715,8 @@
                 'leg': ['calf', 'lowerleg', 'knee'],
                 'ankle': ['foot'],
                 'wrist': ['hand'],
+                'uplegroll': ['thigh', 'upperleg'], 'forearmroll': ['forearm', 'elbow'],
+                'armroll': ['upperarm', 'arm'], 'legroll': ['calf', 'lowerleg'],
                 // Finger/Toe bridging
                 'thumb': ['thmb'], 'index': ['indx'], 'middle': ['mid'], 'ring': ['rng'], 'pinky': ['pnk', 'little'],
                 'mid': ['middle'], 'pnk': ['pinky', 'little'], 'bigtoe': ['toe1'], 'toe': ['bigtoe']
@@ -807,9 +809,9 @@
                         }
 
                         if (lowName.includes('.quaternion') && isMixamo && lowName.includes('hip')) {
-                            // Apply root rotation offset to stand upright
+                            // Apply root rotation offset to stand upright (Math.PI/2 instead of -Math.PI/2)
                             const q = new THREE.Quaternion();
-                            const offset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+                            const offset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
                             for (let i = 0; i < track.values.length; i += 4) {
                                 q.set(track.values[i], track.values[i + 1], track.values[i + 2], track.values[i + 3]);
                                 q.premultiply(offset);
@@ -844,9 +846,10 @@
 
                     log(`Linked ${res.key}: ${rawPercent}% raw binding (${activeTracks}/${totalTracks} active tracks)`, rawPercent > 90 ? "success" : "error");
 
-                    if (rawPercent < 30 && totalTracks > 0) {
-                        const rawTracks = res.fbx.animations[0].tracks.slice(0, 3).map(t => t.name).join(' | ');
-                        log(`  DIAG: ${res.key} failed. Source tracks sample: ${rawTracks}`, "error");
+                    if (rawPercent < 90 && totalTracks > 0) {
+                        const allTracks = res.fbx.animations[0].tracks.map(t => stand(t.name.split('.')[0]));
+                        const failed = allTracks.filter(name => !nodeMap.has(name) && !boneAliases[name.slice(1)]).slice(0, 10).join(' | ');
+                        log(`  DIAG [${res.key}]: Unmapped samples: ${failed || 'None (Filtered?)'}`, failed ? "error" : "info");
                     }
 
                     if (res.key === 'resting' && rawPercent > maxIdleScore && rawPercent > 15) {
