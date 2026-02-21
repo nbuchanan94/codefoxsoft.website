@@ -677,18 +677,17 @@
             // Map bones for retargeting
             const nodeMap = new Map();
             const stand = (s) => s.toLowerCase()
-                .replace(/mixamorig|ccbase|armature|rl/g, '')
-                .replace(/^left/, 'l').replace(/^right/, 'r')
-                .replace(/hips?/, 'hip') // Normalize hip/hips
-                .replace(/legs?/, 'leg') // Normalize leg/legs
-                .replace(/toes?/, 'toe') // Normalize toe/toes
-                .replace(/[^a-z0-9]/g, ''); // Ensure 'l_thigh' and 'lthigh' both become 'lthigh'
+                .replace(/^mixamoriginal|^mixamorig|^cc_base_|^ccbase|^armature|^rl_|^bip01_/, '')
+                .replace(/^left|^l_/, 'l').replace(/^right|^r_/, 'r')
+                .replace(/hips?/, 'hip')
+                .replace(/[^a-z0-9]/g, '');
 
             model.traverse(node => {
                 if (node.isBone) {
                     const norm = node.name.toLowerCase().replace(/[^a-z0-9]/g, '');
                     const sName = stand(node.name);
                     nodeMap.set(norm, node.name);
+                    nodeMap.set(node.name.toLowerCase(), node.name); // Exact lower case match
                     if (sName.length > 2) nodeMap.set(sName, node.name);
                 }
             });
@@ -731,40 +730,47 @@
                     const totalTracks = clip.tracks.length;
                     const seenBones = new Set();
 
-                    // Step 1: Human-Aware Mapping & Collision Prevention
+                    // Step 1: Smart Mapping (Direct -> Fuzzy)
                     clip.tracks = clip.tracks.filter(track => {
                         const parts = track.name.split('.');
                         const property = parts.pop();
+                        const rawNodeName = parts[0];
                         let targetBoneName = null;
 
-                        for (const p of parts) {
-                            const clean = stand(p);
-                            const side = clean.startsWith('l') ? 'l' : (clean.startsWith('r') ? 'r' : '');
-                            const core = side ? clean.slice(1) : clean;
+                        // 1. Direct Match (Leave AccuRig alone!)
+                        const lowName = rawNodeName.toLowerCase();
+                        if (nodeMap.has(lowName)) {
+                            targetBoneName = nodeMap.get(lowName);
+                        } else {
+                            // 2. Fuzzy/Standard Match
+                            for (const p of parts) {
+                                const clean = stand(p);
+                                const side = clean.startsWith('l') ? 'l' : (clean.startsWith('r') ? 'r' : '');
+                                const core = side ? clean.slice(1) : clean;
 
-                            // 1. Exact Match
-                            if (nodeMap.has(clean)) {
-                                targetBoneName = nodeMap.get(clean);
-                            } else if (boneAliases[core]) {
-                                // 2. Alias Match
-                                for (let alt of boneAliases[core]) {
-                                    if (nodeMap.has(side + alt)) {
-                                        targetBoneName = nodeMap.get(side + alt);
-                                        break;
+                                if (nodeMap.has(clean)) {
+                                    targetBoneName = nodeMap.get(clean);
+                                } else if (boneAliases[core]) {
+                                    for (let alt of boneAliases[core]) {
+                                        if (nodeMap.has(side + alt)) {
+                                            targetBoneName = nodeMap.get(side + alt);
+                                            break;
+                                        }
                                     }
                                 }
+                                if (targetBoneName) break;
                             }
-                            if (targetBoneName) break;
                         }
 
                         if (targetBoneName) {
-                            // Only allow one driver per bone property
+                            boundOk++; // Count it as bound before we decide to filter it for "flailing"
+
+                            // COLLISION PREVENTION: One driver per property
                             const uniqueKey = targetBoneName + "." + (property === 'quaternion' ? 'rot' : 'pos');
                             if (seenBones.has(uniqueKey)) return false;
                             seenBones.add(uniqueKey);
 
                             track.name = targetBoneName + "." + property;
-                            boundOk++;
                             return true;
                         }
                         return false;
