@@ -685,7 +685,8 @@
                 .replace(/spine[s]?/, 'spine')
                 .replace(/arm[s]?/, 'arm')
                 .replace(/leg[s]?/, 'leg')
-                .replace(/([a-z])(\d)$/, '$10$2'); // Normalized digits
+                .replace(/([a-z])0?(\d)$/, '$10$2') // Normalize spine1/spine01 -> spine01
+                .replace(/[^a-z0-9]/g, '');
 
             model.traverse(node => {
                 if (node.isBone) {
@@ -790,15 +791,10 @@
 
                             if (isMixamo) {
                                 for (let i = 0; i < track.values.length; i += 3) {
-                                    // Mixamo FBX Axis Remap (Assumes Y/Z inversion in source)
-                                    // Original: [x, y, z] -> [0, y_bounce + offset, 0]
-                                    // Most Mixamo runs have Y as Up and Z as Forward.
-                                    // If we want in-place, we ignore the original Z (forward) and X (side).
-                                    const yBounce = track.values[i + 1];
-
-                                    track.values[i] = 0;      // Zero side
-                                    track.values[i + 1] = 65; // Locked height lift
-                                    track.values[i + 2] = 0;  // Zero forward
+                                    // FORCE ABSOLUTE STATIONARY
+                                    track.values[i] = 0;      // Local X
+                                    track.values[i + 1] = 60; // Locked height lift
+                                    track.values[i + 2] = 0;  // Local Z
                                 }
                             }
                         }
@@ -1122,12 +1118,15 @@
                         modelContainer.rotation.y += diff * 0.15;
                     } else {
                         // Friction while performing 'C' run in place
-                        velX = THREE.MathUtils.lerp(velX, 0, 0.2);
-                        velZ = THREE.MathUtils.lerp(velZ, 0, 0.2);
+                        velX = 0;
+                        velZ = 0;
                     }
 
-                    if (isExperimental) fadeToAction('alt_run');
-                    else if (isSprinting) fadeToAction('run');
+                    if (isExperimental) {
+                        velX = 0;
+                        velZ = 0;
+                        fadeToAction('alt_run');
+                    } else if (isSprinting) fadeToAction('run');
                     else fadeToAction('walk');
                 } else {
                     // Level-specific friction (Chrome Slide in level 8)
