@@ -681,7 +681,10 @@
                 .replace(/[^a-z0-9]/g, '') // Strip symbols first
                 .replace(/^mixamorig|^ccbase|^armature|^rl|^bip01/, '')
                 .replace(/^left|^l/, 'l').replace(/^right|^r/, 'r')
-                .replace(/hand|foot|toe|joint/g, '')
+                .replace(/hand(?=[a-z])/g, '')
+                .replace(/foot(?=[a-z])/g, '')
+                .replace(/toe(?=[a-z])/g, '')
+                .replace(/joint/g, '')
                 .replace(/hips?/, 'hip')
                 .replace(/spine[s]?/, 'spine')
                 .replace(/arm[s]?/, 'arm')
@@ -854,7 +857,7 @@
 
                     if (rawPercent < 90 && totalTracks > 0) {
                         const allTracks = res.fbx.animations[0].tracks.map(t => stand(t.name.split('.')[0]));
-                        const failed = allTracks.filter(name => !nodeMap.has(name) && !boneAliases[name.slice(1)]).slice(0, 10).join(' | ');
+                        const failed = allTracks.filter(name => !nodeMap.has(name) && !boneAliases[name] && !boneAliases[name.slice(1)]).slice(0, 10).join(' | ');
                         log(`  DIAG [${res.key}]: Unmapped samples: ${failed || 'None (Filtered?)'}`, failed ? "error" : "info");
                     }
 
