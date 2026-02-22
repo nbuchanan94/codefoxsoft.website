@@ -664,8 +664,8 @@
                 { key: 'walk', path: baseUrl + 'catwalk.fbx' },
                 { key: 'resting', path: baseUrl + 'resting.fbx' },
                 { key: 'twerk', path: baseUrl + 'twerk.fbx' },
-                { key: 'run', path: baseUrl + 'catwalk.fbx' },
-                { key: 'alt_run', path: baseUrl + 'run.fbx' },
+                { key: 'run', path: baseUrl + 'run.fbx' },
+                { key: 'alt_run', path: baseUrl + 'catwalk.fbx' },
                 { key: 'dance', path: baseUrl + 'dance.fbx' }
             ];
 
@@ -841,8 +841,8 @@
                     action.setLoop(res.key === 'twerk' ? THREE.LoopOnce : THREE.LoopRepeat);
 
                     if (res.key === 'walk') action.setEffectiveTimeScale(3.0);
-                    if (res.key === 'run') action.setEffectiveTimeScale(4.5);
-                    if (res.key === 'alt_run') action.setEffectiveTimeScale(1.5); // DIAGNOSTIC SLOW
+                    if (res.key === 'run') action.setEffectiveTimeScale(1.2);
+                    if (res.key === 'alt_run') action.setEffectiveTimeScale(4.5);
 
                     actions[res.key] = action;
                     animationScores[res.key] = rawPercent;
