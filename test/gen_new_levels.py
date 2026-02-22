@@ -1,0 +1,74 @@
+import random
+
+# Current 11-20 will become 1-10.
+# We will define 10 new themes for 11-20.
+themes_data = {
+    11: {"name": "THE FRACTURE", "sky": "0x0a0505", "fog": "0x0a0505", "fogDens": 0.0002, "roadColor": "'#1a0a0a'", "sidewalkColor": "'#331111'", "buildColor": "'#150505'", "win1": "'#ff3300'", "win2": "'#ffaa00'", "lightColor": "0xff3300", "ambient": 0.7},
+    12: {"name": "CHRONO LABYRINTH", "sky": "0x050a10", "fog": "0x050a10", "fogDens": 0.00025, "roadColor": "'#0a151a'", "sidewalkColor": "'#112233'", "buildColor": "'#051015'", "win1": "'#00aaff'", "win2": "'#ffffff'", "lightColor": "0x00aaff", "ambient": 0.8},
+    13: {"name": "PLASMA CANYON", "sky": "0x150015", "fog": "0x150015", "fogDens": 0.00018, "roadColor": "'#2a002a'", "sidewalkColor": "'#440044'", "buildColor": "'#200020'", "win1": "'#ff00ff'", "win2": "'#00ffff'", "lightColor": "0xff00ff", "ambient": 1.0},
+    14: {"name": "SILICON TUNDRA", "sky": "0x101015", "fog": "0x101015", "fogDens": 0.00015, "roadColor": "'#1a1a2a'", "sidewalkColor": "'#222233'", "buildColor": "'#151520'", "win1": "'#88ccff'", "win2": "'#ffffff'", "lightColor": "0x88ccff", "ambient": 1.2},
+    15: {"name": "THE DATASTREAM", "sky": "0x001005", "fog": "0x001005", "fogDens": 0.0002, "roadColor": "'#002a11'", "sidewalkColor": "'#004422'", "buildColor": "'#001a0a'", "win1": "'#00ff66'", "win2": "'#aaffaa'", "lightColor": "0x00ff66", "ambient": 0.9},
+    16: {"name": "SYNTHETIC JUNGLE", "sky": "0x051505", "fog": "0x051505", "fogDens": 0.0003, "roadColor": "'#0a200a'", "sidewalkColor": "'#113311'", "buildColor": "'#0a1a0a'", "win1": "'#33ff33'", "win2": "'#ffff00'", "lightColor": "0x33ff33", "ambient": 0.8},
+    17: {"name": "VIRTUAL PARADOX", "sky": "0x100000", "fog": "0x100000", "fogDens": 0.0003, "roadColor": "'#000000'", "sidewalkColor": "'#220000'", "buildColor": "'#110000'", "win1": "'#ff0000'", "win2": "'#ffffff'", "lightColor": "0xff0000", "ambient": 0.6},
+    18: {"name": "NEURAL NETWORK", "sky": "0x050515", "fog": "0x050515", "fogDens": 0.00025, "roadColor": "'#0a0a2a'", "sidewalkColor": "'#111144'", "buildColor": "'#050520'", "win1": "'#8888ff'", "win2": "'#ff88ff'", "lightColor": "0x8888ff", "ambient": 1.0},
+    19: {"name": "THE MAINFRAME", "sky": "0x151000", "fog": "0x151000", "fogDens": 0.0002, "roadColor": "'#2a2000'", "sidewalkColor": "'#443300'", "buildColor": "'#201500'", "win1": "'#ffcc00'", "win2": "'#ffffff'", "lightColor": "0xffcc00", "ambient": 1.1},
+    20: {"name": "ABSOLUTE INFINITY", "sky": "0x000000", "fog": "0x000000", "fogDens": 0.0004, "roadColor": "'#000000'", "sidewalkColor": "'#111111'", "buildColor": "'#000000'", "win1": "'#ffffff'", "win2": "'#00ffff'", "lightColor": "0xffffff", "ambient": 1.5},
+}
+
+def generate_maze(width, height):
+    grid = [[1 for _ in range(width)] for _ in range(height)]
+    def walk(x, y):
+        grid[y][x] = 0
+        dirs = [(0, 2), (0, -2), (2, 0), (-2, 0)]
+        random.shuffle(dirs)
+        for dx, dy in dirs:
+            nx, ny = x + dx, y + dy
+            if 0 < nx < width - 1 and 0 < ny < height - 1 and grid[ny][nx] == 1:
+                grid[y + dy // 2][x + dx // 2] = 0
+                walk(nx, ny)
+    walk(1, 1)
+    return grid
+
+out_themes = "        const themes = {\n"
+# Original themes 11-20 become 1-10
+original_themes = {
+    11: {'name': 'CYBER RUINS', 'sky': '0x100800', 'fog': '0x100800', 'fogDens': 0.00018, 'roadColor': "'#1a0d00'", 'sidewalkColor': "'#2a1a00'", 'buildColor': "'#110800'", 'win1': "'#ffd700'", 'win2': "'#8b4513'", 'lightColor': '0xffd700', 'ambient': 0.8},
+    12: {'name': 'NEON PRISON', 'sky': '0x001000', 'fog': '0x001000', 'fogDens': 0.00025, 'roadColor': "'#000a00'", 'sidewalkColor': "'#001a00'", 'buildColor': "'#000500'", 'win1': "'#00ff00'", 'win2': "'#ffffff'", 'lightColor': '0x00ff00', 'ambient': 0.6},
+    13: {'name': 'COBALT CATHEDRAL', 'sky': '0x000020', 'fog': '0x000020', 'fogDens': 0.00015, 'roadColor': "'#00001a'", 'sidewalkColor': "'#000033'", 'buildColor': "'#000011'", 'win1': "'#00ffff'", 'win2': "'#ffffff'", 'lightColor': '0x0000ff', 'ambient': 1.0},
+    14: {'name': 'EMERALD EXPANSE', 'sky': '0x002000', 'fog': '0x002000', 'fogDens': 0.00012, 'roadColor': "'#001a00'", 'sidewalkColor': "'#002a00'", 'buildColor': "'#001100'", 'win1': "'#00ff00'", 'win2': "'#ffffff'", 'lightColor': '0x00ff00', 'ambient': 0.8},
+    15: {'name': 'RUBY RESERVOIR', 'sky': '0x200000', 'fog': '0x200000', 'fogDens': 0.0002, 'roadColor': "'#1a0000'", 'sidewalkColor': "'#2a0000'", 'buildColor': "'#110000'", 'win1': "'#ff0000'", 'win2': "'#ffffff'", 'lightColor': '0xff0000', 'ambient': 0.7},
+    16: {'name': 'SAPPHIRE STATION', 'sky': '0x000030', 'fog': '0x000030', 'fogDens': 0.00022, 'roadColor': "'#000a1a'", 'sidewalkColor': "'#111'", 'buildColor': "'#000015'", 'win1': "'#0077ff'", 'win2': "'#ffffff'", 'lightColor': '0x0077ff', 'ambient': 0.6},
+    17: {'name': 'AMETHYST ABBEY', 'sky': '0x100020', 'fog': '0x100020', 'fogDens': 0.00018, 'roadColor': "'#1a0d1a'", 'sidewalkColor': "'#2a1a2a'", 'buildColor': "'#110811'", 'win1': "'#cc00ff'", 'win2': "'#ffffff'", 'lightColor': '0xcc00ff', 'ambient': 0.9},
+    18: {'name': 'OBSIDIAN OUTPOST', 'sky': '0x000000', 'fog': '0x000000', 'fogDens': 0.0003, 'roadColor': "'#000'", 'sidewalkColor': "'#111'", 'buildColor': "'#000'", 'win1': "'#ff4400'", 'win2': "'#ffffff'", 'lightColor': '0xff4400', 'ambient': 0.4},
+    19: {'name': 'QUARTZ QUARRY', 'sky': '0x202020', 'fog': '0x202020', 'fogDens': 0.0001, 'roadColor': "'#1a1a1a'", 'sidewalkColor': "'#333'", 'buildColor': "'#151515'", 'win1': "'#ffffff'", 'win2': "'#888'", 'lightColor': '0xffffff', 'ambient': 1.2},
+    20: {'name': 'THE ENDLESS', 'sky': '0x000000', 'fog': '0x000000', 'fogDens': 0.0005, 'roadColor': "'#000'", 'sidewalkColor': "'#111'", 'buildColor': "'#000'", 'win1': "'#00ffcc'", 'win2': "'#ffffff'", 'lightColor': '0x00ffcc', 'ambient': 0.5}
+}
+
+for i in range(1, 11):
+    t = original_themes[i+10]
+    out_themes += f"            {i}: {{ name: \"{t['name']}\", sky: {t['sky']}, fog: {t['fog']}, fogDens: {t['fogDens']}, roadColor: {t['roadColor']}, sidewalkColor: {t['sidewalkColor']}, buildColor: {t['buildColor']}, win1: {t['win1']}, win2: {t['win2']}, lightColor: {t['lightColor']}, ambient: {t['ambient']} }},\n"
+
+for i in range(11, 21):
+    t = themes_data[i]
+    out_themes += f"            {i}: {{ name: \"{t['name']}\", sky: {t['sky']}, fog: {t['fog']}, fogDens: {t['fogDens']}, roadColor: {t['roadColor']}, sidewalkColor: {t['sidewalkColor']}, buildColor: {t['buildColor']}, win1: {t['win1']}, win2: {t['win2']}, lightColor: {t['lightColor']}, ambient: {t['ambient']} }}{',' if i < 20 else ''}\n"
+
+out_themes += "        };"
+
+out_maps = "        const maps = {\n"
+# Original levels 11-20 grids (we'll just generate fresh ones for 1-10 of size 19, and 11-20 of size 25-35)
+random.seed(42) # For stability
+for i in range(1, 11):
+    size = 19 + (i//3)*2
+    grid = generate_maze(size, size)
+    out_maps += f"            {i}: {{ grid: {grid}, start: {{ x: 1, z: 1 }}, goal: {{ x: {size-2}, z: {size-2} }} }},\n"
+
+for i in range(11, 21):
+    size = 25 + (i - 11) * 2
+    grid = generate_maze(size, size)
+    out_maps += f"            {i}: {{ grid: {grid}, start: {{ x: 1, z: 1 }}, goal: {{ x: {size-2}, z: {size-2} }} }}{',' if i < 20 else ''}\n"
+
+out_maps += "        };"
+
+with open("C:\\Users\\psych\\Documents\\codefoxsoftsite\\codefoxsoft.website\\test\\new_levels.txt", "w") as f:
+    f.write(out_themes + "\n\n" + out_maps)
+print("Done")
