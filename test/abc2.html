@@ -384,6 +384,12 @@
             animation: btnEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
         }
 
+        #btn-settings,
+        #btn-exit {
+            margin-bottom: clamp(15px, 4vh, 40px);
+            /* Arc layout */
+        }
+
         .menu-btn:nth-child(1) {
             animation-delay: 0.2s;
         }
@@ -420,16 +426,16 @@
             width: clamp(70px, 12vw, 110px);
             height: clamp(70px, 12vw, 110px);
             border-radius: 50%;
-            background: radial-gradient(circle at 40% 35%, rgba(0, 80, 70, 0.6), rgba(10, 30, 30, 0.9));
-            border: 3px solid rgba(0, 255, 180, 0.5);
+            background: radial-gradient(circle at 40% 35%, rgba(0, 50, 20, 0.8), rgba(0, 15, 5, 0.95));
+            border: 4px solid rgba(0, 255, 85, 0.6);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             box-shadow:
-                0 0 15px rgba(0, 255, 180, 0.3),
-                0 0 40px rgba(0, 255, 180, 0.1),
-                inset 0 0 20px rgba(0, 255, 180, 0.1);
+                0 0 15px rgba(0, 255, 85, 0.3),
+                0 0 40px rgba(0, 255, 85, 0.1),
+                inset 0 0 20px rgba(0, 255, 85, 0.15);
             transition: all 0.3s ease;
             animation: circlePulse 2.5s ease-in-out infinite;
         }
@@ -437,40 +443,40 @@
         .btn-circle::before {
             content: '';
             position: absolute;
-            inset: -6px;
+            inset: -8px;
             border-radius: 50%;
-            border: 1px solid rgba(0, 255, 180, 0.15);
+            border: 2px solid rgba(0, 255, 85, 0.2);
             animation: ringPulse 2s ease-in-out infinite;
         }
 
         .btn-circle::after {
             content: '';
             position: absolute;
-            inset: -12px;
+            inset: -16px;
             border-radius: 50%;
-            border: 1px solid rgba(0, 255, 180, 0.08);
+            border: 1px solid rgba(0, 255, 85, 0.1);
             animation: ringPulse 2s ease-in-out infinite 0.5s;
         }
 
         .menu-btn.play-btn .btn-circle {
             width: clamp(90px, 16vw, 140px);
             height: clamp(90px, 16vw, 140px);
-            border-color: rgba(0, 255, 130, 0.7);
+            border-color: rgba(0, 255, 85, 0.8);
             box-shadow:
-                0 0 25px rgba(0, 255, 130, 0.4),
-                0 0 60px rgba(0, 255, 130, 0.15),
-                inset 0 0 30px rgba(0, 255, 130, 0.15);
+                0 0 25px rgba(0, 255, 85, 0.4),
+                0 0 60px rgba(0, 255, 85, 0.2),
+                inset 0 0 30px rgba(0, 255, 85, 0.2);
         }
 
         @keyframes circlePulse {
 
             0%,
             100% {
-                box-shadow: 0 0 15px rgba(0, 255, 180, 0.3), 0 0 40px rgba(0, 255, 180, 0.1), inset 0 0 20px rgba(0, 255, 180, 0.1);
+                box-shadow: 0 0 15px rgba(0, 255, 85, 0.3), 0 0 40px rgba(0, 255, 85, 0.1), inset 0 0 20px rgba(0, 255, 85, 0.15);
             }
 
             50% {
-                box-shadow: 0 0 25px rgba(0, 255, 180, 0.5), 0 0 60px rgba(0, 255, 180, 0.2), inset 0 0 30px rgba(0, 255, 180, 0.2);
+                box-shadow: 0 0 25px rgba(0, 255, 85, 0.5), 0 0 60px rgba(0, 255, 85, 0.2), inset 0 0 30px rgba(0, 255, 85, 0.25);
             }
         }
 
@@ -489,44 +495,53 @@
         }
 
         .menu-btn:hover .btn-circle {
-            border-color: rgba(0, 255, 180, 0.9);
+            border-color: rgba(0, 255, 85, 1);
             box-shadow:
-                0 0 30px rgba(0, 255, 180, 0.6),
-                0 0 80px rgba(0, 255, 180, 0.3),
-                inset 0 0 40px rgba(0, 255, 180, 0.3);
+                0 0 30px rgba(0, 255, 85, 0.6),
+                0 0 80px rgba(0, 255, 85, 0.3),
+                inset 0 0 40px rgba(0, 255, 85, 0.3);
         }
 
         .btn-icon {
             font-size: clamp(28px, 5vw, 48px);
-            color: #00ffaa;
-            filter: drop-shadow(0 0 8px rgba(0, 255, 170, 0.8));
+            color: #00ff55;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 85, 0.8));
             transition: all 0.3s;
             line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon svg {
+            width: 1em;
+            height: 1em;
         }
 
         .menu-btn.play-btn .btn-icon {
-            font-size: clamp(36px, 7vw, 56px);
+            font-size: clamp(40px, 8vw, 64px);
         }
 
         .menu-btn:hover .btn-icon {
             color: #ffffff;
-            filter: drop-shadow(0 0 15px rgba(0, 255, 170, 1));
+            filter: drop-shadow(0 0 15px rgba(0, 255, 85, 1));
             transform: scale(1.1);
         }
 
         .btn-label {
             font-family: 'Outfit', sans-serif;
-            font-size: clamp(0.6em, 1.5vw, 0.85em);
-            color: rgba(0, 255, 200, 0.6);
+            font-size: clamp(0.7em, 1.5vw, 0.9em);
+            font-weight: 600;
+            color: rgba(0, 255, 85, 0.7);
             text-transform: uppercase;
             letter-spacing: 3px;
-            text-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
+            text-shadow: 0 0 10px rgba(0, 255, 85, 0.3);
             transition: all 0.3s;
         }
 
         .menu-btn:hover .btn-label {
-            color: rgba(0, 255, 200, 1);
-            text-shadow: 0 0 20px rgba(0, 255, 200, 0.6);
+            color: rgba(0, 255, 85, 1);
+            text-shadow: 0 0 20px rgba(0, 255, 85, 0.6);
         }
 
         /* Click ripple effect */
@@ -775,19 +790,33 @@
         <div class="menu-buttons">
             <div class="menu-btn" id="btn-settings" onclick="menuAction('settings')">
                 <div class="btn-circle">
-                    <span class="btn-icon">⚙</span>
+                    <span class="btn-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.73 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .43-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.49-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                        </svg>
+                    </span>
                 </div>
                 <span class="btn-label">Settings</span>
             </div>
             <div class="menu-btn play-btn" id="btn-play" onclick="menuAction('play')">
                 <div class="btn-circle">
-                    <span class="btn-icon">▶▶</span>
+                    <span class="btn-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4 6l8 6-8 6V6zm10 0l8 6-8 6V6z" />
+                        </svg>
+                    </span>
                 </div>
                 <span class="btn-label">Play</span>
             </div>
             <div class="menu-btn" id="btn-exit" onclick="menuAction('exit')">
                 <div class="btn-circle">
-                    <span class="btn-icon">⏻</span>
+                    <span class="btn-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
+                        </svg>
+                    </span>
                 </div>
                 <span class="btn-label">Exit</span>
             </div>
@@ -1436,13 +1465,14 @@
             // Enable start menu (remove loading state)
             if (inStartMenu) {
                 document.getElementById('start-menu').classList.remove('menu-loading');
-                // Set menu camera: elevated, looking at character from front
-                camPitch = 25;
-                targetPitch = 25;
-                camDistance = 350;
-                targetDistance = 350;
-                camYaw = Math.PI; // Face character from front
-                actualCamYaw = Math.PI;
+                // Set menu camera: slightly elevated, closer up
+                camPitch = 12;
+                targetPitch = 12;
+                camDistance = 240;
+                targetDistance = 240;
+                camYaw = 0; // Natural forward
+                actualCamYaw = 0;
+
                 // Play idle on menu
                 fadeToAction('resting', 0);
             } else {
@@ -1808,7 +1838,10 @@
                 // Menu breathing camera effect
                 if (inStartMenu) {
                     const breathe = Math.sin(clock.getElapsedTime() * 0.5) * 0.02;
-                    actualCamYaw = Math.PI + breathe;
+                    actualCamYaw = Math.PI + breathe; // Look from the front
+                    if (modelContainer) {
+                        modelContainer.rotation.y = Math.PI; // Explicitly ensure character faces camera
+                    }
                 }
             }
 
