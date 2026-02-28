@@ -1307,8 +1307,8 @@
             const focus = modelContainer.position.clone().add(new THREE.Vector3(0, 150, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
 
-            // Use actualCamYaw for smooth rotation (e.g. facing front during dance)
-            const activeYaw = (isTransitioning && celebrationTime > 0) ? (camYaw + Math.PI) : actualCamYaw;
+            // Use actualCamYaw for smooth rotation (e.g. facing front during idle dance)
+            const activeYaw = actualCamYaw;
 
             const tPos = new THREE.Vector3(
                 focus.x + camDistance * Math.sin(activeYaw) * Math.cos(pr) + sX,
