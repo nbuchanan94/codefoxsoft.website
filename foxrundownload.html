@@ -108,6 +108,8 @@
             z-index: -1;
             /* Puts it behind all other content */
         }
+
+        .js-dl-back, .js-dl-title, .js-dl-btn { opacity: 0; transform: translateY(16px); }
     </style>
     <script type="application/ld+json">
     [
@@ -241,35 +243,35 @@
         <div class="container mx-auto px-6 max-w-4xl text-center">
 
             <!-- Back to Downloads Link -->
-            <div class="mb-8 text-left">
+            <div class="mb-8 text-left js-dl-back">
                 <a href="alldownload.html"
                     class="text-green-400 hover:text-green-500 font-semibold flex items-center transition-colors duration-300">
                     <i class="fas fa-arrow-left mr-2"></i> Back to all Downloads
                 </a>
             </div>
 
-            <h1 class="text-3xl md:text-5xl font-bold text-green-400 mb-4 break-words">Fox Run Download Info</h1>
+            <h1 class="js-dl-title text-3xl md:text-5xl font-bold text-green-400 mb-4 break-words">Fox Run Download Info</h1>
 
 
             <!-- Main Download Button -->
             <a href="https://play.google.com/store/apps/details?id=com.codefoxsoft.foxrunbycodefox"
-                class="inline-block bg-green-500 text-white font-bold text-xl py-4 px-12 rounded-full shadow-lg hover:bg-green-600 transform hover:scale-105 transition-all duration-300">
+                class="js-dl-btn inline-block bg-green-500 text-white font-bold text-xl py-4 px-12 rounded-full shadow-lg hover:bg-green-600 transform hover:scale-105 transition-all duration-300">
                 <i class="fas fa-download mr-3"></i> Download on Google Play!
             </a>
 
             <!-- Project Screenshots Section -->
-            <div class="mt-12 text-left">
+            <div class="mt-12 text-left js-dl-screenshots">
                 <h2 class="text-3xl font-bold text-white mb-6 text-center">Project Screenshots</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <img src="foxrun_preview_1.png" alt="Fox Run Gameplay 1" class="w-full h-auto rounded-lg shadow-lg">
-                    <img src="foxrun_preview_2.png" alt="Fox Run Gameplay 2" class="w-full h-auto rounded-lg shadow-lg">
-                    <img src="foxrun_preview_3.png" alt="Fox Run Gameplay 3" class="w-full h-auto rounded-lg shadow-lg">
-                    <img src="foxrun_preview_4.png" alt="Fox Run Gameplay 4" class="w-full h-auto rounded-lg shadow-lg">
+                    <img src="foxrun_preview_1.png" alt="Fox Run Gameplay 1" class="w-full h-auto rounded-lg shadow-lg js-dl-screenshot">
+                    <img src="foxrun_preview_2.png" alt="Fox Run Gameplay 2" class="w-full h-auto rounded-lg shadow-lg js-dl-screenshot">
+                    <img src="foxrun_preview_3.png" alt="Fox Run Gameplay 3" class="w-full h-auto rounded-lg shadow-lg js-dl-screenshot">
+                    <img src="foxrun_preview_4.png" alt="Fox Run Gameplay 4" class="w-full h-auto rounded-lg shadow-lg js-dl-screenshot">
                 </div>
             </div>
 
             <!-- Additional Information Section -->
-            <div class="mt-12 text-left bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg">
+            <div class="mt-12 text-left bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg js-dl-card">
                 <h2 class="text-3xl font-bold text-white mb-4">System Requirements</h2>
                 <ul class="list-disc list-inside space-y-2 text-gray-300">
                     <li>Android OS </li>
@@ -287,7 +289,7 @@
 
             <!-- Expanded Game Info for SEO -->
             <div class="mt-12 text-left space-y-8">
-                <div class="bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg">
+                <div class="bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg js-dl-card">
                     <h2 class="text-3xl font-bold text-white mb-6">Why You'll Love Fox Run</h2>
                     <p class="text-gray-300 leading-relaxed mb-8">
                         <em>Fox Run</em> captures the pure joy of classic endless runners. It combines pixel-perfect
@@ -318,7 +320,7 @@
                     </div>
                 </div>
 
-                <div class="bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg">
+                <div class="bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg js-dl-card">
                     <h2 class="text-3xl font-bold text-white mb-4">How to Play</h2>
                     <p class="text-gray-300 leading-relaxed mb-4">
                         The rules are simple but nature is unpredictable:
@@ -331,7 +333,7 @@
                     </ol>
                 </div>
 
-                <div class="bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg">
+                <div class="bg-gray-800 bg-opacity-70 p-8 rounded-xl shadow-lg js-dl-card">
                     <h2 class="text-3xl font-bold text-white mb-4">From the Developer</h2>
                     <p class="text-gray-300 leading-relaxed mb-4">
                         Bored in the bathroom? Stuck at the DMV? Try this for your Doom Scrolling! (AD FREE + OFFLINE!)
@@ -427,6 +429,39 @@
                     }
                 });
             }, 1000);
+
+            // --- anime.js juice for download page ---
+            if (typeof anime !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                anime.timeline({ easing: 'easeOutExpo' })
+                    .add({ targets: '.js-dl-back', opacity: 1, translateY: 0, duration: 500, easing: 'easeOutElastic(1, 0.6)' }, 0)
+                    .add({ targets: '.js-dl-title', opacity: 1, translateY: 0, duration: 550, easing: 'easeOutElastic(1, 0.6)' }, 80)
+                    .add({ targets: '.js-dl-btn', opacity: 1, translateY: 0, duration: 550, easing: 'easeOutElastic(1, 0.6)' }, 160);
+                document.querySelectorAll('.js-dl-btn').forEach(btn => {
+                    btn.addEventListener('mouseenter', function () { anime({ targets: this, scale: 1.06, duration: 300, easing: 'easeOutElastic(1, 0.6)' }); });
+                    btn.addEventListener('mouseleave', function () { anime({ targets: this, scale: 1, duration: 320, easing: 'easeOutElastic(1, 0.4)' }); });
+                });
+                const screenshotEl = document.querySelector('.js-dl-screenshots');
+                if (screenshotEl) {
+                    const shots = document.querySelectorAll('.js-dl-screenshot');
+                    shots.forEach(s => { s.style.opacity = '0'; s.style.transform = 'translateY(20px)'; });
+                    const shotObserver = new IntersectionObserver(entries => {
+                        if (!entries[0].isIntersecting || !shots.length) return;
+                        anime({ targets: shots, opacity: 1, translateY: 0, duration: 550, delay: anime.stagger(80), easing: 'easeOutElastic(1, 0.5)' });
+                    }, { threshold: 0.15 });
+                    shotObserver.observe(screenshotEl);
+                }
+                document.querySelectorAll('.js-dl-card').forEach(card => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(24px)';
+                    const cardObserver = new IntersectionObserver(entries => {
+                        if (!entries[0].isIntersecting) return;
+                        anime({ targets: card, opacity: 1, translateY: 0, duration: 600, easing: 'easeOutElastic(1, 0.5)' });
+                    }, { threshold: 0.1 });
+                    cardObserver.observe(card);
+                });
+            } else {
+                document.querySelectorAll('.js-dl-back, .js-dl-title, .js-dl-btn').forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; });
+            }
         });
     </script>
     <script>
@@ -435,6 +470,7 @@
 
     <!-- Three.js library is required for the galaxy animation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
     <script>
         // --- Global Variables for Three.js (from the galaxy code) ---
         let scene, camera, renderer, galaxyGroup, backgroundGalaxyGroup, starField;

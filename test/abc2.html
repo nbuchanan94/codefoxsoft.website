@@ -1238,7 +1238,7 @@
                 }
 
                 // Random "Maze" nodes and paths
-                ctx.strokeStyle = '#00ff55'; ctx.lineWidth = 2;
+                ctx.strokeStyle = '#00aaff'; ctx.lineWidth = 2;
                 for (let i = 0; i < 30; i++) {
                     const gx = Math.floor(Math.random() * 16) * 32 + 16;
                     const gz = Math.floor(Math.random() * 16) * 32 + 16;
@@ -1250,7 +1250,7 @@
                     ctx.stroke();
 
                     // Glowing node
-                    ctx.fillStyle = '#00ff55';
+                    ctx.fillStyle = '#00aaff';
                     ctx.beginPath(); ctx.arc(gx, gz, 4, 0, Math.PI * 2); ctx.fill();
                 }
                 return new THREE.CanvasTexture(canvas);
@@ -1261,7 +1261,7 @@
                 map: techTex,
                 transparent: true,
                 opacity: 0.8,
-                emissive: 0x00ff55,
+                emissive: 0x00aaff,
                 emissiveIntensity: 0.4,
                 side: THREE.DoubleSide
             });
@@ -1290,7 +1290,7 @@
                 const streetGeo = new THREE.BoxGeometry(150, 10, 200);
                 const street = new THREE.Mesh(streetGeo, rimMat);
                 const angle = Math.atan2(off.x, off.z);
-                street.position.set(off.x * 0.6, 5, off.z * 0.6);
+                street.position.set(off.x * 0.35, 5, off.z * 0.35);
                 street.rotation.y = angle;
                 window.menuPlatformGroup.add(street);
             });
@@ -1728,10 +1728,13 @@
                         document.getElementById('click-prompt').style.display = "block";
 
                         // Reset camera for gameplay (Screenshot follow-cam fix)
-                        targetPitch = 8;
-                        targetDistance = 230;
+                        targetPitch = 5;
+                        targetDistance = 180;
                         camYaw = 0;
                         actualCamYaw = 0;
+
+                        // Reset character for gameplay
+                        modelContainer.position.y = 0;
 
                         // Return to idle
                         fadeToAction('resting', 0.5);
@@ -1959,7 +1962,7 @@
 
         function resetNiko() {
             const start = maps[currentLevel].start;
-            modelContainer.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
+            modelContainer.position.set(start.x * cellSize - mapOffset, inStartMenu ? 20 : 0, start.z * cellSize - mapOffset);
 
             // Move the monolithic menu platform under Niko
             if (window.menuPlatformGroup) {
@@ -2300,8 +2303,8 @@
             // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focusY = inStartMenu ? 60 : 150;
-            const focusX = inStartMenu ? 45 : 0; // Flipped sign to fix character centering
+            const focusY = inStartMenu ? 60 : 110;
+            const focusX = inStartMenu ? 120 : 0; // Flipped sign and increased to fix character centering
             const focus = modelContainer.position.clone().add(new THREE.Vector3(focusX, focusY, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
 
