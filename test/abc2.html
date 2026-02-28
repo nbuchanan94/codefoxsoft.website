@@ -461,8 +461,8 @@
         /* HUD Arc Connector */
         .hud-arc {
             position: absolute;
-            width: clamp(350px, 60vw, 550px);
-            height: clamp(80px, 15vh, 120px);
+            width: clamp(450px, 70vw, 650px);
+            height: clamp(100px, 18vh, 150px);
             border: 2px solid rgba(0, 255, 85, 0.15);
             border-bottom: 4px solid rgba(0, 255, 85, 0.4);
             border-radius: 50%;
@@ -1223,26 +1223,49 @@
             window.menuPlatformGroup.add(centerCircle);
             scene.add(window.menuPlatformGroup);
 
-            // ===== TECH PANELS (Plus Formation) =====
-            const techCanvas = document.createElement('canvas');
-            techCanvas.width = 256; techCanvas.height = 256;
-            const tCtx = techCanvas.getContext('2d');
-            tCtx.fillStyle = '#000'; tCtx.fillRect(0, 0, 256, 256);
-            tCtx.strokeStyle = '#00ff55'; tCtx.lineWidth = 2;
-            for (let i = 0; i < 256; i += 16) {
-                tCtx.beginPath(); tCtx.moveTo(i, 0); tCtx.lineTo(i, 256); tCtx.stroke();
-                tCtx.beginPath(); tCtx.moveTo(0, i); tCtx.lineTo(256, i); tCtx.stroke();
+            // ===== TECH PANELS (Maze Map Texture) =====
+            function generateMazeTexture() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512; canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#050a05'; ctx.fillRect(0, 0, 512, 512);
+
+                // Grid lines
+                ctx.strokeStyle = '#004411'; ctx.lineWidth = 1;
+                for (let i = 0; i <= 512; i += 32) {
+                    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
+                }
+
+                // Random "Maze" nodes and paths
+                ctx.strokeStyle = '#00ff55'; ctx.lineWidth = 2;
+                for (let i = 0; i < 30; i++) {
+                    const gx = Math.floor(Math.random() * 16) * 32 + 16;
+                    const gz = Math.floor(Math.random() * 16) * 32 + 16;
+                    const len = (Math.floor(Math.random() * 3) + 1) * 32;
+                    const dir = Math.random() > 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(gx, gz);
+                    if (dir) ctx.lineTo(gx + len, gz); else ctx.lineTo(gx, gz + len);
+                    ctx.stroke();
+
+                    // Glowing node
+                    ctx.fillStyle = '#00ff55';
+                    ctx.beginPath(); ctx.arc(gx, gz, 4, 0, Math.PI * 2); ctx.fill();
+                }
+                return new THREE.CanvasTexture(canvas);
             }
-            const techTex = new THREE.CanvasTexture(techCanvas);
+
+            const techTex = generateMazeTexture();
             const techMat = new THREE.MeshStandardMaterial({
                 map: techTex,
                 transparent: true,
-                opacity: 0.6,
+                opacity: 0.8,
                 emissive: 0x00ff55,
-                emissiveIntensity: 0.3,
+                emissiveIntensity: 0.4,
                 side: THREE.DoubleSide
             });
-            const techGeo = new THREE.PlaneGeometry(300, 300);
+            const techGeo = new THREE.PlaneGeometry(350, 350);
 
             const panelOffsets = [
                 { x: 500, z: 0 }, { x: -500, z: 0 },
@@ -1252,17 +1275,27 @@
             panelOffsets.forEach(off => {
                 const panel = new THREE.Mesh(techGeo, techMat);
                 panel.rotation.x = -Math.PI / 2;
-                panel.position.y = 1;
+                panel.position.y = 1.5;
                 scene.add(panel);
                 techPanels.push(panel);
 
                 // Raised Rim for "Crossroad" effect
-                const rimGeo = new THREE.BoxGeometry(320, 15, 320);
-                const rimMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.2 });
+                const rimGeo = new THREE.BoxGeometry(370, 20, 370);
+                const rimMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, metalness: 0.9, roughness: 0.1 });
                 const rim = new THREE.Mesh(rimGeo, rimMat);
-                rim.position.y = 5;
+                rim.position.y = 8;
                 scene.add(rim);
                 techRims.push(rim);
+
+                // "Street" connector blocks
+                const streetGeo = new THREE.BoxGeometry(150, 10, 200);
+                const street = new THREE.Mesh(streetGeo, rimMat);
+                const dist = 300;
+                const angle = Math.atan2(off.x, off.z);
+                street.position.set(off.x * 0.6, 5, off.z * 0.6);
+                street.rotation.y = angle;
+                scene.add(street);
+                techRims.push(street); // Add to rims list for visibility control
             });
 
             levelGroup = new THREE.Group();
@@ -2025,8 +2058,10 @@
                 camPitch = THREE.MathUtils.lerp(camPitch, targetPitch, 0.08);
                 camDistance = THREE.MathUtils.lerp(camDistance, targetDistance, 0.08);
 
-                // Menu breathing camera effect
+                // Menu framing: Hard-lock parameters to prevent drift
                 if (inStartMenu) {
+                    targetDistance = 500;
+                    targetPitch = 30;
                     const t = clock.getElapsedTime();
                     const breathe = Math.sin(t * 0.5) * 0.02;
                     actualCamYaw = Math.PI + breathe; // Look from the front
@@ -2275,7 +2310,7 @@
             // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focus = modelContainer.position.clone().add(new THREE.Vector3(0, 100, 0));
+            const focus = modelContainer.position.clone().add(new THREE.Vector3(0, 60, 0)); // Lowered for menu framing
             const pr = THREE.MathUtils.degToRad(camPitch);
 
             // Use actualCamYaw for smooth rotation (e.g. facing front during idle dance)
