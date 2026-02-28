@@ -300,10 +300,530 @@
             font-weight: bold;
             margin-left: 10px;
         }
+
+        /* ===== START MENU ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;700&display=swap');
+
+        #start-menu {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 30%, rgba(60, 10, 10, 0.75) 0%, rgba(20, 2, 2, 0.92) 70%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            z-index: 250;
+            opacity: 1;
+            transition: opacity 0.8s ease-out;
+            pointer-events: auto;
+        }
+
+        #start-menu.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .menu-title-area {
+            position: absolute;
+            top: 6%;
+            text-align: center;
+            animation: titleFloat 3s ease-in-out infinite;
+        }
+
+        .menu-title-area h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(1.8em, 5vw, 3.5em);
+            font-weight: 900;
+            color: #00ffcc;
+            text-shadow:
+                0 0 10px #00ffcc,
+                0 0 30px rgba(0, 255, 204, 0.5),
+                0 0 60px rgba(0, 255, 204, 0.2);
+            letter-spacing: 8px;
+            margin: 0;
+        }
+
+        .menu-title-area .subtitle {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(0.7em, 2vw, 1em);
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        @keyframes titleFloat {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .menu-buttons {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: clamp(20px, 5vw, 60px);
+            padding-bottom: clamp(40px, 8vh, 100px);
+            width: 100%;
+        }
+
+        .menu-btn {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: btnEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+        }
+
+        .menu-btn:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+
+        .menu-btn:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        .menu-btn:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes btnEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(80px) scale(0.3);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.12) translateY(-5px);
+        }
+
+        .menu-btn:active {
+            transform: scale(0.92);
+        }
+
+        .btn-circle {
+            width: clamp(70px, 12vw, 110px);
+            height: clamp(70px, 12vw, 110px);
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 35%, rgba(0, 80, 70, 0.6), rgba(10, 30, 30, 0.9));
+            border: 3px solid rgba(0, 255, 180, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow:
+                0 0 15px rgba(0, 255, 180, 0.3),
+                0 0 40px rgba(0, 255, 180, 0.1),
+                inset 0 0 20px rgba(0, 255, 180, 0.1);
+            transition: all 0.3s ease;
+            animation: circlePulse 2.5s ease-in-out infinite;
+        }
+
+        .btn-circle::before {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 255, 180, 0.15);
+            animation: ringPulse 2s ease-in-out infinite;
+        }
+
+        .btn-circle::after {
+            content: '';
+            position: absolute;
+            inset: -12px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 255, 180, 0.08);
+            animation: ringPulse 2s ease-in-out infinite 0.5s;
+        }
+
+        .menu-btn.play-btn .btn-circle {
+            width: clamp(90px, 16vw, 140px);
+            height: clamp(90px, 16vw, 140px);
+            border-color: rgba(0, 255, 130, 0.7);
+            box-shadow:
+                0 0 25px rgba(0, 255, 130, 0.4),
+                0 0 60px rgba(0, 255, 130, 0.15),
+                inset 0 0 30px rgba(0, 255, 130, 0.15);
+        }
+
+        @keyframes circlePulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 15px rgba(0, 255, 180, 0.3), 0 0 40px rgba(0, 255, 180, 0.1), inset 0 0 20px rgba(0, 255, 180, 0.1);
+            }
+
+            50% {
+                box-shadow: 0 0 25px rgba(0, 255, 180, 0.5), 0 0 60px rgba(0, 255, 180, 0.2), inset 0 0 30px rgba(0, 255, 180, 0.2);
+            }
+        }
+
+        @keyframes ringPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.08);
+                opacity: 0.5;
+            }
+        }
+
+        .menu-btn:hover .btn-circle {
+            border-color: rgba(0, 255, 180, 0.9);
+            box-shadow:
+                0 0 30px rgba(0, 255, 180, 0.6),
+                0 0 80px rgba(0, 255, 180, 0.3),
+                inset 0 0 40px rgba(0, 255, 180, 0.3);
+        }
+
+        .btn-icon {
+            font-size: clamp(28px, 5vw, 48px);
+            color: #00ffaa;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 170, 0.8));
+            transition: all 0.3s;
+            line-height: 1;
+        }
+
+        .menu-btn.play-btn .btn-icon {
+            font-size: clamp(36px, 7vw, 56px);
+        }
+
+        .menu-btn:hover .btn-icon {
+            color: #ffffff;
+            filter: drop-shadow(0 0 15px rgba(0, 255, 170, 1));
+            transform: scale(1.1);
+        }
+
+        .btn-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(0.6em, 1.5vw, 0.85em);
+            color: rgba(0, 255, 200, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
+            transition: all 0.3s;
+        }
+
+        .menu-btn:hover .btn-label {
+            color: rgba(0, 255, 200, 1);
+            text-shadow: 0 0 20px rgba(0, 255, 200, 0.6);
+        }
+
+        /* Click ripple effect */
+        .btn-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(0, 255, 180, 0.4);
+            animation: rippleOut 0.6s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes rippleOut {
+            from {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+
+            to {
+                width: 200px;
+                height: 200px;
+                opacity: 0;
+                margin-left: -100px;
+                margin-top: -100px;
+            }
+        }
+
+        /* ===== SETTINGS MENU ===== */
+        #settings-menu {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 30%, rgba(60, 10, 10, 0.75) 0%, rgba(20, 2, 2, 0.92) 70%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 260;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #settings-menu.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .settings-title {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(1.5em, 4vw, 2.5em);
+            font-weight: 700;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc, 0 0 30px rgba(0, 255, 204, 0.4);
+            letter-spacing: 6px;
+            margin-bottom: 50px;
+            animation: titleFloat 3s ease-in-out infinite;
+        }
+
+        .settings-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(30px, 6vw, 80px);
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: btnEntrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+        }
+
+        .setting-item:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .setting-item:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .setting-item:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .setting-item:hover {
+            transform: scale(1.08) translateY(-4px);
+        }
+
+        .setting-circle {
+            width: clamp(80px, 14vw, 120px);
+            height: clamp(80px, 14vw, 120px);
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 35%, rgba(0, 80, 70, 0.6), rgba(10, 30, 30, 0.9));
+            border: 3px solid rgba(0, 255, 180, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(0, 255, 180, 0.3), inset 0 0 20px rgba(0, 255, 180, 0.1);
+            animation: circlePulse 2.5s ease-in-out infinite;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .setting-circle::before {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 255, 180, 0.15);
+            animation: ringPulse 2s ease-in-out infinite;
+        }
+
+        .setting-item:hover .setting-circle {
+            border-color: rgba(0, 255, 180, 0.9);
+            box-shadow: 0 0 30px rgba(0, 255, 180, 0.6), 0 0 80px rgba(0, 255, 180, 0.3), inset 0 0 40px rgba(0, 255, 180, 0.3);
+        }
+
+        .setting-icon {
+            font-size: clamp(24px, 4vw, 38px);
+            color: #00ffaa;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 170, 0.8));
+            line-height: 1;
+        }
+
+        .setting-value {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(9px, 1.5vw, 13px);
+            color: #00ffcc;
+            text-shadow: 0 0 5px #00ffcc;
+            margin-top: 2px;
+        }
+
+        .setting-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(0.55em, 1.3vw, 0.8em);
+            color: rgba(0, 255, 200, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
+            transition: all 0.3s;
+        }
+
+        .setting-item:hover .setting-label {
+            color: rgba(0, 255, 200, 1);
+        }
+
+        /* Volume slider inside circle */
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 60%;
+            height: 4px;
+            background: rgba(0, 255, 180, 0.3);
+            border-radius: 2px;
+            outline: none;
+            margin-top: 4px;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #00ffcc;
+            box-shadow: 0 0 10px #00ffcc;
+            cursor: pointer;
+        }
+
+        /* Transition flash overlay */
+        #menu-flash {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(0, 255, 204, 0.3) 0%, transparent 70%);
+            z-index: 270;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+        }
+
+        #menu-flash.flash {
+            opacity: 1;
+        }
+
+        /* Floating particles on menu */
+        .menu-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(0, 255, 200, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat linear infinite;
+        }
+
+        @keyframes particleFloat {
+            from {
+                transform: translateY(0) scale(1);
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(-100vh) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Loading state for start menu */
+        .menu-loading .menu-buttons {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .menu-loading .menu-title-area h1 {
+            animation: titleFloat 3s ease-in-out infinite, loadPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loadPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <!-- ===== START MENU ===== -->
+    <div id="start-menu" class="menu-loading">
+        <div class="menu-title-area">
+            <h1>NIKO</h1>
+            <div class="subtitle">Maze Master — Dimensions</div>
+        </div>
+        <div class="menu-buttons">
+            <div class="menu-btn" id="btn-settings" onclick="menuAction('settings')">
+                <div class="btn-circle">
+                    <span class="btn-icon">⚙</span>
+                </div>
+                <span class="btn-label">Settings</span>
+            </div>
+            <div class="menu-btn play-btn" id="btn-play" onclick="menuAction('play')">
+                <div class="btn-circle">
+                    <span class="btn-icon">▶▶</span>
+                </div>
+                <span class="btn-label">Play</span>
+            </div>
+            <div class="menu-btn" id="btn-exit" onclick="menuAction('exit')">
+                <div class="btn-circle">
+                    <span class="btn-icon">⏻</span>
+                </div>
+                <span class="btn-label">Exit</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SETTINGS MENU ===== -->
+    <div id="settings-menu">
+        <div class="settings-title">SETTINGS</div>
+        <div class="settings-controls">
+            <div class="setting-item" id="setting-volume">
+                <div class="setting-circle">
+                    <span class="setting-icon">🔊</span>
+                    <input type="range" min="0" max="100" value="80" class="volume-slider" id="volume-slider"
+                        oninput="updateVolume(this.value)">
+                    <span class="setting-value" id="vol-display">80%</span>
+                </div>
+                <span class="setting-label">Volume</span>
+            </div>
+            <div class="setting-item" id="setting-difficulty" onclick="cycleDifficulty()">
+                <div class="setting-circle">
+                    <span class="setting-icon">⚔</span>
+                    <span class="setting-value" id="diff-display">NORMAL</span>
+                </div>
+                <span class="setting-label">Difficulty</span>
+            </div>
+            <div class="setting-item" id="setting-back" onclick="menuAction('back')">
+                <div class="setting-circle">
+                    <span class="setting-icon">↩</span>
+                </div>
+                <span class="setting-label">Back</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu-flash"></div>
     <div id="ui">
         <b id="lvl-name">LEVEL 1: THE BRONX</b><br>
         WASD: Move | SHIFT: Sprint | ARROWS: Rotate/Zoom Cam | T: Toggle Birds-eye
@@ -378,6 +898,14 @@
         let isReady = false;
         let velX = 0, velZ = 0; // New for movement inertia
         let isPaused = false;
+
+        // ===== START MENU STATE =====
+        let inStartMenu = true;
+        let menuTransitioning = false;
+        let gameVolume = 80;
+        let gameDifficulty = 1; // 0=Easy, 1=Normal, 2=Hard
+        const difficultyNames = ['EASY', 'NORMAL', 'HARD'];
+        let menuParticleTimer = 0;
 
         // Game Feel & Transition Variables
         let walls = [], roads = [], shards = [];
@@ -544,7 +1072,7 @@
             scene.add(levelGroup);
 
             const startAction = () => {
-                if (!isReady) return;
+                if (!isReady || inStartMenu || menuTransitioning) return;
                 // Allow start if not transitioning OR if we've already shifted (waiting for wall rise)
                 if (!gameActive && (!isTransitioning || hasShifted)) {
                     gameActive = true;
@@ -561,6 +1089,7 @@
             };
 
             window.addEventListener('keydown', (e) => {
+                if (inStartMenu || menuTransitioning) return; // Block game controls while in menu
                 if (e.code === 'Escape') {
                     togglePause();
                     return;
@@ -583,14 +1112,24 @@
                     startLevelTransition();
                 }
             });
-            window.addEventListener('mousedown', startAction);
+            window.addEventListener('mousedown', (e) => {
+                if (inStartMenu || menuTransitioning) return; // Don't start game from menu clicks
+                startAction();
+            });
             window.addEventListener('keyup', (e) => {
                 keys[e.code] = false;
                 keys[e.key.toLowerCase()] = false;
             });
 
+            // Hide game UI while in start menu
+            document.getElementById('ui').style.display = 'none';
+            document.getElementById('score-display').style.display = 'none';
+            document.getElementById('minimap-container').style.display = 'none';
+            document.getElementById('intro-overlay').style.display = 'none';
+
             buildLevel(currentLevel);
             loadAllAssets();
+            spawnMenuParticles();
             animate();
         }
 
@@ -893,8 +1432,23 @@
             }
 
             isReady = true;
-            document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
-            document.getElementById('click-prompt').style.display = "block";
+
+            // Enable start menu (remove loading state)
+            if (inStartMenu) {
+                document.getElementById('start-menu').classList.remove('menu-loading');
+                // Set menu camera: elevated, looking at character from front
+                camPitch = 25;
+                targetPitch = 25;
+                camDistance = 350;
+                targetDistance = 350;
+                camYaw = Math.PI; // Face character from front
+                actualCamYaw = Math.PI;
+                // Play idle on menu
+                fadeToAction('resting', 0);
+            } else {
+                document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
+                document.getElementById('click-prompt').style.display = "block";
+            }
         }
 
         function fadeToAction(name, duration = 0.3) {
@@ -906,6 +1460,136 @@
                 currentAction.reset().fadeIn(duration).play();
             }
         }
+
+        // ===== START MENU SYSTEM =====
+        function menuFlash() {
+            const flash = document.getElementById('menu-flash');
+            flash.classList.add('flash');
+            setTimeout(() => flash.classList.remove('flash'), 200);
+        }
+
+        function menuAction(action) {
+            if (menuTransitioning) return;
+
+            // Ripple effect on click
+            menuFlash();
+
+            switch (action) {
+                case 'play':
+                    menuTransitioning = true;
+                    // Dance celebration before starting
+                    if (actions['dance']) {
+                        fadeToAction('dance', 0.3);
+                    }
+                    // Flash + shake
+                    shakeIntensity = 20;
+
+                    setTimeout(() => {
+                        // Fade out start menu
+                        document.getElementById('start-menu').classList.add('hidden');
+                        // Show game UI
+                        document.getElementById('ui').style.display = '';
+                        document.getElementById('score-display').style.display = '';
+                        document.getElementById('minimap-container').style.display = '';
+                        document.getElementById('intro-overlay').style.display = '';
+                        document.getElementById('intro-overlay').classList.remove('hidden');
+                        document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
+                        document.getElementById('click-prompt').style.display = "block";
+
+                        // Reset camera for gameplay
+                        targetPitch = 18;
+                        targetDistance = 250;
+                        camYaw = 0;
+                        actualCamYaw = 0;
+
+                        // Return to idle
+                        fadeToAction('resting', 0.5);
+
+                        setTimeout(() => {
+                            inStartMenu = false;
+                            menuTransitioning = false;
+                        }, 800);
+                    }, 1500); // Dance for 1.5s
+                    break;
+
+                case 'settings':
+                    menuTransitioning = true;
+                    if (actions['dance']) fadeToAction('dance', 0.3);
+                    shakeIntensity = 10;
+
+                    setTimeout(() => {
+                        document.getElementById('settings-menu').classList.add('active');
+                        fadeToAction('resting', 0.3);
+                        menuTransitioning = false;
+                    }, 800);
+                    break;
+
+                case 'back':
+                    menuTransitioning = true;
+                    menuFlash();
+
+                    setTimeout(() => {
+                        document.getElementById('settings-menu').classList.remove('active');
+                        fadeToAction('resting', 0.3);
+                        menuTransitioning = false;
+                    }, 300);
+                    break;
+
+                case 'exit':
+                    menuTransitioning = true;
+                    if (actions['dance']) fadeToAction('dance', 0.3);
+                    shakeIntensity = 15;
+
+                    setTimeout(() => {
+                        // Try to close, otherwise show message
+                        if (window.opener || window.history.length <= 1) {
+                            window.close();
+                        } else {
+                            window.location.href = 'about:blank';
+                        }
+                        menuTransitioning = false;
+                    }, 1000);
+                    break;
+            }
+        }
+
+        function updateVolume(val) {
+            gameVolume = parseInt(val);
+            document.getElementById('vol-display').innerText = val + '%';
+        }
+
+        function cycleDifficulty() {
+            gameDifficulty = (gameDifficulty + 1) % 3;
+            const display = document.getElementById('diff-display');
+            display.innerText = difficultyNames[gameDifficulty];
+            // Juice: flash the value
+            display.style.transform = 'scale(1.3)';
+            display.style.transition = 'transform 0.2s';
+            setTimeout(() => { display.style.transform = 'scale(1)'; }, 200);
+            menuFlash();
+        }
+
+        function spawnMenuParticles() {
+            const menu = document.getElementById('start-menu');
+            if (!menu) return;
+            for (let i = 0; i < 25; i++) {
+                const p = document.createElement('div');
+                p.className = 'menu-particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = 80 + Math.random() * 20 + '%';
+                p.style.animationDuration = (4 + Math.random() * 8) + 's';
+                p.style.animationDelay = Math.random() * 5 + 's';
+                p.style.width = (2 + Math.random() * 3) + 'px';
+                p.style.height = p.style.width;
+                menu.appendChild(p);
+            }
+        }
+
+        // Expose menu functions to global scope (for HTML onclick in module)
+        window.menuAction = menuAction;
+        window.updateVolume = updateVolume;
+        window.cycleDifficulty = cycleDifficulty;
+        window.togglePause = undefined; // Will be set after togglePause is defined
 
         function buildLevel(num) {
             while (levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
@@ -1036,8 +1720,8 @@
             hasShifted = false;
             gameActive = false;
 
-            // Calculate target rotation to face the camera (180 degrees from current yaw)
-            celebrationTargetRotation = actualCamYaw + Math.PI;
+            // Calculate target rotation to face the camera
+            celebrationTargetRotation = actualCamYaw;
             fadeToAction('dance');
             log("LEVEL COMPLETE! Dimension shifting...", "success");
         }
@@ -1111,19 +1795,26 @@
 
             // Camera Controls (Universal)
             if (isReady) {
-                if (keys['ArrowLeft']) camYaw += 0.05;
-                if (keys['ArrowRight']) camYaw -= 0.05;
-                if (keys['ArrowUp']) targetDistance = Math.max(200, targetDistance - 50);
-                if (keys['ArrowDown']) targetDistance = Math.min(6000, targetDistance + 50);
+                if (!inStartMenu && !menuTransitioning) {
+                    if (keys['ArrowLeft']) camYaw += 0.05;
+                    if (keys['ArrowRight']) camYaw -= 0.05;
+                    if (keys['ArrowUp']) targetDistance = Math.max(200, targetDistance - 50);
+                    if (keys['ArrowDown']) targetDistance = Math.min(6000, targetDistance + 50);
+                }
+                // Always lerp camera smoothly (for menu and game)
+                camPitch = THREE.MathUtils.lerp(camPitch, targetPitch, 0.08);
+                camDistance = THREE.MathUtils.lerp(camDistance, targetDistance, 0.08);
+
+                // Menu breathing camera effect
+                if (inStartMenu) {
+                    const breathe = Math.sin(clock.getElapsedTime() * 0.5) * 0.02;
+                    actualCamYaw = Math.PI + breathe;
+                }
             }
 
             if (gameActive && isReady) {
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 document.getElementById('timer').innerText = formatTime(elapsed);
-
-                // Smooth Lerp Camera
-                camPitch = THREE.MathUtils.lerp(camPitch, targetPitch, 0.08);
-                camDistance = THREE.MathUtils.lerp(camDistance, targetDistance, 0.08);
 
                 let inputX = (keys['KeyD'] ? 1 : 0) - (keys['KeyA'] ? 1 : 0);
                 let inputZ = (keys['KeyS'] ? 1 : 0) - (keys['KeyW'] ? 1 : 0);
@@ -1305,8 +1996,11 @@
             if (isTransitioning) {
                 if (celebrationTime > 0) {
                     celebrationTime -= delta;
-                    // Smoothly u-turn to face camera
-                    modelContainer.rotation.y = THREE.MathUtils.lerp(modelContainer.rotation.y, celebrationTargetRotation, 0.15);
+                    // Smoothly u-turn to face camera (shortest path)
+                    let diff = celebrationTargetRotation - modelContainer.rotation.y;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    modelContainer.rotation.y += diff * 0.15;
                 } else {
                     transitionTime += delta;
 
