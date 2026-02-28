@@ -373,7 +373,7 @@
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
         let actions = {}, currentAction, activeIdleKey = 'twerk';
         let animationScores = {}; // Tracks link success %
-        let idleTimer = 0;
+        let idleTimer = 0, wasTwerking = false;
         let restingThreshold = 10 + Math.random() * 5; // New: Randomized resting duration
         let isReady = false;
         let velX = 0, velZ = 0; // New for movement inertia
@@ -1195,21 +1195,32 @@
                         restingThreshold = 10 + Math.random() * 5; // RE-RANDOMIZE for next cycle
                     }
 
-                    // Rotate camera to face front if twerking (dancing)
                     if (targetIdle === 'twerk') {
-                        // ALWAYS face the character's absolute front (model rotation) + offset
-                        // Math.PI because the camera looks AT the focus point
-                        actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, modelContainer.rotation.y + Math.PI, 0.05);
+                        const target = modelContainer.rotation.y;
+                        let diff = target - actualCamYaw;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        actualCamYaw += diff * 0.05;
+                        wasTwerking = true;
                     } else {
-                        // Revert to the bookmarked "behind" view
-                        actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, lastSafeYaw, 0.05);
-                        camYaw = lastSafeYaw; // Sync manual controls back to the bookmark
+                        if (wasTwerking) {
+                            camYaw = lastSafeYaw;
+                            wasTwerking = false;
+                        }
+                        let diff = camYaw - actualCamYaw;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        actualCamYaw += diff * 0.05;
                     }
                 }
                 // Apply unified velocity movement & Collision (Inertia)
                 if (Math.abs(velX) > 0.1 || Math.abs(velZ) > 0.1) {
-                    lastSafeYaw = camYaw; // BOOKMARK: Save the current "behind" view while moving
-                    actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, camYaw, 0.1);
+                    wasTwerking = false;
+                    lastSafeYaw = camYaw;
+                    let diff = camYaw - actualCamYaw;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    actualCamYaw += diff * 0.1;
                     const nX = modelContainer.position.x + velX;
                     const nZ = modelContainer.position.z + velZ;
                     const gx = Math.round((nX + mapOffset) / cellSize);
