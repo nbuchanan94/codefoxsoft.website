@@ -2067,10 +2067,6 @@
                     actualCamYaw = Math.PI + breathe; // Look from the front
                     if (modelContainer) {
                         modelContainer.rotation.y = Math.PI; // Explicitly ensure character faces camera
-                        // Slight horizontal offset to center better (Screenshot 2 fix)
-                        const offset = 30;
-                        const front = new THREE.Vector3(Math.sin(actualCamYaw + Math.PI / 2), 0, Math.cos(actualCamYaw + Math.PI / 2));
-                        modelContainer.position.addScaledVector(front, offset);
                     }
 
                     // Strobing RGB/HSL Pedestal
@@ -2314,8 +2310,9 @@
             // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focusY = inStartMenu ? 60 : 150; // Dynamic focus (Screenshot 1 fix)
-            const focus = modelContainer.position.clone().add(new THREE.Vector3(0, focusY, 0));
+            const focusY = inStartMenu ? 60 : 150;
+            const focusX = inStartMenu ? -30 : 0; // Shift focus LEFT to move character IMAGE RIGHT
+            const focus = modelContainer.position.clone().add(new THREE.Vector3(focusX, focusY, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
 
             // Use actualCamYaw for smooth rotation (e.g. facing front during idle dance)
