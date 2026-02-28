@@ -381,9 +381,9 @@
 
         // Game Feel & Transition Variables
         let walls = [], roads = [], shards = [];
-        let isTransitioning = false, transitionTime = 0, hasShifted = false;
+        let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0;
         let shakeIntensity = 0;
-        let camYaw = 0, camDistance = 200;
+        let camYaw = 0, actualCamYaw = 0, camDistance = 200;
         let targetPitch = 18, targetDistance = 200; // New for lerping
         let floatingTexts = [], ghosts = []; // Juice controllers
 
@@ -1013,9 +1013,12 @@
             if (isTransitioning) return;
             isTransitioning = true;
             transitionTime = 0;
+            celebrationTime = 2.0; // 2 seconds of dancing before walls melt
             hasShifted = false;
             gameActive = false;
-            modelContainer.rotation.y = camYaw;
+
+            // Face the character towards the camera (180 degrees from current yaw)
+            modelContainer.rotation.y = camYaw + Math.PI;
             fadeToAction('dance');
             log("LEVEL COMPLETE! Dimension shifting...", "success");
         }
@@ -1025,6 +1028,7 @@
             modelContainer.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
             modelContainer.rotation.y = 0;
             camYaw = 0;
+            actualCamYaw = 0; // Reset camera to behind
             velX = 0; velZ = 0;
             idleTimer = 0;
             startTime = Date.now();
@@ -1171,9 +1175,17 @@
                         idleTimer = 0;
                         restingThreshold = 10 + Math.random() * 5; // RE-RANDOMIZE for next cycle
                     }
+
+                    // Rotate camera to face front if twerking (dancing)
+                    if (targetIdle === 'twerk') {
+                        actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, camYaw + Math.PI, 0.05);
+                    } else {
+                        actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, camYaw, 0.05);
+                    }
                 }
                 // Apply unified velocity movement & Collision (Inertia)
                 if (Math.abs(velX) > 0.1 || Math.abs(velZ) > 0.1) {
+                    actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, camYaw, 0.1); // Ensure camera is behind when moving
                     const nX = modelContainer.position.x + velX;
                     const nZ = modelContainer.position.z + velZ;
                     const gx = Math.round((nX + mapOffset) / cellSize);
@@ -1246,42 +1258,46 @@
 
             // --- LEVEL TRANSITION ANIMATION (MELTING WALLS) ---
             if (isTransitioning) {
-                transitionTime += delta;
-
-                if (transitionTime < 1.0) {
-                    // Phase 1: Walls sink
-                    const p = transitionTime;
-                    walls.forEach(w => {
-                        w.position.y = 3000 - (p * 6000);
-                    });
-                } else if (!hasShifted) {
-                    // Phase 2: Load next level (ONCE)
-                    if (currentLevel < 20) {
-                        currentLevel++;
-                        buildLevel(currentLevel);
-                        resetNiko();
-                        fadeToAction('resting');
-                        document.getElementById('intro-overlay').classList.remove('hidden');
-                        document.getElementById('status-text').innerText = "DIMENSION SHIFTED";
-                    } else {
-                        showVictory();
-                        isTransitioning = false;
-                        gameActive = false;
-                    }
-                    hasShifted = true;
-                } else if (transitionTime < 2.5) {
-                    // Phase 3: New walls rise with SPRING
-                    const p = (transitionTime - 1.0) / 1.5; // normalized 0 to 1
-                    const elastic = 1 - Math.pow(1 - p, 4) * Math.cos(p * Math.PI * 4);
-                    const targetY = 3000;
-                    const startY = -3000;
-                    walls.forEach(w => {
-                        w.position.y = startY + (targetY - startY) * elastic;
-                    });
+                if (celebrationTime > 0) {
+                    celebrationTime -= delta;
+                    // Character is already dancing from startLevelTransition
                 } else {
-                    isTransitioning = false;
-                    // gameActive = true; // REMOVED: Wait for user click to start
-                    log("Dimension shift complete. Ready to start.", "info");
+                    transitionTime += delta;
+
+                    if (transitionTime < 1.0) {
+                        // Phase 1: Walls sink
+                        const p = transitionTime;
+                        walls.forEach(w => {
+                            w.position.y = 3000 - (p * 6000);
+                        });
+                    } else if (!hasShifted) {
+                        // Phase 2: Load next level (ONCE)
+                        if (currentLevel < 20) {
+                            currentLevel++;
+                            buildLevel(currentLevel);
+                            resetNiko();
+                            fadeToAction('resting');
+                            document.getElementById('intro-overlay').classList.remove('hidden');
+                            document.getElementById('status-text').innerText = "DIMENSION SHIFTED";
+                        } else {
+                            showVictory();
+                            isTransitioning = false;
+                            gameActive = false;
+                        }
+                        hasShifted = true;
+                    } else if (transitionTime < 2.5) {
+                        // Phase 3: New walls rise with SPRING
+                        const p = (transitionTime - 1.0) / 1.5; // normalized 0 to 1
+                        const elastic = 1 - Math.pow(1 - p, 4) * Math.cos(p * Math.PI * 4);
+                        const targetY = 3000;
+                        const startY = -3000;
+                        walls.forEach(w => {
+                            w.position.y = startY + (targetY - startY) * elastic;
+                        });
+                    } else {
+                        isTransitioning = false;
+                        // gameActive = true; // REMOVED: Wait for user click to start
+                    }
                 }
             }
 
@@ -1290,12 +1306,16 @@
             const sY = (Math.random() - 0.5) * shakeIntensity;
             const focus = modelContainer.position.clone().add(new THREE.Vector3(0, 150, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
+
+            // Use actualCamYaw for smooth rotation (e.g. facing front during dance)
+            const activeYaw = (isTransitioning && celebrationTime > 0) ? (camYaw + Math.PI) : actualCamYaw;
+
             const tPos = new THREE.Vector3(
-                focus.x + camDistance * Math.sin(camYaw) * Math.cos(pr) + sX,
+                focus.x + camDistance * Math.sin(activeYaw) * Math.cos(pr) + sX,
                 focus.y + camDistance * Math.sin(pr) + sY,
-                focus.z + camDistance * Math.cos(camYaw) * Math.cos(pr)
+                focus.z + camDistance * Math.cos(activeYaw) * Math.cos(pr)
             );
-            camera.position.lerp(tPos, 0.2);
+            camera.position.lerp(tPos, 0.8); // Increased from 0.2 to 0.8 to prevent "zoom out" feel
             camera.lookAt(focus);
 
             if (goalOrb) {
