@@ -391,20 +391,20 @@
             transform-style: preserve-3d;
         }
 
-        /* Titled AR HUD look */
+        /* Titled AR HUD look - Moved Up and Out to clear the platform */
         #btn-settings {
-            left: calc(50% - clamp(180px, 30vw, 260px));
-            bottom: clamp(5px, 1.5vh, 25px);
-            transform: rotateX(25deg) rotateY(10deg);
+            left: calc(50% - clamp(220px, 35vw, 320px));
+            bottom: clamp(60px, 12vh, 120px);
+            transform: rotateX(25deg) rotateY(15deg);
         }
 
         #btn-settings:hover {
-            transform: rotateX(15deg) rotateY(5deg) scale(1.1);
+            transform: rotateX(15deg) rotateY(10deg) scale(1.1) translateY(-10px);
         }
 
         #btn-play {
             left: 50%;
-            bottom: -clamp(20px, 3vh, 50px);
+            bottom: -clamp(10px, 2vh, 30px);
             transform: translateX(-50%) rotateX(25deg);
         }
 
@@ -417,13 +417,13 @@
         }
 
         #btn-exit {
-            right: calc(50% - clamp(180px, 30vw, 260px));
-            bottom: clamp(5px, 1.5vh, 25px);
-            transform: rotateX(25deg) rotateY(-10deg);
+            right: calc(50% - clamp(220px, 35vw, 320px));
+            bottom: clamp(60px, 12vh, 120px);
+            transform: rotateX(25deg) rotateY(-15deg);
         }
 
         #btn-exit:hover {
-            transform: rotateX(15deg) rotateY(-5deg) scale(1.1);
+            transform: rotateX(15deg) rotateY(-10deg) scale(1.1) translateY(-10px);
         }
 
         .menu-btn:nth-child(1) {
@@ -1023,6 +1023,7 @@
         let techPanels = [];
         let gameVolume = 80;
         let gameDifficulty = 1; // 0=Easy, 1=Normal, 2=Hard
+        let techRims = []; // New for raised crossroad feel
         const difficultyNames = ['EASY', 'NORMAL', 'HARD'];
         let menuParticleTimer = 0;
 
@@ -1030,12 +1031,12 @@
         let walls = [], roads = [], shards = [];
         let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0, celebrationTargetRotation = 0;
         let shakeIntensity = 0;
-        let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 400;
-        let targetPitch = 22, targetDistance = 400; // New for lerping
+        let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 450;
+        let targetPitch = 25, targetDistance = 450; // New for lerping
         let floatingTexts = [], ghosts = []; // Juice controllers
 
         // Camera settings
-        let camPitch = 22;
+        let camPitch = 25;
         camYaw = 0;
         shakeIntensity = 0;
         let score = 0;
@@ -1211,9 +1212,10 @@
             const centerMat = new THREE.MeshStandardMaterial({
                 color: 0x001100,
                 emissive: 0x00ff55,
-                emissiveIntensity: 0.2
+                emissiveIntensity: 0.5
             });
             const centerCircle = new THREE.Mesh(centerGeo, centerMat);
+            window.platformCenter = centerCircle; // For RGB strobe
             centerCircle.position.y = 3.5;
 
             window.menuPlatformGroup.add(outerRing);
@@ -1253,6 +1255,14 @@
                 panel.position.y = 1;
                 scene.add(panel);
                 techPanels.push(panel);
+
+                // Raised Rim for "Crossroad" effect
+                const rimGeo = new THREE.BoxGeometry(320, 15, 320);
+                const rimMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.2 });
+                const rim = new THREE.Mesh(rimGeo, rimMat);
+                rim.position.y = 5;
+                scene.add(rim);
+                techRims.push(rim);
             });
 
             levelGroup = new THREE.Group();
@@ -1274,6 +1284,7 @@
                     document.getElementById('intro-overlay').classList.add('hidden');
                     if (window.menuPlatformGroup) window.menuPlatformGroup.visible = false;
                     techPanels.forEach(p => p.visible = false);
+                    techRims.forEach(r => r.visible = false);
                 }
             };
 
@@ -1928,12 +1939,14 @@
             }
             const panelOffsets = [{ x: 500, z: 0 }, { x: -500, z: 0 }, { x: 0, z: 500 }, { x: 0, z: -500 }];
             techPanels.forEach((p, i) => {
-                p.position.set(
-                    modelContainer.position.x + panelOffsets[i].x,
-                    1,
-                    modelContainer.position.z + panelOffsets[i].z
-                );
+                const px = modelContainer.position.x + panelOffsets[i].x;
+                const pz = modelContainer.position.z + panelOffsets[i].z;
+                p.position.set(px, 1, pz);
                 p.visible = true;
+                if (techRims[i]) {
+                    techRims[i].position.set(px, 5, pz);
+                    techRims[i].visible = true;
+                }
             });
 
             modelContainer.rotation.y = 0;
@@ -2014,10 +2027,18 @@
 
                 // Menu breathing camera effect
                 if (inStartMenu) {
-                    const breathe = Math.sin(clock.getElapsedTime() * 0.5) * 0.02;
+                    const t = clock.getElapsedTime();
+                    const breathe = Math.sin(t * 0.5) * 0.02;
                     actualCamYaw = Math.PI + breathe; // Look from the front
                     if (modelContainer) {
                         modelContainer.rotation.y = Math.PI; // Explicitly ensure character faces camera
+                    }
+
+                    // Strobing RGB/HSL Pedestal
+                    if (window.platformCenter) {
+                        const hue = (t * 0.2) % 1;
+                        window.platformCenter.material.emissive.setHSL(hue, 1, 0.5);
+                        window.platformCenter.material.emissiveIntensity = 0.5 + Math.sin(t * 3) * 0.3;
                     }
                 }
             }
