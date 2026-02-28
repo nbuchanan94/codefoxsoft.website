@@ -393,8 +393,8 @@
 
         /* Titled AR HUD look */
         #btn-settings {
-            left: calc(50% - clamp(140px, 25vw, 220px));
-            bottom: clamp(10px, 2vh, 40px);
+            left: calc(50% - clamp(180px, 30vw, 260px));
+            bottom: clamp(5px, 1.5vh, 25px);
             transform: rotateX(25deg) rotateY(10deg);
         }
 
@@ -404,7 +404,7 @@
 
         #btn-play {
             left: 50%;
-            bottom: -clamp(10px, 2vh, 30px);
+            bottom: -clamp(20px, 3vh, 50px);
             transform: translateX(-50%) rotateX(25deg);
         }
 
@@ -417,8 +417,8 @@
         }
 
         #btn-exit {
-            right: calc(50% - clamp(140px, 25vw, 220px));
-            bottom: clamp(10px, 2vh, 40px);
+            right: calc(50% - clamp(180px, 30vw, 260px));
+            bottom: clamp(5px, 1.5vh, 25px);
             transform: rotateX(25deg) rotateY(-10deg);
         }
 
@@ -1030,12 +1030,12 @@
         let walls = [], roads = [], shards = [];
         let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0, celebrationTargetRotation = 0;
         let shakeIntensity = 0;
-        let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 250;
-        let targetPitch = 18, targetDistance = 250; // New for lerping
+        let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 400;
+        let targetPitch = 22, targetDistance = 400; // New for lerping
         let floatingTexts = [], ghosts = []; // Juice controllers
 
         // Camera settings
-        let camPitch = 18;
+        let camPitch = 22;
         camYaw = 0;
         shakeIntensity = 0;
         let score = 0;
@@ -2254,7 +2254,7 @@
             // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focus = modelContainer.position.clone().add(new THREE.Vector3(0, 150, 0));
+            const focus = modelContainer.position.clone().add(new THREE.Vector3(0, 100, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
 
             // Use actualCamYaw for smooth rotation (e.g. facing front during idle dance)
