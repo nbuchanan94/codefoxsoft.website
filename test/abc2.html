@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Niko: Maze Master - Dimensions</title>
+    <title>CyberNiko: Maze Runner</title>
     <style>
         body {
             margin: 0;
@@ -393,13 +393,13 @@
 
         /* Titled AR HUD look - Moved Up and Out to clear the platform */
         #btn-settings {
-            left: calc(50% - clamp(220px, 35vw, 320px));
+            left: 50%;
             bottom: clamp(60px, 12vh, 120px);
-            transform: rotateX(25deg) rotateY(15deg);
+            transform: translateX(calc(-50% - clamp(220px, 35vw, 320px))) rotateX(25deg) rotateY(15deg);
         }
 
         #btn-settings:hover {
-            transform: rotateX(15deg) rotateY(10deg) scale(1.1) translateY(-10px);
+            transform: translateX(calc(-50% - clamp(220px, 35vw, 320px))) rotateX(15deg) rotateY(10deg) scale(1.1) translateY(-10px);
         }
 
         #btn-play {
@@ -417,13 +417,13 @@
         }
 
         #btn-exit {
-            right: calc(50% - clamp(220px, 35vw, 320px));
+            left: 50%;
             bottom: clamp(60px, 12vh, 120px);
-            transform: rotateX(25deg) rotateY(-15deg);
+            transform: translateX(calc(-50% + clamp(220px, 35vw, 320px))) rotateX(25deg) rotateY(-15deg);
         }
 
         #btn-exit:hover {
-            transform: rotateX(15deg) rotateY(-10deg) scale(1.1) translateY(-10px);
+            transform: translateX(calc(-50% + clamp(220px, 35vw, 320px))) rotateX(15deg) rotateY(-10deg) scale(1.1) translateY(-10px);
         }
 
         .menu-btn:nth-child(1) {
@@ -868,8 +868,8 @@
     <!-- ===== START MENU ===== -->
     <div id="start-menu" class="menu-loading">
         <div class="menu-title-area">
-            <h1>NIKO</h1>
-            <div class="subtitle">Maze Master — Dimensions</div>
+            <h1>CyberNiko</h1>
+            <div class="subtitle">Maze Runner</div>
         </div>
         <div class="menu-buttons">
             <div class="hud-arc"></div>
@@ -1265,6 +1265,7 @@
                 emissiveIntensity: 0.4,
                 side: THREE.DoubleSide
             });
+            window.techPanelsMat = techMat; // For RGB Strobe
             const techGeo = new THREE.PlaneGeometry(350, 350);
 
             const panelOffsets = [
@@ -1275,27 +1276,23 @@
             panelOffsets.forEach(off => {
                 const panel = new THREE.Mesh(techGeo, techMat);
                 panel.rotation.x = -Math.PI / 2;
-                panel.position.y = 1.5;
-                scene.add(panel);
-                techPanels.push(panel);
+                panel.position.set(off.x, 1.5, off.z);
+                window.menuPlatformGroup.add(panel);
 
                 // Raised Rim for "Crossroad" effect
                 const rimGeo = new THREE.BoxGeometry(370, 20, 370);
                 const rimMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, metalness: 0.9, roughness: 0.1 });
                 const rim = new THREE.Mesh(rimGeo, rimMat);
-                rim.position.y = 8;
-                scene.add(rim);
-                techRims.push(rim);
+                rim.position.set(off.x, 8, off.z);
+                window.menuPlatformGroup.add(rim);
 
                 // "Street" connector blocks
                 const streetGeo = new THREE.BoxGeometry(150, 10, 200);
                 const street = new THREE.Mesh(streetGeo, rimMat);
-                const dist = 300;
                 const angle = Math.atan2(off.x, off.z);
                 street.position.set(off.x * 0.6, 5, off.z * 0.6);
                 street.rotation.y = angle;
-                scene.add(street);
-                techRims.push(street); // Add to rims list for visibility control
+                window.menuPlatformGroup.add(street);
             });
 
             levelGroup = new THREE.Group();
@@ -1731,7 +1728,7 @@
                         document.getElementById('click-prompt').style.display = "block";
 
                         // Reset camera for gameplay
-                        targetPitch = 18;
+                        targetPitch = 15;
                         targetDistance = 250;
                         camYaw = 0;
                         actualCamYaw = 0;
@@ -1964,23 +1961,12 @@
             const start = maps[currentLevel].start;
             modelContainer.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
 
-            // Move the menu platform and tech panels under Niko
+            // Move the monolithic menu platform under Niko
             if (window.menuPlatformGroup) {
                 window.menuPlatformGroup.position.copy(modelContainer.position);
                 window.menuPlatformGroup.position.y = 0;
                 window.menuPlatformGroup.visible = true;
             }
-            const panelOffsets = [{ x: 500, z: 0 }, { x: -500, z: 0 }, { x: 0, z: 500 }, { x: 0, z: -500 }];
-            techPanels.forEach((p, i) => {
-                const px = modelContainer.position.x + panelOffsets[i].x;
-                const pz = modelContainer.position.z + panelOffsets[i].z;
-                p.position.set(px, 1, pz);
-                p.visible = true;
-                if (techRims[i]) {
-                    techRims[i].position.set(px, 5, pz);
-                    techRims[i].visible = true;
-                }
-            });
 
             modelContainer.rotation.y = 0;
             camYaw = 0;
@@ -2069,11 +2055,15 @@
                         modelContainer.rotation.y = Math.PI; // Explicitly ensure character faces camera
                     }
 
-                    // Strobing RGB/HSL Pedestal
+                    // Strobing RGB/HSL Pedestal and Maps
                     if (window.platformCenter) {
                         const hue = (t * 0.2) % 1;
                         window.platformCenter.material.emissive.setHSL(hue, 1, 0.5);
                         window.platformCenter.material.emissiveIntensity = 0.5 + Math.sin(t * 3) * 0.3;
+                        if (window.techPanelsMat) {
+                            window.techPanelsMat.emissive.setHSL(hue, 1, 0.5);
+                            window.techPanelsMat.emissiveIntensity = 0.4 + Math.sin(t * 3) * 0.2;
+                        }
                     }
                 }
             }
