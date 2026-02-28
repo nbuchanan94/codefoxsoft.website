@@ -383,8 +383,8 @@
         let walls = [], roads = [], shards = [];
         let isTransitioning = false, transitionTime = 0, hasShifted = false;
         let shakeIntensity = 0;
-        let camYaw = 0, camDistance = 800;
-        let targetPitch = 18, targetDistance = 400; // New for lerping
+        let camYaw = 0, camDistance = 200;
+        let targetPitch = 18, targetDistance = 200; // New for lerping
         let floatingTexts = [], ghosts = []; // Juice controllers
 
         // Camera settings
@@ -571,7 +571,7 @@
 
                 if (e.code === 'KeyT') {
                     targetPitch = (targetPitch < 40 ? 85 : 18);
-                    targetDistance = (targetPitch === 85 ? 4000 : 400);
+                    targetDistance = (targetPitch === 85 ? 4000 : 200);
                     log(`Birds-eye: ${targetPitch === 85 ? "ON" : "OFF"}`, "info");
                 }
             });
@@ -1114,12 +1114,12 @@
 
                     if (isSprinting) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
-                        camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
+                        camera.fov = 60; // Locked per user request
                         if (Date.now() % 100 < 32) spawnGhost(); // Speed trails only for Shift sprint
                     } else if (isDancing) {
-                        camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
+                        camera.fov = 60; // Locked per user request
                     } else {
-                        camera.fov = THREE.MathUtils.lerp(camera.fov, 60, 0.1);
+                        camera.fov = 60; // Locked per user request
                     }
                     camera.updateProjectionMatrix();
 
