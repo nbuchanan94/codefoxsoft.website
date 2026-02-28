@@ -381,9 +381,9 @@
 
         // Game Feel & Transition Variables
         let walls = [], roads = [], shards = [];
-        let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0;
+        let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0, celebrationTargetRotation = 0;
         let shakeIntensity = 0;
-        let camYaw = 0, actualCamYaw = 0, camDistance = 250;
+        let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 250;
         let targetPitch = 18, targetDistance = 250; // New for lerping
         let floatingTexts = [], ghosts = []; // Juice controllers
 
@@ -1036,8 +1036,8 @@
             hasShifted = false;
             gameActive = false;
 
-            // Face the character towards the camera (180 degrees from current yaw)
-            modelContainer.rotation.y = camYaw + Math.PI;
+            // Calculate target rotation to face the camera (180 degrees from current yaw)
+            celebrationTargetRotation = actualCamYaw + Math.PI;
             fadeToAction('dance');
             log("LEVEL COMPLETE! Dimension shifting...", "success");
         }
@@ -1197,14 +1197,19 @@
 
                     // Rotate camera to face front if twerking (dancing)
                     if (targetIdle === 'twerk') {
-                        actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, camYaw + Math.PI, 0.05);
+                        // ALWAYS face the character's absolute front (model rotation) + offset
+                        // Math.PI because the camera looks AT the focus point
+                        actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, modelContainer.rotation.y + Math.PI, 0.05);
                     } else {
-                        actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, camYaw, 0.05);
+                        // Revert to the bookmarked "behind" view
+                        actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, lastSafeYaw, 0.05);
+                        camYaw = lastSafeYaw; // Sync manual controls back to the bookmark
                     }
                 }
                 // Apply unified velocity movement & Collision (Inertia)
                 if (Math.abs(velX) > 0.1 || Math.abs(velZ) > 0.1) {
-                    actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, camYaw, 0.1); // Ensure camera is behind when moving
+                    lastSafeYaw = camYaw; // BOOKMARK: Save the current "behind" view while moving
+                    actualCamYaw = THREE.MathUtils.lerp(actualCamYaw, camYaw, 0.1);
                     const nX = modelContainer.position.x + velX;
                     const nZ = modelContainer.position.z + velZ;
                     const gx = Math.round((nX + mapOffset) / cellSize);
@@ -1289,7 +1294,8 @@
             if (isTransitioning) {
                 if (celebrationTime > 0) {
                     celebrationTime -= delta;
-                    // Character is already dancing from startLevelTransition
+                    // Smoothly u-turn to face camera
+                    modelContainer.rotation.y = THREE.MathUtils.lerp(modelContainer.rotation.y, celebrationTargetRotation, 0.15);
                 } else {
                     transitionTime += delta;
 
