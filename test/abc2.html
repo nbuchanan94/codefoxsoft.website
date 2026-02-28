@@ -1215,8 +1215,8 @@
                 emissiveIntensity: 0.5
             });
             const centerCircle = new THREE.Mesh(centerGeo, centerMat);
-            window.platformCenter = centerCircle; // For RGB strobe
-            centerCircle.position.y = 3.5;
+            window.platformCenter = centerCircle;
+            centerCircle.position.y = 20; // Raised Pedestal (Screenshot fix)
 
             window.menuPlatformGroup.add(outerRing);
             window.menuPlatformGroup.add(innerRing);
@@ -1276,14 +1276,14 @@
             panelOffsets.forEach(off => {
                 const panel = new THREE.Mesh(techGeo, techMat);
                 panel.rotation.x = -Math.PI / 2;
-                panel.position.set(off.x, 1.5, off.z);
+                panel.position.set(off.x, 10, off.z); // Raised above Rim (Screenshot fix)
                 window.menuPlatformGroup.add(panel);
 
                 // Raised Rim for "Crossroad" effect
                 const rimGeo = new THREE.BoxGeometry(370, 20, 370);
                 const rimMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, metalness: 0.9, roughness: 0.1 });
                 const rim = new THREE.Mesh(rimGeo, rimMat);
-                rim.position.set(off.x, 8, off.z);
+                rim.position.set(off.x, 5, off.z); // Lowered Rim (Screenshot fix)
                 window.menuPlatformGroup.add(rim);
 
                 // "Street" connector blocks
@@ -1727,9 +1727,9 @@
                         document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
                         document.getElementById('click-prompt').style.display = "block";
 
-                        // Reset camera for gameplay
-                        targetPitch = 15;
-                        targetDistance = 250;
+                        // Reset camera for gameplay (Screenshot follow-cam fix)
+                        targetPitch = 8;
+                        targetDistance = 230;
                         camYaw = 0;
                         actualCamYaw = 0;
 
@@ -2301,7 +2301,7 @@
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
             const focusY = inStartMenu ? 60 : 150;
-            const focusX = inStartMenu ? -30 : 0; // Shift focus LEFT to move character IMAGE RIGHT
+            const focusX = inStartMenu ? 45 : 0; // Flipped sign to fix character centering
             const focus = modelContainer.position.clone().add(new THREE.Vector3(focusX, focusY, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
 
