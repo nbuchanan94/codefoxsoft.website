@@ -1109,19 +1109,17 @@
                 const isDancing = keys['KeyN'] || keys['n'];
                 const spd = isSprinting ? 75 : 40;
 
+                // Lock FOV to 60 per user request
+                camera.fov = 60;
+                camera.updateProjectionMatrix();
+
                 if (isDancing || inputX !== 0 || inputZ !== 0) {
                     idleTimer = 0;
 
                     if (isSprinting) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
-                        camera.fov = 60; // Locked per user request
                         if (Date.now() % 100 < 32) spawnGhost(); // Speed trails only for Shift sprint
-                    } else if (isDancing) {
-                        camera.fov = 60; // Locked per user request
-                    } else {
-                        camera.fov = 60; // Locked per user request
                     }
-                    camera.updateProjectionMatrix();
 
                     if (inputX !== 0 || inputZ !== 0) {
                         const angle = Math.atan2(inputX, inputZ) + camYaw;
