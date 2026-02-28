@@ -307,7 +307,8 @@
         #start-menu {
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse at 50% 30%, rgba(60, 10, 10, 0.75) 0%, rgba(20, 2, 2, 0.92) 70%);
+            background: rgba(0, 0, 0, 0.1);
+            /* Transparent to show the level behind */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -365,16 +366,19 @@
         }
 
         .menu-buttons {
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            gap: clamp(20px, 5vw, 60px);
-            padding-bottom: clamp(40px, 8vh, 100px);
+            position: absolute;
+            bottom: 5%;
             width: 100%;
+            height: clamp(150px, 20vh, 250px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            /* Let clicks pass through empty space */
         }
 
         .menu-btn {
-            position: relative;
+            position: absolute;
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -382,12 +386,33 @@
             gap: 12px;
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             animation: btnEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+            pointer-events: auto;
+            /* Enable clicks on buttons */
         }
 
-        #btn-settings,
+        /* Perfectly tight circular layout around the character */
+        #btn-settings {
+            left: calc(50% - clamp(140px, 25vw, 220px));
+            bottom: clamp(10px, 2vh, 40px);
+        }
+
+        #btn-play {
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -clamp(10px, 2vh, 30px);
+        }
+
+        #btn-play:hover {
+            transform: translateX(-50%) scale(1.12) translateY(-5px);
+        }
+
+        #btn-play:active {
+            transform: translateX(-50%) scale(0.92);
+        }
+
         #btn-exit {
-            margin-bottom: clamp(15px, 4vh, 40px);
-            /* Arc layout */
+            right: calc(50% - clamp(140px, 25vw, 220px));
+            bottom: clamp(10px, 2vh, 40px);
         }
 
         .menu-btn:nth-child(1) {
@@ -573,7 +598,8 @@
         #settings-menu {
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse at 50% 30%, rgba(60, 10, 10, 0.75) 0%, rgba(20, 2, 2, 0.92) 70%);
+            background: rgba(0, 0, 0, 0.6);
+            /* Semi-transparent to maintain focus */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1097,6 +1123,40 @@
             const grid = new THREE.GridHelper(20000, 20, 0x444444, 0x222222);
             scene.add(grid);
 
+            // ===== START MENU PLATFORM =====
+            window.menuPlatformGroup = new THREE.Group();
+
+            // Outer dark ring
+            const outerGeo = new THREE.CylinderGeometry(140, 160, 5, 32);
+            const outerMat = new THREE.MeshStandardMaterial({ color: 0x112211, roughness: 0.8 });
+            const outerRing = new THREE.Mesh(outerGeo, outerMat);
+            outerRing.position.y = 2.5;
+
+            // Inner glowing rings
+            const innerGeo = new THREE.CylinderGeometry(110, 110, 6, 32);
+            const innerMat = new THREE.MeshStandardMaterial({
+                color: 0x002205,
+                emissive: 0x00ff55,
+                emissiveIntensity: 0.5,
+                wireframe: true
+            });
+            const innerRing = new THREE.Mesh(innerGeo, innerMat);
+            innerRing.position.y = 3;
+
+            const centerGeo = new THREE.CylinderGeometry(90, 90, 7, 32);
+            const centerMat = new THREE.MeshStandardMaterial({
+                color: 0x001100,
+                emissive: 0x00ff55,
+                emissiveIntensity: 0.2
+            });
+            const centerCircle = new THREE.Mesh(centerGeo, centerMat);
+            centerCircle.position.y = 3.5;
+
+            window.menuPlatformGroup.add(outerRing);
+            window.menuPlatformGroup.add(innerRing);
+            window.menuPlatformGroup.add(centerCircle);
+            scene.add(window.menuPlatformGroup);
+
             levelGroup = new THREE.Group();
             scene.add(levelGroup);
 
@@ -1114,6 +1174,7 @@
                 }
                 if (gameActive) {
                     document.getElementById('intro-overlay').classList.add('hidden');
+                    if (window.menuPlatformGroup) window.menuPlatformGroup.visible = false;
                 }
             };
 
@@ -1759,6 +1820,14 @@
         function resetNiko() {
             const start = maps[currentLevel].start;
             modelContainer.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
+
+            // Move the menu platform under Niko
+            if (window.menuPlatformGroup) {
+                window.menuPlatformGroup.position.copy(modelContainer.position);
+                window.menuPlatformGroup.position.y = 0; // Ground level
+                window.menuPlatformGroup.visible = true; // Make sure it's visible on reset (e.g., first load)
+            }
+
             modelContainer.rotation.y = 0;
             camYaw = 0;
             actualCamYaw = 0; // Reset camera to behind
