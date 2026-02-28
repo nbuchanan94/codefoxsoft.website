@@ -383,8 +383,8 @@
         let walls = [], roads = [], shards = [];
         let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0;
         let shakeIntensity = 0;
-        let camYaw = 0, actualCamYaw = 0, camDistance = 225;
-        let targetPitch = 18, targetDistance = 225; // New for lerping
+        let camYaw = 0, actualCamYaw = 0, camDistance = 250;
+        let targetPitch = 18, targetDistance = 250; // New for lerping
         let floatingTexts = [], ghosts = []; // Juice controllers
 
         // Camera settings
@@ -571,7 +571,7 @@
 
                 if (e.code === 'KeyT') {
                     targetPitch = (targetPitch < 40 ? 85 : 18);
-                    targetDistance = (targetPitch === 85 ? 4000 : 225);
+                    targetDistance = (targetPitch === 85 ? 4000 : 250);
                     log(`Birds-eye: ${targetPitch === 85 ? "ON" : "OFF"}`, "info");
                 }
             });
