@@ -374,7 +374,8 @@
             justify-content: center;
             align-items: center;
             pointer-events: none;
-            /* Let clicks pass through empty space */
+            perspective: 800px;
+            /* Tilt perspective */
         }
 
         .menu-btn {
@@ -384,35 +385,45 @@
             flex-direction: column;
             align-items: center;
             gap: 12px;
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             animation: btnEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
             pointer-events: auto;
-            /* Enable clicks on buttons */
+            transform-style: preserve-3d;
         }
 
-        /* Perfectly tight circular layout around the character */
+        /* Titled AR HUD look */
         #btn-settings {
             left: calc(50% - clamp(140px, 25vw, 220px));
             bottom: clamp(10px, 2vh, 40px);
+            transform: rotateX(25deg) rotateY(10deg);
+        }
+
+        #btn-settings:hover {
+            transform: rotateX(15deg) rotateY(5deg) scale(1.1);
         }
 
         #btn-play {
             left: 50%;
-            transform: translateX(-50%);
             bottom: -clamp(10px, 2vh, 30px);
+            transform: translateX(-50%) rotateX(25deg);
         }
 
         #btn-play:hover {
-            transform: translateX(-50%) scale(1.12) translateY(-5px);
+            transform: translateX(-50%) rotateX(15deg) scale(1.1) translateY(-5px);
         }
 
         #btn-play:active {
-            transform: translateX(-50%) scale(0.92);
+            transform: translateX(-50%) rotateX(25deg) scale(0.95);
         }
 
         #btn-exit {
             right: calc(50% - clamp(140px, 25vw, 220px));
             bottom: clamp(10px, 2vh, 40px);
+            transform: rotateX(25deg) rotateY(-10deg);
+        }
+
+        #btn-exit:hover {
+            transform: rotateX(15deg) rotateY(-5deg) scale(1.1);
         }
 
         .menu-btn:nth-child(1) {
@@ -447,6 +458,38 @@
             transform: scale(0.92);
         }
 
+        /* HUD Arc Connector */
+        .hud-arc {
+            position: absolute;
+            width: clamp(350px, 60vw, 550px);
+            height: clamp(80px, 15vh, 120px);
+            border: 2px solid rgba(0, 255, 85, 0.15);
+            border-bottom: 4px solid rgba(0, 255, 85, 0.4);
+            border-radius: 50%;
+            bottom: -20px;
+            pointer-events: none;
+            box-shadow: 0 10px 30px rgba(0, 255, 85, 0.1);
+            mask-image: linear-gradient(to top, black 40%, transparent 60%);
+            animation: hudScan 4s linear infinite;
+        }
+
+        @keyframes hudScan {
+            0% {
+                opacity: 0.3;
+                transform: rotateX(60deg) scale(0.98);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: rotateX(60deg) scale(1.02);
+            }
+
+            100% {
+                opacity: 0.3;
+                transform: rotateX(60deg) scale(0.98);
+            }
+        }
+
         .btn-circle {
             width: clamp(70px, 12vw, 110px);
             height: clamp(70px, 12vw, 110px);
@@ -463,24 +506,39 @@
                 inset 0 0 20px rgba(0, 255, 85, 0.15);
             transition: all 0.3s ease;
             animation: circlePulse 2.5s ease-in-out infinite;
+            overflow: hidden;
+            /* For scanlines */
         }
 
+        /* Scanline effect */
         .btn-circle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent, rgba(0, 255, 85, 0.05) 50%, transparent);
+            background-size: 100% 4px;
+            animation: scanlines 2s linear infinite;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes scanlines {
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: 0 100%;
+            }
+        }
+
+        .btn-inner-ring {
             content: '';
             position: absolute;
             inset: -8px;
             border-radius: 50%;
             border: 2px solid rgba(0, 255, 85, 0.2);
             animation: ringPulse 2s ease-in-out infinite;
-        }
-
-        .btn-circle::after {
-            content: '';
-            position: absolute;
-            inset: -16px;
-            border-radius: 50%;
-            border: 1px solid rgba(0, 255, 85, 0.1);
-            animation: ringPulse 2s ease-in-out infinite 0.5s;
         }
 
         .menu-btn.play-btn .btn-circle {
@@ -814,8 +872,10 @@
             <div class="subtitle">Maze Master — Dimensions</div>
         </div>
         <div class="menu-buttons">
+            <div class="hud-arc"></div>
             <div class="menu-btn" id="btn-settings" onclick="menuAction('settings')">
                 <div class="btn-circle">
+                    <div class="btn-inner-ring"></div>
                     <span class="btn-icon">
                         <svg viewBox="0 0 24 24" fill="currentColor">
                             <path
@@ -827,6 +887,7 @@
             </div>
             <div class="menu-btn play-btn" id="btn-play" onclick="menuAction('play')">
                 <div class="btn-circle">
+                    <div class="btn-inner-ring"></div>
                     <span class="btn-icon">
                         <svg viewBox="0 0 24 24" fill="currentColor">
                             <path d="M4 6l8 6-8 6V6zm10 0l8 6-8 6V6z" />
@@ -837,6 +898,7 @@
             </div>
             <div class="menu-btn" id="btn-exit" onclick="menuAction('exit')">
                 <div class="btn-circle">
+                    <div class="btn-inner-ring"></div>
                     <span class="btn-icon">
                         <svg viewBox="0 0 24 24" fill="currentColor">
                             <path
@@ -957,6 +1019,8 @@
         // ===== START MENU STATE =====
         let inStartMenu = true;
         let menuTransitioning = false;
+        let menuPlatformGroup = null;
+        let techPanels = [];
         let gameVolume = 80;
         let gameDifficulty = 1; // 0=Easy, 1=Normal, 2=Hard
         const difficultyNames = ['EASY', 'NORMAL', 'HARD'];
@@ -1157,6 +1221,40 @@
             window.menuPlatformGroup.add(centerCircle);
             scene.add(window.menuPlatformGroup);
 
+            // ===== TECH PANELS (Plus Formation) =====
+            const techCanvas = document.createElement('canvas');
+            techCanvas.width = 256; techCanvas.height = 256;
+            const tCtx = techCanvas.getContext('2d');
+            tCtx.fillStyle = '#000'; tCtx.fillRect(0, 0, 256, 256);
+            tCtx.strokeStyle = '#00ff55'; tCtx.lineWidth = 2;
+            for (let i = 0; i < 256; i += 16) {
+                tCtx.beginPath(); tCtx.moveTo(i, 0); tCtx.lineTo(i, 256); tCtx.stroke();
+                tCtx.beginPath(); tCtx.moveTo(0, i); tCtx.lineTo(256, i); tCtx.stroke();
+            }
+            const techTex = new THREE.CanvasTexture(techCanvas);
+            const techMat = new THREE.MeshStandardMaterial({
+                map: techTex,
+                transparent: true,
+                opacity: 0.6,
+                emissive: 0x00ff55,
+                emissiveIntensity: 0.3,
+                side: THREE.DoubleSide
+            });
+            const techGeo = new THREE.PlaneGeometry(300, 300);
+
+            const panelOffsets = [
+                { x: 500, z: 0 }, { x: -500, z: 0 },
+                { x: 0, z: 500 }, { x: 0, z: -500 }
+            ];
+
+            panelOffsets.forEach(off => {
+                const panel = new THREE.Mesh(techGeo, techMat);
+                panel.rotation.x = -Math.PI / 2;
+                panel.position.y = 1;
+                scene.add(panel);
+                techPanels.push(panel);
+            });
+
             levelGroup = new THREE.Group();
             scene.add(levelGroup);
 
@@ -1175,6 +1273,7 @@
                 if (gameActive) {
                     document.getElementById('intro-overlay').classList.add('hidden');
                     if (window.menuPlatformGroup) window.menuPlatformGroup.visible = false;
+                    techPanels.forEach(p => p.visible = false);
                 }
             };
 
@@ -1821,12 +1920,21 @@
             const start = maps[currentLevel].start;
             modelContainer.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
 
-            // Move the menu platform under Niko
+            // Move the menu platform and tech panels under Niko
             if (window.menuPlatformGroup) {
                 window.menuPlatformGroup.position.copy(modelContainer.position);
-                window.menuPlatformGroup.position.y = 0; // Ground level
-                window.menuPlatformGroup.visible = true; // Make sure it's visible on reset (e.g., first load)
+                window.menuPlatformGroup.position.y = 0;
+                window.menuPlatformGroup.visible = true;
             }
+            const panelOffsets = [{ x: 500, z: 0 }, { x: -500, z: 0 }, { x: 0, z: 500 }, { x: 0, z: -500 }];
+            techPanels.forEach((p, i) => {
+                p.position.set(
+                    modelContainer.position.x + panelOffsets[i].x,
+                    1,
+                    modelContainer.position.z + panelOffsets[i].z
+                );
+                p.visible = true;
+            });
 
             modelContainer.rotation.y = 0;
             camYaw = 0;
@@ -1925,8 +2033,8 @@
                 const isDancing = keys['KeyN'] || keys['n'];
                 const spd = isSprinting ? 75 : 40;
 
-                // Lock FOV to 60 per user request
-                camera.fov = 60;
+                // FOV control: Tighter for menu (40), standard for game (60)
+                camera.fov = inStartMenu ? 40 : 60;
                 camera.updateProjectionMatrix();
 
                 if (isDancing || inputX !== 0 || inputZ !== 0) {
