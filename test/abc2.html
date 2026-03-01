@@ -1005,9 +1005,13 @@
     <script type="module">
         import * as THREE from 'three';
         import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-        let scene, camera, renderer, mixer, clock, model, modelContainer, fixGroup, goalOrb, nikoLight;
+        let scene, camera, renderer, composer, mixer, clock, model, modelContainer, fixGroup, goalOrb, nikoLight;
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
+        let particles = [], ghosts = [], floatingTexts = [];
         let actions = {}, currentAction, activeIdleKey = 'twerk';
         let animationScores = {}; // Tracks link success %
         let idleTimer = 0, wasTwerking = false;
@@ -1033,14 +1037,12 @@
         let elevatedMeshes = [], pillarMeshes = [], hazardOrbs = [];
         let keyShardsCollected = false, timedDoorOpenUntil = 0, timedDoorTrigger = null;
         let movingGoalPath = null, movingGoalIndex = 0, movingGoalBasePos = null;
-        let footGlow = null;
         let gateOpenCells = new Set(); // grid key "gx,gz" when gate is open
         let gateCellKeys = new Set();   // all cells that have a gate (open or closed)
         let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0, celebrationTargetRotation = 0;
         let shakeIntensity = 0;
         let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 450;
         let targetPitch = 25, targetDistance = 450; // New for lerping
-        let floatingTexts = [], ghosts = []; // Juice controllers
 
         // Camera settings
         let camPitch = 25;
@@ -1199,7 +1201,15 @@
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 10, 60000);
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.toneMapping = THREE.ReinhardToneMapping;
             document.body.appendChild(renderer.domElement);
+
+            // POST-PROCESSING: Bloom for trendy neon glow (TONED DOWN)
+            const renderScene = new RenderPass(scene, camera);
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.3, 0.9);
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
 
             // Initialize Mini-map
             minimapCanvas = document.getElementById('minimap');
@@ -2070,11 +2080,6 @@
                 pillarMeshes.push(spin);
             }
 
-            footGlow = new THREE.Mesh(new THREE.CircleGeometry(380, 24), new THREE.MeshBasicMaterial({ color: theme.lightColor, transparent: true, opacity: 0.12 }));
-            footGlow.rotation.x = -Math.PI / 2;
-            footGlow.position.y = 3;
-            levelGroup.add(footGlow);
-
             document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
             document.getElementById('intro-title').innerText = theme.name;
         }
@@ -2242,6 +2247,33 @@
             shakeIntensity = 25;
         }
 
+        function spawnParticle(pos, color, size = 20, life = 1.0, vel = null) {
+            const geo = new THREE.SphereGeometry(size, 4, 4);
+            const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.8 });
+            const p = new THREE.Mesh(geo, mat);
+            p.position.copy(pos);
+            scene.add(p);
+            particles.push({
+                obj: p,
+                life: life,
+                maxLife: life,
+                vel: vel || new THREE.Vector3((Math.random() - 0.5) * 10, Math.random() * 15, (Math.random() - 0.5) * 10)
+            });
+        }
+
+        function updateParticles(delta) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.life -= delta;
+                p.obj.position.add(p.vel.clone().multiplyScalar(delta * 60));
+                p.obj.material.opacity = (p.life / p.maxLife) * 0.8;
+                if (p.life <= 0) {
+                    scene.remove(p.obj);
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
         function animate() {
             requestAnimationFrame(animate);
             if (isPaused) return;
@@ -2288,6 +2320,22 @@
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 document.getElementById('timer').innerText = formatTime(elapsed);
 
+                // Ambient Juice: Spawn theme-related particles
+                const curTheme = themes[currentLevel];
+                if (Math.random() < 0.05) {
+                    const spawnDist = 1500;
+                    const rPos = modelContainer.position.clone().add(new THREE.Vector3(
+                        (Math.random() - 0.5) * spawnDist * 2,
+                        Math.random() * 800,
+                        (Math.random() - 0.5) * spawnDist * 2
+                    ));
+                    const pCol = curTheme.lightColor || 0xffffff;
+                    const pVel = new THREE.Vector3((Math.random() - 0.5) * 5, (Math.random() * 2) + 2, (Math.random() - 0.5) * 5);
+                    spawnParticle(rPos, pCol, 8 + Math.random() * 8, 2.0 + Math.random() * 2, pVel);
+                }
+
+                updateParticles(delta);
+
                 // Update gate open states (so collision uses correct gateOpenCells)
                 gateOpenCells.clear();
                 const now = Date.now();
@@ -2316,6 +2364,12 @@
                     p.mesh.position.z = cur.z + (target.z - cur.z) * T;
                     p.mesh.position.y = 180 + Math.sin(now * 0.002) * 20;
                     if (T >= 1) { p.idx = (p.idx + 1) % wp.length; p.t = 0; }
+
+                    // Patrol Juice: Trail
+                    if (Math.random() < 0.3) {
+                        spawnParticle(p.mesh.position, 0xff00ff, 12, 0.4, new THREE.Vector3(0, 0, 0));
+                    }
+
                     const dist = modelContainer.position.distanceTo(p.mesh.position);
                     if (dist < 280) { triggerHitEffect(); velX *= -0.4; velZ *= -0.4; }
                 });
@@ -2357,11 +2411,9 @@
                     if (p.userData.spinning) p.rotation.y += delta * 1.5;
                 });
 
-                if (footGlow) {
-                    footGlow.position.x = modelContainer.position.x;
-                    footGlow.position.z = modelContainer.position.z;
-                    footGlow.material.opacity = 0.08 + (Math.abs(velX) + Math.abs(velZ)) / 200;
-                }
+                // Leaning Juice: Tilt model based on turning/sideways movement
+                const sidewaysVel = velX * Math.cos(modelContainer.rotation.y) - velZ * Math.sin(modelContainer.rotation.y);
+                modelContainer.rotation.z = THREE.MathUtils.lerp(modelContainer.rotation.z, sidewaysVel * 0.0015, 0.1);
 
                 let inputX = (keys['KeyD'] ? 1 : 0) - (keys['KeyA'] ? 1 : 0);
                 let inputZ = (keys['KeyS'] ? 1 : 0) - (keys['KeyW'] ? 1 : 0);
@@ -2545,11 +2597,19 @@
                         levelGroup.remove(s);
                         shards.splice(i, 1);
                         shakeIntensity = 15;
+                        // Collection Juice: Burst
+                        for (let j = 0; j < 8; j++) {
+                            spawnParticle(s.position, themes[currentLevel].lightColor, 15, 0.8);
+                        }
                     }
                 }
 
                 if (modelContainer.position.distanceTo(goalOrb.position) < 450) {
                     saveBestTime(currentLevel, elapsed);
+                    // Goal Juice: Flare!
+                    for (let j = 0; j < 20; j++) {
+                        spawnParticle(goalOrb.position, 0xffcc00, 30, 1.5, new THREE.Vector3((Math.random() - 0.5) * 15, 20 + Math.random() * 20, (Math.random() - 0.5) * 15));
+                    }
                     startLevelTransition();
                 }
 
@@ -2655,7 +2715,11 @@
 
             drawMinimap();
 
-            renderer.render(scene, camera);
+            if (composer) {
+                composer.render();
+            } else {
+                renderer.render(scene, camera);
+            }
         }
         init();
     </script>
