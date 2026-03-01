@@ -1165,7 +1165,7 @@
             clock = new THREE.Clock();
             scene = new THREE.Scene();
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 60000);
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 10, 60000);
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
@@ -1738,7 +1738,7 @@
 
                         // Reset camera for gameplay (Screenshot follow-cam fix)
                         targetPitch = 0;
-                        targetDistance = 100;
+                        targetDistance = 80; // Changed from 100 to 80 for tighter default max-zoom
                         camYaw = 0;
                         actualCamYaw = 0;
 
@@ -2049,7 +2049,7 @@
                 if (!inStartMenu && !menuTransitioning) {
                     if (keys['ArrowLeft']) camYaw += 0.05;
                     if (keys['ArrowRight']) camYaw -= 0.05;
-                    if (keys['ArrowUp']) targetDistance = Math.max(200, targetDistance - 50);
+                    if (keys['ArrowUp']) targetDistance = Math.max(80, targetDistance - 50); // Lowered from 200 to 80
                     if (keys['ArrowDown']) targetDistance = Math.min(6000, targetDistance + 50);
                 }
                 // Always lerp camera smoothly (for menu and game)
@@ -2091,8 +2091,8 @@
                 const isDancing = keys['KeyN'] || keys['n'];
                 const spd = isSprinting ? 75 : 40;
 
-                // FOV control: Tighter for menu (40), standard for game (60)
-                camera.fov = inStartMenu ? 40 : 60;
+                // FOV control: Tighter for menu (40), tighter for game (35) as requested
+                camera.fov = inStartMenu ? 40 : 35;
                 camera.updateProjectionMatrix();
 
                 if (isDancing || inputX !== 0 || inputZ !== 0) {
@@ -2312,7 +2312,7 @@
             // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focusY = inStartMenu ? 60 : 130;
+            const focusY = inStartMenu ? 60 : 85; // Lowered to 85 for chest-level follow-cam
             const focusX = 0; // Fixed CSS left:50% handles UI alignment now. Focus camera straight down world origin.
             const focus = modelContainer.position.clone().add(new THREE.Vector3(focusX, focusY, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
