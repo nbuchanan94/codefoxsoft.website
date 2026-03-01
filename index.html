@@ -1074,8 +1074,8 @@
 
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-            // --- anime.js: Hero staggered reveal ---
-            if (typeof anime !== 'undefined' && !prefersReducedMotion) {
+            // --- anime.js: Hero staggered reveal (always run when anime is available — works on mobile too) ---
+            if (typeof anime !== 'undefined') {
                 const heroBox = document.querySelector('.hero-content-box.hero-anim-in');
                 if (heroBox) {
                     anime.timeline({ easing: 'easeOutExpo', duration: 600 })
@@ -1085,8 +1085,10 @@
                         .add({ targets: '.hero-cta', opacity: [0, 1], translateY: [24, 0], duration: 650, easing: 'easeOutElastic(1, 0.6)' }, 380);
                     heroBox.classList.remove('hero-anim-in');
                 }
+            }
 
-                // --- anime.js: Scroll-triggered animations (replace CSS transition with elastic) ---
+            // --- Scroll and other juice: use anime when available and user hasn’t asked for reduced motion ---
+            if (typeof anime !== 'undefined' && !prefersReducedMotion) {
                 const fadersAll = document.querySelectorAll('.fade-in, .slide-left, .slide-right');
                 const faders = Array.from(fadersAll).filter(el =>
                     !el.closest('.js-about-cards') && !el.closest('.js-project-cards') && !el.closest('.js-blog-cards')
@@ -1240,7 +1242,7 @@
                     });
                 });
             } else {
-                // Fallback: original CSS-only scroll behavior
+                // Fallback: CSS-only scroll (when anime didn’t load or user prefers reduced motion)
                 const faders = document.querySelectorAll('.fade-in, .slide-left, .slide-right');
                 const isMobileDevice = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 const appearOptions = {
@@ -1254,13 +1256,15 @@
                     });
                 }, appearOptions);
                 faders.forEach(fader => appearOnScroll.observe(fader));
-                // Show hero content immediately if no anime / reduced motion
-                document.querySelectorAll('.hero-content-box.hero-anim-in .hero-title-brand, .hero-content-box.hero-anim-in .hero-tagline, .hero-content-box.hero-anim-in .hero-desc, .hero-content-box.hero-anim-in .hero-cta').forEach(el => {
-                    el.style.opacity = '1';
-                    el.style.transform = 'none';
-                });
-                const hb = document.querySelector('.hero-content-box.hero-anim-in');
-                if (hb) hb.classList.remove('hero-anim-in');
+                // Show hero content immediately only if anime didn’t load (hero already ran if anime loaded)
+                if (typeof anime === 'undefined') {
+                    document.querySelectorAll('.hero-content-box.hero-anim-in .hero-title-brand, .hero-content-box.hero-anim-in .hero-tagline, .hero-content-box.hero-anim-in .hero-desc, .hero-content-box.hero-anim-in .hero-cta').forEach(el => {
+                        el.style.opacity = '1';
+                        el.style.transform = 'none';
+                    });
+                    const hb = document.querySelector('.hero-content-box.hero-anim-in');
+                    if (hb) hb.classList.remove('hero-anim-in');
+                }
             }
 
             // Event Listeners from the galaxy code

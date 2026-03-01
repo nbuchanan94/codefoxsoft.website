@@ -1738,7 +1738,7 @@
 
                         // Reset camera for gameplay (Screenshot follow-cam fix)
                         targetPitch = 0;
-                        targetDistance = 80; // Changed from 100 to 80 for tighter default max-zoom
+                        targetDistance = 200; // Original minimum zoom as default
                         camYaw = 0;
                         actualCamYaw = 0;
 
@@ -1982,15 +1982,22 @@
 
             // Determine Hallway orientation
             const grid = maps[currentLevel].grid;
-            let startYaw = 0; // Default facing Positive Z (Down)
-            if (grid[start.z - 1] && grid[start.z - 1][start.x] === 0) startYaw = Math.PI; // Face Negative Z (Up)
-            else if (grid[start.z + 1] && grid[start.z + 1][start.x] === 0) startYaw = 0; // Face Positive Z (Down)
-            else if (grid[start.z] && grid[start.z][start.x + 1] === 0) startYaw = Math.PI / 2; // Face Positive X (Right)
-            else if (grid[start.z] && grid[start.z][start.x - 1] === 0) startYaw = -Math.PI / 2; // Face Negative X (Left)
+            let startYaw = 0; // Default camera yaw
+            let charYaw = 0;  // Default character yaw
 
-            modelContainer.rotation.y = startYaw;
+            if (grid[start.z - 1] && grid[start.z - 1][start.x] === 0) {
+                startYaw = 0; charYaw = Math.PI; // Hallway is Up (-Z), look forward
+            } else if (grid[start.z + 1] && grid[start.z + 1][start.x] === 0) {
+                startYaw = Math.PI; charYaw = 0; // Hallway is Down (+Z), look back
+            } else if (grid[start.z][start.x + 1] === 0) {
+                startYaw = -Math.PI / 2; charYaw = Math.PI / 2; // Hallway is Right (+X)
+            } else if (grid[start.z][start.x - 1] === 0) {
+                startYaw = Math.PI / 2; charYaw = -Math.PI / 2; // Hallway is Left (-X)
+            }
+
             camYaw = startYaw;
             actualCamYaw = startYaw;
+            modelContainer.rotation.y = charYaw;
 
             velX = 0; velZ = 0;
             idleTimer = 0;
@@ -2066,7 +2073,7 @@
                 camDistance = THREE.MathUtils.lerp(camDistance, targetDistance, 0.08);
 
                 // Menu framing: Hard-lock parameters to prevent drift
-                if (inStartMenu) {
+                if (inStartMenu && !menuTransitioning) {
                     targetDistance = 500;
                     targetPitch = 30;
                     const t = clock.getElapsedTime();
@@ -2100,8 +2107,8 @@
                 const isDancing = keys['KeyN'] || keys['n'];
                 const spd = isSprinting ? 75 : 40;
 
-                // FOV control: Tighter for menu (40), standard for game (60)
-                camera.fov = inStartMenu ? 40 : 60;
+                // FOV control: Tighter for menu (40), standard wide for game (60)
+                camera.fov = (inStartMenu && !menuTransitioning) ? 40 : 60;
                 camera.updateProjectionMatrix();
 
                 if (isDancing || inputX !== 0 || inputZ !== 0) {
@@ -2321,7 +2328,7 @@
             // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focusY = inStartMenu ? 60 : 110; // Chest/Head level for better hallway view
+            const focusY = inStartMenu ? 60 : 60; // Chest level (60) for a level, non-towering view down hallways
             const focusX = 0; // Fixed CSS left:50% handles UI alignment now. Focus camera straight down world origin.
             const focus = modelContainer.position.clone().add(new THREE.Vector3(focusX, focusY, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
