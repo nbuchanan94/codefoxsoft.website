@@ -1197,7 +1197,13 @@
             const outerRing = new THREE.Mesh(outerGeo, outerMat);
             outerRing.position.y = 2.5;
 
-            // Inner glowing rings
+            // Base Rings
+            const ringGeo = new THREE.TorusGeometry(150, 4, 16, 100);
+            const ringMat = new THREE.MeshStandardMaterial({ color: 0x00cf11, emissive: 0x00ff55, emissiveIntensity: 0.8 });
+            const baseRing = new THREE.Mesh(ringGeo, ringMat);
+            baseRing.rotation.x = -Math.PI / 2;
+            baseRing.position.y = 1;
+
             const innerGeo = new THREE.CylinderGeometry(110, 110, 6, 32);
             const innerMat = new THREE.MeshStandardMaterial({
                 color: 0x002205,
@@ -1208,6 +1214,7 @@
             const innerRing = new THREE.Mesh(innerGeo, innerMat);
             innerRing.position.y = 3;
 
+            // Center Pedestal
             const centerGeo = new THREE.CylinderGeometry(90, 90, 7, 32);
             const centerMat = new THREE.MeshStandardMaterial({
                 color: 0x001100,
@@ -1216,8 +1223,9 @@
             });
             const centerCircle = new THREE.Mesh(centerGeo, centerMat);
             window.platformCenter = centerCircle;
-            centerCircle.position.y = 20; // Raised Pedestal (Screenshot fix)
+            centerCircle.position.y = 3.5; // Reset character height to 0
 
+            window.menuPlatformGroup.add(baseRing);
             window.menuPlatformGroup.add(outerRing);
             window.menuPlatformGroup.add(innerRing);
             window.menuPlatformGroup.add(centerCircle);
@@ -1266,33 +1274,34 @@
                 side: THREE.DoubleSide
             });
             window.techPanelsMat = techMat; // For RGB Strobe
-            const techGeo = new THREE.PlaneGeometry(350, 350);
+            const techGeo = new THREE.PlaneGeometry(240, 240); // Inset panel size
 
+            const panelDist = 320; // Distance from center
             const panelOffsets = [
-                { x: 500, z: 0 }, { x: -500, z: 0 },
-                { x: 0, z: 500 }, { x: 0, z: -500 }
+                { x: panelDist, z: 0 }, { x: -panelDist, z: 0 },
+                { x: 0, z: panelDist }, { x: 0, z: -panelDist }
             ];
 
             panelOffsets.forEach(off => {
+                // 1. Dark Gray Base Box
+                const baseGeo = new THREE.BoxGeometry(300, 15, 300);
+                const baseMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.4 });
+                const baseBox = new THREE.Mesh(baseGeo, baseMat);
+                baseBox.position.set(off.x, -5, off.z);
+                window.menuPlatformGroup.add(baseBox);
+
+                // 2. Bezel Frame sitting on top
+                const bezelGeo = new THREE.BoxGeometry(260, 10, 260);
+                const bezelMat = new THREE.MeshStandardMaterial({ color: 0x050505, metalness: 0.9, roughness: 0.2 });
+                const bezelBox = new THREE.Mesh(bezelGeo, bezelMat);
+                bezelBox.position.set(off.x, 2.5, off.z);
+                window.menuPlatformGroup.add(bezelBox);
+
+                // 3. Inset Glowing Maze Maps
                 const panel = new THREE.Mesh(techGeo, techMat);
                 panel.rotation.x = -Math.PI / 2;
-                panel.position.set(off.x, 10, off.z); // Raised above Rim (Screenshot fix)
+                panel.position.set(off.x, 7.6, off.z); // Just above bezel
                 window.menuPlatformGroup.add(panel);
-
-                // Raised Rim for "Crossroad" effect
-                const rimGeo = new THREE.BoxGeometry(370, 20, 370);
-                const rimMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, metalness: 0.9, roughness: 0.1 });
-                const rim = new THREE.Mesh(rimGeo, rimMat);
-                rim.position.set(off.x, 5, off.z); // Lowered Rim (Screenshot fix)
-                window.menuPlatformGroup.add(rim);
-
-                // "Street" connector blocks
-                const streetGeo = new THREE.BoxGeometry(150, 10, 200);
-                const street = new THREE.Mesh(streetGeo, rimMat);
-                const angle = Math.atan2(off.x, off.z);
-                street.position.set(off.x * 0.35, 5, off.z * 0.35);
-                street.rotation.y = angle;
-                window.menuPlatformGroup.add(street);
             });
 
             levelGroup = new THREE.Group();
@@ -1728,8 +1737,8 @@
                         document.getElementById('click-prompt').style.display = "block";
 
                         // Reset camera for gameplay (Screenshot follow-cam fix)
-                        targetPitch = 5;
-                        targetDistance = 180;
+                        targetPitch = 0;
+                        targetDistance = 100;
                         camYaw = 0;
                         actualCamYaw = 0;
 
@@ -1962,7 +1971,7 @@
 
         function resetNiko() {
             const start = maps[currentLevel].start;
-            modelContainer.position.set(start.x * cellSize - mapOffset, inStartMenu ? 20 : 0, start.z * cellSize - mapOffset);
+            modelContainer.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
 
             // Move the monolithic menu platform under Niko
             if (window.menuPlatformGroup) {
@@ -2303,8 +2312,8 @@
             // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focusY = inStartMenu ? 60 : 110;
-            const focusX = inStartMenu ? 120 : 0; // Flipped sign and increased to fix character centering
+            const focusY = inStartMenu ? 60 : 130;
+            const focusX = 0; // Fixed CSS left:50% handles UI alignment now. Focus camera straight down world origin.
             const focus = modelContainer.position.clone().add(new THREE.Vector3(focusX, focusY, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
 
