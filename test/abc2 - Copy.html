@@ -1029,13 +1029,6 @@
 
         // Game Feel & Transition Variables
         let walls = [], roads = [], shards = [];
-        let patrols = [], movingGates = [], movingPlatforms = [], conveyorTiles = [];
-        let elevatedMeshes = [], pillarMeshes = [], hazardOrbs = [];
-        let keyShardsCollected = false, timedDoorOpenUntil = 0, timedDoorTrigger = null;
-        let movingGoalPath = null, movingGoalIndex = 0, movingGoalBasePos = null;
-        let footGlow = null;
-        let gateOpenCells = new Set(); // grid key "gx,gz" when gate is open
-        let gateCellKeys = new Set();   // all cells that have a gate (open or closed)
         let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0, celebrationTargetRotation = 0;
         let shakeIntensity = 0;
         let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 450;
@@ -1100,30 +1093,6 @@
             18: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 37, z: 37 } },
             19: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 39, z: 39 } },
             20: { grid: [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], start: { x: 1, z: 1 }, goal: { x: 41, z: 41 } }
-        };
-
-        // Per-level features: patrols, gates, platforms, conveyors, moving goal, key shards, timed doors, geometry
-        const levelFeatures = {
-            1: { elevatedTiles: [{ x: 5, z: 5, h: 400 }, { x: 10, z: 10, h: 350 }, { x: 15, z: 15, h: 300 }], pillars: [{ x: 3, z: 8 }, { x: 8, z: 3 }, { x: 12, z: 12 }] },
-            2: { patrols: [{ waypoints: [{ x: 3, z: 2 }, { x: 3, z: 10 }, { x: 10, z: 10 }, { x: 10, z: 2 }], speed: 0.0008 }], pillars: [{ x: 5, z: 5 }, { x: 13, z: 13 }] },
-            3: { gates: [{ x: 10, z: 10, openDur: 3, closeDur: 2 }], elevatedTiles: [{ x: 5, z: 15, h: 500 }, { x: 15, z: 5, h: 500 }], pillars: [{ x: 10, z: 5 }, { x: 10, z: 15 }] },
-            4: { hazardOrbs: [{ x: 7, z: 7 }, { x: 12, z: 12 }], elevatedTiles: [{ x: 10, z: 10, h: 400 }] },
-            5: { gates: [{ x: 9, z: 5, openDur: 2.5, closeDur: 2 }, { x: 14, z: 14, openDur: 2, closeDur: 2.5 }], pillars: [{ x: 7, z: 10 }, { x: 12, z: 7 }] },
-            6: { iceFriction: true, movingPlatforms: [{ from: { x: 6, z: 12 }, to: { x: 14, z: 12 }, speed: 0.0004 }], elevatedTiles: [{ x: 10, z: 10, h: 300 }] },
-            7: { pillars: [{ x: 5, z: 11 }, { x: 11, z: 5 }, { x: 15, z: 15 }, { x: 18, z: 10 }], elevatedTiles: [{ x: 11, z: 11, h: 450 }] },
-            8: { conveyorTiles: [{ x: 5, z: 5, dx: 1, dz: 0 }, { x: 6, z: 5, dx: 1, dz: 0 }, { x: 15, z: 15, dx: -1, dz: 0 }], spinningPillar: { x: 11, z: 11 }, elevatedTiles: [{ x: 11, z: 11, h: 200 }] },
-            9: { elevatedTiles: [{ x: 12, z: 12, h: 600 }], pillars: [{ x: 6, z: 6 }, { x: 18, z: 6 }, { x: 6, z: 18 }, { x: 18, z: 18 }] },
-            10: { movingGoal: [{ x: 17, z: 17 }, { x: 17, z: 10 }, { x: 10, z: 10 }, { x: 10, z: 17 }], speed: 0.00025, elevatedTiles: [{ x: 13, z: 13, h: 800 }] },
-            11: { patrols: [{ waypoints: [{ x: 5, z: 5 }, { x: 5, z: 18 }, { x: 18, z: 18 }, { x: 18, z: 5 }], speed: 0.0007 }], hazardOrbs: [{ x: 11, z: 11 }], pillars: [{ x: 8, z: 12 }, { x: 14, z: 8 }] },
-            12: { gates: [{ x: 13, z: 13, openDur: 3, closeDur: 2 }], patrols: [{ waypoints: [{ x: 7, z: 7 }, { x: 7, z: 18 }, { x: 18, z: 18 }], speed: 0.0006 }], elevatedTiles: [{ x: 13, z: 7, h: 400 }, { x: 7, z: 13, h: 400 }] },
-            13: { movingPlatforms: [{ from: { x: 8, z: 14 }, to: { x: 8, z: 8 }, speed: 0.00035 }, { from: { x: 18, z: 18 }, to: { x: 12, z: 18 }, speed: 0.0003 }], pillars: [{ x: 14, z: 14 }] },
-            14: { iceFriction: true, elevatedTiles: [{ x: 15, z: 15, h: 500 }, { x: 10, z: 20, h: 400 }, { x: 20, z: 10, h: 400 }], pillars: [{ x: 12, z: 12 }, { x: 18, z: 18 }] },
-            15: { keyShards: [{ x: 8, z: 8 }], gateForKey: { x: 16, z: 16 }, patrols: [{ waypoints: [{ x: 12, z: 12 }, { x: 12, z: 20 }, { x: 20, z: 20 }], speed: 0.0005 }], elevatedTiles: [{ x: 16, z: 8, h: 350 }] },
-            16: { timedDoor: { x: 14, z: 14 }, triggerCell: { x: 10, z: 10 }, openDuration: 4, elevatedTiles: [{ x: 12, z: 16, h: 400 }], pillars: [{ x: 8, z: 14 }, { x: 16, z: 8 }] },
-            17: { movingGoal: [{ x: 30, z: 30 }, { x: 30, z: 20 }, { x: 20, z: 20 }, { x: 20, z: 30 }], speed: 0.0002, patrols: [{ waypoints: [{ x: 15, z: 15 }, { x: 25, z: 15 }, { x: 25, z: 25 }], speed: 0.0004 }], elevatedTiles: [{ x: 20, z: 20, h: 600 }] },
-            18: { hazardOrbs: [{ x: 10, z: 19 }, { x: 19, z: 10 }, { x: 28, z: 28 }], gates: [{ x: 19, z: 19, openDur: 2.5, closeDur: 2 }], elevatedTiles: [{ x: 15, z: 15, h: 500 }, { x: 23, z: 23, h: 450 }] },
-            19: { treasureRoom: [{ x: 20, z: 20 }, { x: 20, z: 21 }, { x: 21, z: 20 }, { x: 21, z: 21 }, { x: 19, z: 20 }, { x: 20, z: 19 }], elevatedTiles: [{ x: 20, z: 20, h: 400 }], pillars: [{ x: 15, z: 15 }, { x: 25, z: 15 }, { x: 15, z: 25 }, { x: 25, z: 25 }] },
-            20: { movingGoal: [{ x: 35, z: 35 }, { x: 35, z: 25 }, { x: 25, z: 25 }, { x: 25, z: 35 }], speed: 0.00018, gates: [{ x: 30, z: 30, openDur: 2, closeDur: 2.5 }], elevatedTiles: [{ x: 28, z: 28, h: 700 }], hazardOrbs: [{ x: 20, z: 20 }, { x: 30, z: 20 }] }
         };
 
         function log(msg, type = 'info') {
@@ -1872,25 +1841,9 @@
             shards = [];
             walls = [];
             roads = [];
-            patrols = [];
-            movingGates = [];
-            movingPlatforms = [];
-            conveyorTiles = [];
-            elevatedMeshes = [];
-            pillarMeshes = [];
-            hazardOrbs = [];
-            gateOpenCells = new Set();
-            gateCellKeys = new Set();
-            keyShardsCollected = false;
-            timedDoorOpenUntil = 0;
-            timedDoorTrigger = null;
-            movingGoalPath = null;
-            movingGoalIndex = 0;
-            movingGoalBasePos = null;
 
             const theme = themes[num];
             const mapData = maps[num];
-            const features = levelFeatures[num] || {};
             const mats = createThemeMaterials(theme);
 
             scene.background = new THREE.Color(theme.sky);
@@ -1926,8 +1879,7 @@
                         levelGroup.add(r);
                         roads.push(r);
                         if (Math.random() > 0.7 && (x !== mapData.start.x || z !== mapData.start.z)) {
-                            const isKeyCell = (features.keyShards || []).some(k => k.x === x && k.z === z);
-                            if (!isKeyCell) spawnShard(px, pz, theme.lightColor);
+                            spawnShard(px, pz, theme.lightColor);
                         }
                     }
                 }
@@ -1936,144 +1888,6 @@
             goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 5 }));
             goalOrb.position.set(mapData.goal.x * cellSize - mapOffset, 300, mapData.goal.z * cellSize - mapOffset);
             levelGroup.add(goalOrb);
-
-            // ----- Level features: geometry, gates, platforms, patrols, etc. -----
-            const grid = mapData.grid;
-            const rows = grid.length, cols = grid[0].length;
-
-            if (features.elevatedTiles) {
-                features.elevatedTiles.forEach(t => {
-                    if (t.z >= 0 && t.z < rows && t.x >= 0 && t.x < cols && grid[t.z][t.x] === 0) {
-                        const px = t.x * cellSize - mapOffset, pz = t.z * cellSize - mapOffset;
-                        const plat = new THREE.Mesh(new THREE.BoxGeometry(cellSize * 0.9, t.h, cellSize * 0.9), new THREE.MeshStandardMaterial({ color: theme.buildColor || 0x222222, emissive: theme.lightColor, emissiveIntensity: 0.3 }));
-                        plat.position.set(px, t.h / 2, pz);
-                        levelGroup.add(plat);
-                        elevatedMeshes.push(plat);
-                    }
-                });
-            }
-            if (features.pillars) {
-                features.pillars.forEach(p => {
-                    if (p.z >= 0 && p.z < rows && p.x >= 0 && p.x < cols && grid[p.z][p.x] === 0) {
-                        const px = p.x * cellSize - mapOffset, pz = p.z * cellSize - mapOffset;
-                        const pillarH = (theme.wallH || 6000) * 0.4;
-                        const cyl = new THREE.Mesh(new THREE.CylinderGeometry(cellSize * 0.12, cellSize * 0.15, pillarH, 8), mats.build);
-                        cyl.position.set(px, pillarH / 2, pz);
-                        levelGroup.add(cyl);
-                        pillarMeshes.push(cyl);
-                    }
-                });
-            }
-            if (features.gates) {
-                features.gates.forEach(g => {
-                    if (g.z >= 0 && g.z < rows && g.x >= 0 && g.x < cols && grid[g.z][g.x] === 0) {
-                        const px = g.x * cellSize - mapOffset, pz = g.z * cellSize - mapOffset;
-                        const wallH = (theme.wallH || 6000) * 0.6;
-                        const gateMesh = new THREE.Mesh(new THREE.BoxGeometry(cellSize * 0.9, wallH, cellSize * 0.3), new THREE.MeshStandardMaterial({ color: 0x333333, emissive: theme.lightColor, emissiveIntensity: 0.5 }));
-                        gateMesh.position.set(px, wallH / 2, pz);
-                        levelGroup.add(gateMesh);
-                        movingGates.push({ mesh: gateMesh, gx: g.x, gz: g.z, openDur: g.openDur, closeDur: g.closeDur, phaseStart: clock.getElapsedTime() });
-                        gateCellKeys.add(g.x + ',' + g.z);
-                    }
-                });
-            }
-            if (features.gateForKey && features.keyShards && grid[features.gateForKey.z] !== undefined && grid[features.gateForKey.z][features.gateForKey.x] === 0) {
-                const g = features.gateForKey;
-                const px = g.x * cellSize - mapOffset, pz = g.z * cellSize - mapOffset;
-                const wallH = (theme.wallH || 6000) * 0.6;
-                const gateMesh = new THREE.Mesh(new THREE.BoxGeometry(cellSize * 0.9, wallH, cellSize * 0.3), new THREE.MeshStandardMaterial({ color: 0x553300, emissive: 0xffcc00, emissiveIntensity: 0.8 }));
-                gateMesh.position.set(px, wallH / 2, pz);
-                levelGroup.add(gateMesh);
-                movingGates.push({ mesh: gateMesh, gx: g.x, gz: g.z, openDur: 999, closeDur: 0, phaseStart: 0, keyGate: true });
-                gateCellKeys.add(g.x + ',' + g.z);
-            }
-            if (features.movingPlatforms) {
-                features.movingPlatforms.forEach(pl => {
-                    const fromX = pl.from.x * cellSize - mapOffset, fromZ = pl.from.z * cellSize - mapOffset;
-                    const toX = pl.to.x * cellSize - mapOffset, toZ = pl.to.z * cellSize - mapOffset;
-                    const plat = new THREE.Mesh(new THREE.BoxGeometry(cellSize * 0.85, 80, cellSize * 0.85), new THREE.MeshStandardMaterial({ color: 0x444466, emissive: theme.lightColor, emissiveIntensity: 0.4 }));
-                    plat.position.set(fromX, 40, fromZ);
-                    levelGroup.add(plat);
-                    movingPlatforms.push({ mesh: plat, from: { x: fromX, z: fromZ }, to: { x: toX, z: toZ }, speed: pl.speed, t: 0, forward: true });
-                });
-            }
-            if (features.conveyorTiles) {
-                features.conveyorTiles.forEach(c => {
-                    if (c.z >= 0 && c.z < rows && c.x >= 0 && c.x < cols && grid[c.z][c.x] === 0)
-                        conveyorTiles.push({ gx: c.x, gz: c.z, dx: c.dx || 0, dz: c.dz || 0 });
-                });
-            }
-            if (features.movingGoal && features.movingGoal.length > 0) {
-                movingGoalPath = features.movingGoal.map(p => ({ x: p.x * cellSize - mapOffset, z: p.z * cellSize - mapOffset }));
-                movingGoalBasePos = movingGoalPath[0];
-                movingGoalIndex = 0;
-            }
-            if (features.keyShards) {
-                features.keyShards.forEach(k => {
-                    const px = k.x * cellSize - mapOffset, pz = k.z * cellSize - mapOffset;
-                    const shard = new THREE.Mesh(new THREE.OctahedronGeometry(100), new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 3, wireframe: true }));
-                    shard.position.set(px, 150, pz);
-                    shards.push(shard);
-                    shard.userData.isKey = true;
-                    levelGroup.add(shard);
-                });
-            }
-            if (features.treasureRoom) {
-                features.treasureRoom.forEach(t => {
-                    if (t.z >= 0 && t.z < rows && t.x >= 0 && t.x < cols && grid[t.z][t.x] === 0) {
-                        const px = t.x * cellSize - mapOffset, pz = t.z * cellSize - mapOffset;
-                        spawnShard(px, pz, theme.lightColor);
-                    }
-                });
-            }
-            if (features.timedDoor && features.triggerCell && grid[features.timedDoor.z] !== undefined && grid[features.timedDoor.z][features.timedDoor.x] === 0) {
-                const t = features.timedDoor;
-                const px = t.x * cellSize - mapOffset, pz = t.z * cellSize - mapOffset;
-                const wallH = (theme.wallH || 6000) * 0.5;
-                const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(cellSize * 0.9, wallH, cellSize * 0.3), new THREE.MeshStandardMaterial({ color: 0x6666aa, emissive: 0x4488ff, emissiveIntensity: 0.6 }));
-                doorMesh.position.set(px, wallH / 2, pz);
-                doorMesh.userData.timedDoor = true;
-                levelGroup.add(doorMesh);
-                movingGates.push({ mesh: doorMesh, gx: t.x, gz: t.z, openDur: features.openDuration || 4, closeDur: 0.1, phaseStart: clock.getElapsedTime(), timedDoor: true, trigger: features.triggerCell });
-                timedDoorTrigger = features.triggerCell;
-                gateCellKeys.add(t.x + ',' + t.z);
-            }
-            if (features.hazardOrbs) {
-                features.hazardOrbs.forEach(h => {
-                    if (h.z >= 0 && h.z < rows && h.x >= 0 && h.x < cols && grid[h.z][h.x] === 0) {
-                        const px = h.x * cellSize - mapOffset, pz = h.z * cellSize - mapOffset;
-                        const orb = new THREE.Mesh(new THREE.SphereGeometry(120), new THREE.MeshStandardMaterial({ color: 0xff0044, emissive: 0xff0044, emissiveIntensity: 2 }));
-                        orb.position.set(px, 200, pz);
-                        levelGroup.add(orb);
-                        hazardOrbs.push({ mesh: orb, x: px, z: pz, phase: Math.random() * Math.PI * 2 });
-                    }
-                });
-            }
-            if (features.patrols) {
-                features.patrols.forEach(pat => {
-                    const waypoints = pat.waypoints.map(w => ({ x: w.x * cellSize - mapOffset, z: w.z * cellSize - mapOffset }));
-                    const start = waypoints[0];
-                    const drone = new THREE.Mesh(new THREE.SphereGeometry(100), new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 2 }));
-                    drone.position.set(start.x, 180, start.z);
-                    levelGroup.add(drone);
-                    patrols.push({ mesh: drone, waypoints, speed: pat.speed, idx: 0, t: 0 });
-                });
-            }
-            if (features.spinningPillar && grid[features.spinningPillar.z] !== undefined && grid[features.spinningPillar.z][features.spinningPillar.x] === 0) {
-                const s = features.spinningPillar;
-                const px = s.x * cellSize - mapOffset, pz = s.z * cellSize - mapOffset;
-                const pillarH = (theme.wallH || 6000) * 0.5;
-                const spin = new THREE.Mesh(new THREE.BoxGeometry(cellSize * 0.25, pillarH, cellSize * 0.5), new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.9, roughness: 0.2 }));
-                spin.position.set(px, pillarH / 2, pz);
-                spin.userData.spinning = true;
-                levelGroup.add(spin);
-                pillarMeshes.push(spin);
-            }
-
-            footGlow = new THREE.Mesh(new THREE.CircleGeometry(380, 24), new THREE.MeshBasicMaterial({ color: theme.lightColor, transparent: true, opacity: 0.12 }));
-            footGlow.rotation.x = -Math.PI / 2;
-            footGlow.position.y = 3;
-            levelGroup.add(footGlow);
 
             document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
             document.getElementById('intro-title').innerText = theme.name;
@@ -2288,81 +2102,6 @@
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 document.getElementById('timer').innerText = formatTime(elapsed);
 
-                // Update gate open states (so collision uses correct gateOpenCells)
-                gateOpenCells.clear();
-                const now = Date.now();
-                movingGates.forEach(g => {
-                    let open = false;
-                    if (g.keyGate) open = keyShardsCollected;
-                    else if (g.timedDoor) open = now < timedDoorOpenUntil;
-                    else {
-                        const cycle = g.openDur + g.closeDur;
-                        const phase = ((clock.getElapsedTime() - g.phaseStart) % cycle);
-                        open = phase < g.openDur;
-                    }
-                    if (open) gateOpenCells.add(g.gx + ',' + g.gz);
-                    if (g.mesh) g.mesh.visible = !open;
-                });
-
-                // Update patrol drones
-                patrols.forEach(p => {
-                    const wp = p.waypoints;
-                    if (wp.length < 2) return;
-                    const target = wp[(p.idx + 1) % wp.length];
-                    const cur = wp[p.idx];
-                    p.t += p.speed;
-                    const T = Math.min(1, p.t);
-                    p.mesh.position.x = cur.x + (target.x - cur.x) * T;
-                    p.mesh.position.z = cur.z + (target.z - cur.z) * T;
-                    p.mesh.position.y = 180 + Math.sin(now * 0.002) * 20;
-                    if (T >= 1) { p.idx = (p.idx + 1) % wp.length; p.t = 0; }
-                    const dist = modelContainer.position.distanceTo(p.mesh.position);
-                    if (dist < 280) { triggerHitEffect(); velX *= -0.4; velZ *= -0.4; }
-                });
-
-                // Update moving platforms
-                movingPlatforms.forEach(pl => {
-                    const T = pl.forward ? pl.t : (1 - pl.t);
-                    pl.mesh.position.x = pl.from.x + (pl.to.x - pl.from.x) * T;
-                    pl.mesh.position.z = pl.from.z + (pl.to.z - pl.from.z) * T;
-                    pl.t += pl.speed;
-                    if (pl.t >= 1) { pl.t = 0; pl.forward = !pl.forward; }
-                });
-
-                // Update moving goal
-                if (movingGoalPath && movingGoalPath.length > 1) {
-                    const feat = levelFeatures[currentLevel];
-                    const spd = (feat && feat.speed) || 0.0002;
-                    movingGoalIndex += spd;
-                    if (movingGoalIndex >= movingGoalPath.length) movingGoalIndex = 0;
-                    const idx0 = Math.floor(movingGoalIndex) % movingGoalPath.length;
-                    const idx1 = (idx0 + 1) % movingGoalPath.length;
-                    const t = movingGoalIndex - Math.floor(movingGoalIndex);
-                    const a = movingGoalPath[idx0], b = movingGoalPath[idx1];
-                    goalOrb.position.x = a.x + (b.x - a.x) * t;
-                    goalOrb.position.z = a.z + (b.z - a.z) * t;
-                }
-
-                // Update hazard orbs (bob and collision)
-                hazardOrbs.forEach(h => {
-                    h.phase += delta * 2;
-                    h.mesh.position.y = 200 + Math.sin(h.phase) * 80;
-                    h.mesh.rotation.y += delta * 0.5;
-                    const dist = modelContainer.position.distanceTo(h.mesh.position);
-                    if (dist < 350) { triggerHitEffect(); velX *= -0.5; velZ *= -0.5; }
-                });
-
-                // Spinning pillars
-                pillarMeshes.forEach(p => {
-                    if (p.userData.spinning) p.rotation.y += delta * 1.5;
-                });
-
-                if (footGlow) {
-                    footGlow.position.x = modelContainer.position.x;
-                    footGlow.position.z = modelContainer.position.z;
-                    footGlow.material.opacity = 0.08 + (Math.abs(velX) + Math.abs(velZ)) / 200;
-                }
-
                 let inputX = (keys['KeyD'] ? 1 : 0) - (keys['KeyA'] ? 1 : 0);
                 let inputZ = (keys['KeyS'] ? 1 : 0) - (keys['KeyW'] ? 1 : 0);
 
@@ -2389,15 +2128,6 @@
                         velX = THREE.MathUtils.lerp(velX, targetVelX, 0.2);
                         velZ = THREE.MathUtils.lerp(velZ, targetVelZ, 0.2);
 
-                        const cellX = Math.round((modelContainer.position.x + mapOffset) / cellSize);
-                        const cellZ = Math.round((modelContainer.position.z + mapOffset) / cellSize);
-                        conveyorTiles.forEach(c => {
-                            if (c.gx === cellX && c.gz === cellZ) {
-                                velX += (c.dx || 0) * 22;
-                                velZ += (c.dz || 0) * 22;
-                            }
-                        });
-
                         const targetRotation = angle;
                         const currentRotation = modelContainer.rotation.y;
                         let diff = targetRotation - currentRotation;
@@ -2409,14 +2139,6 @@
                         velX = 0;
                         velZ = 0;
                     }
-                    const cellX = Math.round((modelContainer.position.x + mapOffset) / cellSize);
-                    const cellZ = Math.round((modelContainer.position.z + mapOffset) / cellSize);
-                    conveyorTiles.forEach(c => {
-                        if (c.gx === cellX && c.gz === cellZ) {
-                            velX += (c.dx || 0) * 22;
-                            velZ += (c.dz || 0) * 22;
-                        }
-                    });
 
                     if (isDancing) {
                         velX = 0;
@@ -2426,7 +2148,7 @@
                     else fadeToAction('walk');
                 } else {
                     // Level-specific friction (Chrome Slide in level 8)
-                    const friction = (currentLevel === 8 || (levelFeatures[currentLevel] && levelFeatures[currentLevel].iceFriction)) ? 0.04 : 0.2;
+                    const friction = (currentLevel === 8) ? 0.04 : 0.2;
                     velX = THREE.MathUtils.lerp(velX, 0, friction);
                     velZ = THREE.MathUtils.lerp(velZ, 0, friction);
                     if (Math.abs(velX) < 2) velX = 0;
@@ -2483,17 +2205,11 @@
                     const currentGrid = maps[currentLevel].grid;
 
                     if (gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
-                        const gateKey = gx + ',' + gz;
-                        const blockedByGate = gateCellKeys.has(gateKey) && !gateOpenCells.has(gateKey);
-                        if (currentGrid[gz][gx] === 0 && !blockedByGate) {
+                        if (currentGrid[gz][gx] === 0) {
                             modelContainer.position.x = nX;
                             modelContainer.position.z = nZ;
-                            if (timedDoorTrigger && gx === timedDoorTrigger.x && gz === timedDoorTrigger.z) {
-                                const fd = levelFeatures[currentLevel];
-                                if (fd && fd.openDuration) timedDoorOpenUntil = Date.now() + fd.openDuration * 1000;
-                            }
                         } else {
-                            // Wall or closed gate: Stop velocity & Trigger Juice
+                            // Wall hit: Stop velocity & Trigger Juice
                             if (Math.abs(velX) > 5 || Math.abs(velZ) > 5) triggerHitEffect();
                             velX = 0; velZ = 0;
                         }
@@ -2536,12 +2252,6 @@
                         score += 100;
                         document.getElementById('score').innerText = `SHARDS: ${score}`;
                         createFloatingText("+100", s.position, themes[currentLevel].win1);
-                        if (s.userData.isKey) {
-                            keyShardsCollected = true;
-                            const gf = levelFeatures[currentLevel].gateForKey;
-                            if (gf) gateOpenCells.add(gf.x + ',' + gf.z);
-                            createFloatingText("KEY!", s.position, '#ffcc00');
-                        }
                         levelGroup.remove(s);
                         shards.splice(i, 1);
                         shakeIntensity = 15;
@@ -2638,19 +2348,8 @@
 
             if (goalOrb) {
                 goalOrb.position.y = 300 + Math.sin(clock.getElapsedTime() * 2) * 40;
-                let sc = 1 + Math.sin(clock.getElapsedTime() * 4) * 0.15;
-                let emissive = 5;
-                if (gameActive && modelContainer) {
-                    const toGoal = new THREE.Vector3(goalOrb.position.x - modelContainer.position.x, 0, goalOrb.position.z - modelContainer.position.z).normalize();
-                    const forward = new THREE.Vector3(-Math.sin(modelContainer.rotation.y), 0, -Math.cos(modelContainer.rotation.y));
-                    const dot = toGoal.dot(forward);
-                    if (dot > 0.7) {
-                        sc *= 1.2 + (dot - 0.7) * 0.5;
-                        emissive = 5 + (dot - 0.7) * 15;
-                    }
-                }
+                const sc = 1 + Math.sin(clock.getElapsedTime() * 4) * 0.15;
                 goalOrb.scale.set(sc, sc, sc);
-                if (goalOrb.material && goalOrb.material.emissiveIntensity !== undefined) goalOrb.material.emissiveIntensity = emissive;
             }
 
             drawMinimap();
