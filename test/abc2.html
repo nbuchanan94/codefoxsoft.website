@@ -242,6 +242,27 @@
             transform: scale(1.05);
         }
 
+        /* HUD Key Notification */
+        #hud-notif {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.78);
+            border: 1px solid #ffcc00;
+            color: #ffcc00;
+            padding: 8px 22px;
+            border-radius: 8px;
+            font-size: 1.05em;
+            font-weight: bold;
+            z-index: 110;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+            text-shadow: 0 0 10px #ffcc00;
+            white-space: nowrap;
+        }
+
         /* Mini-map Glassmorphism */
         #minimap-container {
             position: absolute;
@@ -952,6 +973,7 @@
     <div id="minimap-container">
         <canvas id="minimap"></canvas>
     </div>
+    <div id="hud-notif"></div>
     <!-- <div id="anim-overlay">BINDING LOG:</div> -->
     <!-- <div id="debug-log">DEBUG CONSOLE:<br></div> -->
     <div id="intro-overlay">
@@ -1009,7 +1031,8 @@
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-        let scene, camera, renderer, composer, mixer, clock, model, modelContainer, fixGroup, goalOrb, nikoLight;
+        let scene, camera, renderer, composer, bloomPass, mixer, clock, model, modelContainer, fixGroup, goalOrb, nikoLight;
+        let hudNotifTimer = 0;
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
         let particles = [], ghosts = [], floatingTexts = [];
         let actions = {}, currentAction, activeIdleKey = 'twerk';
@@ -1039,6 +1062,7 @@
         let movingGoalPath = null, movingGoalIndex = 0, movingGoalBasePos = null;
         let gateOpenCells = new Set(); // grid key "gx,gz" when gate is open
         let gateCellKeys = new Set();   // all cells that have a gate (open or closed)
+        let obstacleCells = new Set();  // grid key "gx,gz" for impassable decor like pillars
         let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0, celebrationTargetRotation = 0;
         let shakeIntensity = 0;
         let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 450;
@@ -1059,26 +1083,26 @@
             // wallH: height of walls (default 6000). Lower = canyon, higher = skyscraper
             // wallShape: 'box' (default), 'cylinder' (pillar/ruin), 'blade' (thin sci-fi slabs)
             // animateWalls: true = walls pulse emissive color in animate loop
-            1: { name: "LAVA CATACOMBS", sky: 0x0a0000, fog: 0x1a0000, fogDens: 0.00015, roadColor: '#1a0000', sidewalkColor: '#330000', buildColor: '#050000', win1: '#ff4400', win2: '#ff9900', lightColor: 0xff3300, ambient: 1.2, wallH: 3500, wallShape: 'box', animateWalls: true },
-            2: { name: "NEON GRAVEYARD", sky: 0x000005, fog: 0x000005, fogDens: 0.00018, roadColor: '#00000a', sidewalkColor: '#07000f', buildColor: '#030003', win1: '#ff00ff', win2: '#00ffff', lightColor: 0xff00ff, ambient: 1.1, wallH: 9000, wallShape: 'box', animateWalls: false },
-            3: { name: "CRYSTAL SPIRES", sky: 0x000022, fog: 0x000011, fogDens: 0.00008, roadColor: '#000015', sidewalkColor: '#000033', buildColor: '#000011', win1: '#00ffff', win2: '#ffffff', lightColor: 0x4488ff, ambient: 1.8, wallH: 11000, wallShape: 'blade', animateWalls: false },
-            4: { name: "ACID GARDEN", sky: 0x001100, fog: 0x001100, fogDens: 0.00012, roadColor: '#002200', sidewalkColor: '#003300', buildColor: '#001a00', win1: '#aaff00', win2: '#00ff88', lightColor: 0x88ff00, ambient: 1.6, wallH: 4500, wallShape: 'cylinder', animateWalls: true },
-            5: { name: "BLOOD PALACE", sky: 0x1a0000, fog: 0x0a0000, fogDens: 0.00020, roadColor: '#330000', sidewalkColor: '#550000', buildColor: '#1a0000', win1: '#ff0000', win2: '#ff8800', lightColor: 0xff0000, ambient: 1.0, wallH: 7500, wallShape: 'box', animateWalls: true },
-            6: { name: "FROZEN VOID", sky: 0xaaccff, fog: 0x88bbff, fogDens: 0.00005, roadColor: '#cce8ff', sidewalkColor: '#ddeeff', buildColor: '#bbddff', win1: '#ffffff', win2: '#aaffff', lightColor: 0xaaddff, ambient: 2.5, wallH: 5000, wallShape: 'box', animateWalls: false },
-            7: { name: "AMETHYST TOMBS", sky: 0x0a0015, fog: 0x0a0015, fogDens: 0.00015, roadColor: '#15002a', sidewalkColor: '#220044', buildColor: '#100020', win1: '#cc00ff', win2: '#ff44ff', lightColor: 0xaa00ff, ambient: 1.4, wallH: 8000, wallShape: 'cylinder', animateWalls: false },
-            8: { name: "CHROME SLIDE", sky: 0x000000, fog: 0x000000, fogDens: 0.00018, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#0a0a0a', win1: '#ff6600', win2: '#ffcc00', lightColor: 0xff6600, ambient: 1.0, wallH: 6000, wallShape: 'blade', animateWalls: false },
-            9: { name: "SALT FLATS", sky: 0xeeeeff, fog: 0xddeeff, fogDens: 0.00004, roadColor: '#f5f5ff', sidewalkColor: '#e8e8f8', buildColor: '#ddddee', win1: '#4444ff', win2: '#8888ff', lightColor: 0x8888ff, ambient: 3.0, wallH: 2800, wallShape: 'box', animateWalls: false },
-            10: { name: "THE ABYSS", sky: 0x000000, fog: 0x000000, fogDens: 0.00030, roadColor: '#000000', sidewalkColor: '#050505', buildColor: '#000000', win1: '#00ffcc', win2: '#ffffff', lightColor: 0x00ffcc, ambient: 0.8, wallH: 15000, wallShape: 'box', animateWalls: true },
-            11: { name: "THE FRACTURE", sky: 0x050000, fog: 0x0a0300, fogDens: 0.00015, roadColor: '#200a00', sidewalkColor: '#330d00', buildColor: '#150500', win1: '#ff3300', win2: '#ffaa00', lightColor: 0xff3300, ambient: 1.4, wallH: 5500, wallShape: 'blade', animateWalls: true },
-            12: { name: "CHROME LABYRINTH", sky: 0x080810, fog: 0x080810, fogDens: 0.00010, roadColor: '#101020', sidewalkColor: '#1a1a33', buildColor: '#080815', win1: '#88ccff', win2: '#ffffff', lightColor: 0x44aaff, ambient: 1.5, wallH: 7000, wallShape: 'box', animateWalls: false },
-            13: { name: "PLASMA RIFT", sky: 0x100010, fog: 0x150010, fogDens: 0.00012, roadColor: '#200020', sidewalkColor: '#330033', buildColor: '#1a001a', win1: '#ff00ff', win2: '#00ffff', lightColor: 0xff00ff, ambient: 1.5, wallH: 9500, wallShape: 'cylinder', animateWalls: true },
-            14: { name: "ICE CATHEDRAL", sky: 0xddf4ff, fog: 0xbbddff, fogDens: 0.00004, roadColor: '#e8f6ff', sidewalkColor: '#d0eeff', buildColor: '#c8e8ff', win1: '#0088ff', win2: '#88eeff', lightColor: 0x66ccff, ambient: 3.0, wallH: 12000, wallShape: 'blade', animateWalls: false },
-            15: { name: "THE DATASTREAM", sky: 0x000a02, fog: 0x001005, fogDens: 0.00015, roadColor: '#002211', sidewalkColor: '#003318', buildColor: '#001a0a', win1: '#00ff66', win2: '#aaffaa', lightColor: 0x00ff66, ambient: 1.6, wallH: 6500, wallShape: 'box', animateWalls: true },
-            16: { name: "EMBER JUNGLE", sky: 0x050200, fog: 0x0a0500, fogDens: 0.00018, roadColor: '#0f0800', sidewalkColor: '#1a0f00', buildColor: '#0a0500', win1: '#ff8800', win2: '#ffff00', lightColor: 0xff6600, ambient: 1.4, wallH: 4000, wallShape: 'cylinder', animateWalls: true },
-            17: { name: "MIRROR PARADOX", sky: 0x000000, fog: 0x000000, fogDens: 0.00022, roadColor: '#000000', sidewalkColor: '#0a0000', buildColor: '#000000', win1: '#ff0044', win2: '#ffffff', lightColor: 0xff0044, ambient: 1.2, wallH: 10000, wallShape: 'blade', animateWalls: true },
-            18: { name: "NEURAL STORM", sky: 0x000010, fog: 0x000010, fogDens: 0.00015, roadColor: '#050520', sidewalkColor: '#0a0a33', buildColor: '#030315', win1: '#8888ff', win2: '#ff88ff', lightColor: 0x8888ff, ambient: 1.6, wallH: 8500, wallShape: 'cylinder', animateWalls: true },
-            19: { name: "GOLDEN RUIN", sky: 0x0a0800, fog: 0x151000, fogDens: 0.00008, roadColor: '#1a1400', sidewalkColor: '#2a2000', buildColor: '#150f00', win1: '#ffcc00', win2: '#fff5aa', lightColor: 0xffcc00, ambient: 2.0, wallH: 5000, wallShape: 'cylinder', animateWalls: false },
-            20: { name: "ABSOLUTE INFINITY", sky: 0x000000, fog: 0x000000, fogDens: 0.00025, roadColor: '#000000', sidewalkColor: '#080808', buildColor: '#000000', win1: '#ffffff', win2: '#00ffff', lightColor: 0xffffff, ambient: 1.0, wallH: 18000, wallShape: 'blade', animateWalls: true }
+            1: { name: "LAVA CATACOMBS", sky: 0x0a0000, fog: 0x1a0000, fogDens: 0.00015, roadColor: '#1a0000', sidewalkColor: '#330000', buildColor: '#050000', win1: '#ff4400', win2: '#ff9900', lightColor: 0xff3300, ambient: 1.2, wallH: 3500, wallShape: 'box', animateWalls: true, bloomStrength: 0.5, emissiveStrength: 1.2 },
+            2: { name: "NEON GRAVEYARD", sky: 0x000005, fog: 0x000005, fogDens: 0.00018, roadColor: '#00000a', sidewalkColor: '#07000f', buildColor: '#030003', win1: '#ff00ff', win2: '#00ffff', lightColor: 0xff00ff, ambient: 1.1, wallH: 9000, wallShape: 'box', animateWalls: false, bloomStrength: 0.6, emissiveStrength: 1.5 },
+            3: { name: "CRYSTAL SPIRES", sky: 0x000022, fog: 0x000011, fogDens: 0.00008, roadColor: '#000015', sidewalkColor: '#000033', buildColor: '#000011', win1: '#00ffff', win2: '#ffffff', lightColor: 0x4488ff, ambient: 1.8, wallH: 11000, wallShape: 'blade', animateWalls: false, bloomStrength: 0.35, emissiveStrength: 0.8 },
+            4: { name: "ACID GARDEN", sky: 0x001100, fog: 0x001100, fogDens: 0.00012, roadColor: '#002200', sidewalkColor: '#003300', buildColor: '#001a00', win1: '#aaff00', win2: '#00ff88', lightColor: 0x88ff00, ambient: 1.6, wallH: 4500, wallShape: 'cylinder', animateWalls: true, bloomStrength: 0.5, emissiveStrength: 1.3 },
+            5: { name: "BLOOD PALACE", sky: 0x1a0000, fog: 0x0a0000, fogDens: 0.00020, roadColor: '#330000', sidewalkColor: '#550000', buildColor: '#1a0000', win1: '#ff0000', win2: '#ff8800', lightColor: 0xff0000, ambient: 1.0, wallH: 7500, wallShape: 'box', animateWalls: true, bloomStrength: 0.55, emissiveStrength: 1.4 },
+            6: { name: "FROZEN VOID", sky: 0xaaccff, fog: 0x88bbff, fogDens: 0.00005, roadColor: '#cce8ff', sidewalkColor: '#ddeeff', buildColor: '#bbddff', win1: '#ffffff', win2: '#aaffff', lightColor: 0xaaddff, ambient: 2.5, wallH: 5000, wallShape: 'box', animateWalls: false, bloomStrength: 0.3, emissiveStrength: 0.7 },
+            7: { name: "AMETHYST TOMBS", sky: 0x0a0015, fog: 0x0a0015, fogDens: 0.00015, roadColor: '#15002a', sidewalkColor: '#220044', buildColor: '#100020', win1: '#cc00ff', win2: '#ff44ff', lightColor: 0xaa00ff, ambient: 1.4, wallH: 8000, wallShape: 'cylinder', animateWalls: false, bloomStrength: 0.5, emissiveStrength: 1.3 },
+            8: { name: "CHROME SLIDE", sky: 0x000000, fog: 0x000000, fogDens: 0.00018, roadColor: '#111111', sidewalkColor: '#222222', buildColor: '#0a0a0a', win1: '#ff6600', win2: '#ffcc00', lightColor: 0xff6600, ambient: 1.0, wallH: 6000, wallShape: 'blade', animateWalls: false, bloomStrength: 0.5, emissiveStrength: 1.4 },
+            9: { name: "SALT FLATS", sky: 0xeeeeff, fog: 0xddeeff, fogDens: 0.00004, roadColor: '#f5f5ff', sidewalkColor: '#e8e8f8', buildColor: '#ddddee', win1: '#4444ff', win2: '#8888ff', lightColor: 0x8888ff, ambient: 3.0, wallH: 2800, wallShape: 'box', animateWalls: false, bloomStrength: 0.2, emissiveStrength: 0.6 },
+            10: { name: "THE ABYSS", sky: 0x000000, fog: 0x000000, fogDens: 0.00030, roadColor: '#000000', sidewalkColor: '#050505', buildColor: '#000000', win1: '#00ffcc', win2: '#ffffff', lightColor: 0x00ffcc, ambient: 0.8, wallH: 15000, wallShape: 'box', animateWalls: true, bloomStrength: 0.4, emissiveStrength: 1.0 },
+            11: { name: "THE FRACTURE", sky: 0x050000, fog: 0x0a0300, fogDens: 0.00015, roadColor: '#200a00', sidewalkColor: '#330d00', buildColor: '#150500', win1: '#ff3300', win2: '#ffaa00', lightColor: 0xff3300, ambient: 1.4, wallH: 5500, wallShape: 'blade', animateWalls: true, bloomStrength: 0.5, emissiveStrength: 1.3 },
+            12: { name: "CHROME LABYRINTH", sky: 0x080810, fog: 0x080810, fogDens: 0.00010, roadColor: '#101020', sidewalkColor: '#1a1a33', buildColor: '#080815', win1: '#88ccff', win2: '#ffffff', lightColor: 0x44aaff, ambient: 1.5, wallH: 7000, wallShape: 'box', animateWalls: false, bloomStrength: 0.5, emissiveStrength: 1.4 },
+            13: { name: "PLASMA RIFT", sky: 0x100010, fog: 0x150010, fogDens: 0.00012, roadColor: '#200020', sidewalkColor: '#330033', buildColor: '#1a001a', win1: '#ff00ff', win2: '#00ffff', lightColor: 0xff00ff, ambient: 1.5, wallH: 9500, wallShape: 'cylinder', animateWalls: true, bloomStrength: 0.45, emissiveStrength: 1.2 },
+            14: { name: "ICE CATHEDRAL", sky: 0xddf4ff, fog: 0xbbddff, fogDens: 0.00004, roadColor: '#e8f6ff', sidewalkColor: '#d0eeff', buildColor: '#c8e8ff', win1: '#0088ff', win2: '#88eeff', lightColor: 0x66ccff, ambient: 3.0, wallH: 12000, wallShape: 'blade', animateWalls: false, bloomStrength: 0.25, emissiveStrength: 0.7 },
+            15: { name: "THE DATASTREAM", sky: 0x000a02, fog: 0x001005, fogDens: 0.00015, roadColor: '#002211', sidewalkColor: '#003318', buildColor: '#001a0a', win1: '#00ff66', win2: '#aaffaa', lightColor: 0x00ff66, ambient: 1.6, wallH: 6500, wallShape: 'box', animateWalls: true, bloomStrength: 0.5, emissiveStrength: 1.3 },
+            16: { name: "EMBER JUNGLE", sky: 0x050200, fog: 0x0a0500, fogDens: 0.00018, roadColor: '#0f0800', sidewalkColor: '#1a0f00', buildColor: '#0a0500', win1: '#ff8800', win2: '#ffff00', lightColor: 0xff6600, ambient: 1.4, wallH: 4000, wallShape: 'cylinder', animateWalls: true, bloomStrength: 0.5, emissiveStrength: 1.2 },
+            17: { name: "MIRROR PARADOX", sky: 0x000000, fog: 0x000000, fogDens: 0.00022, roadColor: '#000000', sidewalkColor: '#0a0000', buildColor: '#000000', win1: '#ff0044', win2: '#ffffff', lightColor: 0xff0044, ambient: 1.2, wallH: 10000, wallShape: 'blade', animateWalls: true, bloomStrength: 0.45, emissiveStrength: 1.3 },
+            18: { name: "NEURAL STORM", sky: 0x000010, fog: 0x000010, fogDens: 0.00015, roadColor: '#050520', sidewalkColor: '#0a0a33', buildColor: '#030315', win1: '#8888ff', win2: '#ff88ff', lightColor: 0x8888ff, ambient: 1.6, wallH: 8500, wallShape: 'cylinder', animateWalls: true, bloomStrength: 0.45, emissiveStrength: 1.2 },
+            19: { name: "GOLDEN RUIN", sky: 0x0a0800, fog: 0x151000, fogDens: 0.00008, roadColor: '#1a1400', sidewalkColor: '#2a2000', buildColor: '#150f00', win1: '#ffcc00', win2: '#fff5aa', lightColor: 0xffcc00, ambient: 2.0, wallH: 5000, wallShape: 'cylinder', animateWalls: false, bloomStrength: 0.4, emissiveStrength: 1.1 },
+            20: { name: "ABSOLUTE INFINITY", sky: 0x000000, fog: 0x000000, fogDens: 0.00025, roadColor: '#000000', sidewalkColor: '#080808', buildColor: '#000000', win1: '#ffffff', win2: '#00ffff', lightColor: 0xffffff, ambient: 1.0, wallH: 18000, wallShape: 'blade', animateWalls: true, bloomStrength: 0.35, emissiveStrength: 1.0 }
         };
 
         const maps = {
@@ -1106,7 +1130,7 @@
 
         // Per-level features: patrols, gates, platforms, conveyors, moving goal, key shards, timed doors, geometry
         const levelFeatures = {
-            1: { elevatedTiles: [{ x: 5, z: 5, h: 400 }, { x: 10, z: 10, h: 350 }, { x: 15, z: 15, h: 300 }], pillars: [{ x: 3, z: 8 }, { x: 8, z: 3 }, { x: 12, z: 12 }] },
+            1: { elevatedTiles: [{ x: 5, z: 5, h: 400 }, { x: 10, z: 10, h: 350 }, { x: 15, z: 15, h: 300 }], pillars: [{ x: 3, z: 8 }, { x: 8, z: 3 }, { x: 12, z: 12 }], keyShards: [{ x: 5, z: 3 }], gateForKey: { x: 16, z: 17 } },
             2: { patrols: [{ waypoints: [{ x: 3, z: 2 }, { x: 3, z: 10 }, { x: 10, z: 10 }, { x: 10, z: 2 }], speed: 0.0008 }], pillars: [{ x: 5, z: 5 }, { x: 13, z: 13 }] },
             3: { gates: [{ x: 10, z: 10, openDur: 3, closeDur: 2 }], elevatedTiles: [{ x: 5, z: 15, h: 500 }, { x: 15, z: 5, h: 500 }], pillars: [{ x: 10, z: 5 }, { x: 10, z: 15 }] },
             4: { hazardOrbs: [{ x: 7, z: 7 }, { x: 12, z: 12 }], elevatedTiles: [{ x: 10, z: 10, h: 400 }] },
@@ -1188,7 +1212,7 @@
                 build: new THREE.MeshStandardMaterial({
                     map: new THREE.CanvasTexture(bC),
                     emissiveMap: new THREE.CanvasTexture(eC),
-                    emissive: 0xffffff, emissiveIntensity: currentLevel === 3 ? 4.5 : 2.5
+                    emissive: 0xffffff, emissiveIntensity: theme.emissiveStrength || 1.5
                 }),
                 lightColor: theme.lightColor
             };
@@ -1206,7 +1230,7 @@
 
             // POST-PROCESSING: Bloom for trendy neon glow (TONED DOWN)
             const renderScene = new RenderPass(scene, camera);
-            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.3, 0.9);
+            bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.3, 0.9);
             composer = new EffectComposer(renderer);
             composer.addPass(renderScene);
             composer.addPass(bloomPass);
@@ -1878,19 +1902,16 @@
         window.togglePause = undefined; // Will be set after togglePause is defined
 
         function buildLevel(num) {
+            activeIdleKey = 'resting'; // Default to resting while building
+
             while (levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
-            shards = [];
-            walls = [];
-            roads = [];
-            patrols = [];
-            movingGates = [];
-            movingPlatforms = [];
-            conveyorTiles = [];
-            elevatedMeshes = [];
-            pillarMeshes = [];
-            hazardOrbs = [];
-            gateOpenCells = new Set();
-            gateCellKeys = new Set();
+            // Reset Level Arrays
+            walls = []; roads = []; shards = [];
+            patrols = []; movingGates = []; movingPlatforms = []; conveyorTiles = [];
+            elevatedMeshes = []; pillarMeshes = []; hazardOrbs = [];
+            gateOpenCells.clear();
+            gateCellKeys.clear();
+            obstacleCells.clear();
             keyShardsCollected = false;
             timedDoorOpenUntil = 0;
             timedDoorTrigger = null;
@@ -1959,6 +1980,8 @@
                         plat.position.set(px, t.h / 2, pz);
                         levelGroup.add(plat);
                         elevatedMeshes.push(plat);
+                        // Add collision entry
+                        if (t.h > 150) obstacleCells.add(t.x + ',' + t.z);
                     }
                 });
             }
@@ -1971,6 +1994,7 @@
                         cyl.position.set(px, pillarH / 2, pz);
                         levelGroup.add(cyl);
                         pillarMeshes.push(cyl);
+                        obstacleCells.add(p.x + ',' + p.z);
                     }
                 });
             }
@@ -2021,11 +2045,22 @@
             if (features.keyShards) {
                 features.keyShards.forEach(k => {
                     const px = k.x * cellSize - mapOffset, pz = k.z * cellSize - mapOffset;
-                    const shard = new THREE.Mesh(new THREE.OctahedronGeometry(100), new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 3, wireframe: true }));
-                    shard.position.set(px, 150, pz);
+                    // Key shard: larger gold octahedron with a halo ring
+                    const shard = new THREE.Mesh(new THREE.OctahedronGeometry(150), new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 4, wireframe: true }));
+                    shard.position.set(px, 200, pz);
                     shards.push(shard);
                     shard.userData.isKey = true;
                     levelGroup.add(shard);
+                    // Halo ring to make key clearly visible
+                    const halo = new THREE.Mesh(
+                        new THREE.TorusGeometry(280, 18, 8, 32),
+                        new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffdd00, emissiveIntensity: 3 })
+                    );
+                    halo.rotation.x = Math.PI / 2;
+                    halo.position.set(px, 200, pz);
+                    halo.userData.isKeyHalo = true;
+                    levelGroup.add(halo);
+                    shard.userData.halo = halo;
                 });
             }
             if (features.treasureRoom) {
@@ -2078,10 +2113,26 @@
                 spin.userData.spinning = true;
                 levelGroup.add(spin);
                 pillarMeshes.push(spin);
+                obstacleCells.add(s.x + ',' + s.z);
             }
 
             document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
             document.getElementById('intro-title').innerText = theme.name;
+
+            // Update bloom pass to per-theme strength
+            if (bloomPass) {
+                bloomPass.strength = theme.bloomStrength !== undefined ? theme.bloomStrength : 0.6;
+            }
+
+            // Show HUD hint if level has a key mechanic
+            if (features.gateForKey) {
+                const notif = document.getElementById('hud-notif');
+                if (notif) {
+                    notif.textContent = '🔑 Find the GOLD KEY to unlock the path!';
+                    notif.style.opacity = '1';
+                    hudNotifTimer = 4.0;
+                }
+            }
         }
 
         function spawnShard(x, z, color) {
@@ -2109,15 +2160,32 @@
                 }
             }
 
-            // Draw Shards
-            ctx.fillStyle = '#00ffcc';
+            // Draw Shards: normal = cyan dot, key = gold square with glow
             shards.forEach(s => {
                 const sx = (s.position.x + mapOffset) / cellSize;
                 const sz = (s.position.z + mapOffset) / cellSize;
-                ctx.beginPath();
-                ctx.arc(sx * cellW + cellW / 2, sz * cellH + cellH / 2, 2, 0, Math.PI * 2);
-                ctx.fill();
+                if (s.userData.isKey) {
+                    ctx.fillStyle = '#ffcc00';
+                    ctx.shadowBlur = 8; ctx.shadowColor = '#ffcc00';
+                    ctx.fillRect(sx * cellW + cellW * 0.1, sz * cellH + cellH * 0.1, cellW * 0.8, cellH * 0.8);
+                    ctx.shadowBlur = 0;
+                } else {
+                    ctx.fillStyle = '#00ffcc';
+                    ctx.beginPath();
+                    ctx.arc(sx * cellW + cellW / 2, sz * cellH + cellH / 2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             });
+
+            // Draw Gate cells for locked doors (orange dash)
+            const feats = levelFeatures[currentLevel];
+            if (feats && feats.gateForKey && !keyShardsCollected) {
+                const gf = feats.gateForKey;
+                ctx.fillStyle = 'rgba(255, 140, 0, 0.7)';
+                ctx.shadowBlur = 6; ctx.shadowColor = '#ff8800';
+                ctx.fillRect(gf.x * cellW, gf.z * cellH, cellW - 1, cellH - 1);
+                ctx.shadowBlur = 0;
+            }
 
             // Draw Goal
             const gx = maps[currentLevel].goal.x, gz = maps[currentLevel].goal.z;
@@ -2320,6 +2388,13 @@
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 document.getElementById('timer').innerText = formatTime(elapsed);
 
+                // HUD notification fade
+                if (hudNotifTimer > 0) {
+                    hudNotifTimer -= delta;
+                    const notif = document.getElementById('hud-notif');
+                    if (notif) notif.style.opacity = Math.min(1, hudNotifTimer).toString();
+                    if (hudNotifTimer <= 0 && notif) notif.style.opacity = '0';
+                }
                 // Ambient Juice: Spawn theme-related particles
                 const curTheme = themes[currentLevel];
                 if (Math.random() < 0.05) {
@@ -2349,7 +2424,12 @@
                         open = phase < g.openDur;
                     }
                     if (open) gateOpenCells.add(g.gx + ',' + g.gz);
-                    if (g.mesh) g.mesh.visible = !open;
+                    // Animate gate: slide down smoothly instead of snap-visible
+                    if (g.mesh) {
+                        const targetY = open ? -(g.mesh.geometry.parameters.height || 2000) : (g.mesh.geometry.parameters.height || 2000) / 2;
+                        g.mesh.position.y = THREE.MathUtils.lerp(g.mesh.position.y, targetY, 0.12);
+                        g.mesh.visible = g.mesh.position.y > -1800;
+                    }
                 });
 
                 // Update patrol drones
@@ -2537,7 +2617,8 @@
                     if (gz >= 0 && gz < currentGrid.length && gx >= 0 && gx < currentGrid[0].length) {
                         const gateKey = gx + ',' + gz;
                         const blockedByGate = gateCellKeys.has(gateKey) && !gateOpenCells.has(gateKey);
-                        if (currentGrid[gz][gx] === 0 && !blockedByGate) {
+                        const blockedByObstacle = obstacleCells.has(gateKey);
+                        if (currentGrid[gz][gx] === 0 && !blockedByGate && !blockedByObstacle) {
                             modelContainer.position.x = nX;
                             modelContainer.position.z = nZ;
                             if (timedDoorTrigger && gx === timedDoorTrigger.x && gz === timedDoorTrigger.z) {
@@ -2576,12 +2657,18 @@
                 for (let i = shards.length - 1; i >= 0; i--) {
                     const s = shards[i];
                     s.rotation.y += 0.04;
-                    s.position.y = 150 + Math.sin(Date.now() * 0.003 + i) * 50;
+                    s.position.y = (s.userData.isKey ? 200 : 150) + Math.sin(Date.now() * 0.003 + i) * 50;
+                    // Spin key halo ring
+                    if (s.userData.halo) {
+                        s.userData.halo.position.y = s.position.y;
+                        s.userData.halo.rotation.z += 0.02;
+                    }
 
                     const dist = modelContainer.position.distanceTo(s.position);
-                    // Magnetism
-                    if (dist < 800) {
+                    // Magnetism — boosted range for satisfying pull
+                    if (dist < 1200) {
                         s.position.lerp(modelContainer.position, 0.15);
+                        if (s.userData.halo) s.userData.halo.position.lerp(modelContainer.position, 0.15);
                     }
 
                     if (dist < 250) {
@@ -2592,7 +2679,12 @@
                             keyShardsCollected = true;
                             const gf = levelFeatures[currentLevel].gateForKey;
                             if (gf) gateOpenCells.add(gf.x + ',' + gf.z);
-                            createFloatingText("KEY!", s.position, '#ffcc00');
+                            createFloatingText('🔑 GATE UNLOCKED!', s.position, '#ffcc00');
+                            // Big gold particle burst on key collect
+                            for (let j = 0; j < 16; j++) {
+                                spawnParticle(s.position, 0xffcc00, 20, 1.2, new THREE.Vector3((Math.random() - 0.5) * 18, Math.random() * 25, (Math.random() - 0.5) * 18));
+                            }
+                            if (s.userData.halo) levelGroup.remove(s.userData.halo);
                         }
                         levelGroup.remove(s);
                         shards.splice(i, 1);
