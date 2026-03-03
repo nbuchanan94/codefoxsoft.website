@@ -16,7 +16,7 @@ echo    Nerd-Grade Git Automation Terminal
 echo  ============================================================
 echo.
 
-cd /d C:\Users\psych\Documents\codefoxsoftsite\codefoxsoft.website
+cd /d "C:\Users\psych\Documents\programming\codefoxsoft website"
 
 :: Ask for commit message
 set /p msg=Enter commit message (leave blank for auto-message): 
