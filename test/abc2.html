@@ -1042,6 +1042,7 @@
         let isReady = false;
         let velX = 0, velZ = 0; // New for movement inertia
         let isPaused = false;
+        let shardBoostTimer = 0; // NEW: Timer for speed boost down after collecting a shard
 
         // ===== START MENU STATE =====
         let inStartMenu = true;
@@ -2508,6 +2509,15 @@
             requestAnimationFrame(animate);
             if (isPaused) return;
             const delta = clock.getDelta();
+
+            // NEW: Update shard boost timer
+            if (shardBoostTimer > 0) {
+                shardBoostTimer -= delta;
+                if (mixer) mixer.timeScale = 1.8; // Speed up animation
+            } else {
+                if (mixer) mixer.timeScale = 1.0; // Normal animation speed
+            }
+
             if (mixer) mixer.update(delta);
 
             // Camera Controls (Universal)
@@ -2731,6 +2741,7 @@
                         document.getElementById('score').innerText = `SHARDS: ${score}`;
                         levelGroup.remove(st);
                         for (let k = 0; k < 3; k++) spawnParticle(st.position, 0xffff00, 10, 0.5);
+                        shardBoostTimer = 1.5; // NEW: Speed boost!
                         shardTrailMeshes.splice(i, 1);
                     }
                 }
@@ -2757,7 +2768,13 @@
 
                 const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'] || keys['shift'] || keys['KeyC'] || keys['c'];
                 const isDancing = keys['KeyN'] || keys['n'];
-                const spd = isSprinting ? 75 : 40;
+
+                // NEW: Base speed logic, boosted by shardBoostTimer
+                let spd = isSprinting ? 75 : 40;
+                if (shardBoostTimer > 0) {
+                    spd += 60; // Extra speed burst!
+                    if (Date.now() % 100 < 32) spawnGhost(); // Speed trails only when boosted
+                }
 
                 // FOV control: Tighter for menu (40), standard wide for game (60)
                 camera.fov = (inStartMenu && !menuTransitioning) ? 40 : 60;
@@ -2768,7 +2785,7 @@
 
                     if (isSprinting) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
-                        if (Date.now() % 100 < 32) spawnGhost(); // Speed trails only for Shift sprint
+                        // Removed default speed trails from Shift sprint
                         if (Math.random() < 0.3) {
                             const dustPos = modelContainer.position.clone();
                             dustPos.y = 10;
@@ -2952,6 +2969,7 @@
                         levelGroup.remove(s);
                         shards.splice(i, 1);
                         shakeIntensity = 15;
+                        shardBoostTimer = 1.5; // NEW: Give a 1.5 second speed boost
                         // Collection Juice: Burst
                         for (let j = 0; j < 8; j++) {
                             spawnParticle(s.position, themes[currentLevel].lightColor, 15, 0.8);
