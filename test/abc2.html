@@ -1902,9 +1902,37 @@
         window.togglePause = undefined; // Will be set after togglePause is defined
 
         function buildLevel(num) {
+            // --- Juice Enhancements Setup ---
+            // Camera sway parameters (applies to all levels)
+            const camSwayAmplitude = 0.5;
+            const camSwaySpeed = 0.3;
+
+            // Audio listener (once per scene)
+            if (!scene.userData.audioListener) {
+                const listener = new THREE.AudioListener();
+                camera.add(listener);
+                scene.userData.audioListener = listener;
+                const sound = new THREE.Audio(listener);
+                const audioLoader = new THREE.AudioLoader();
+                audioLoader.load('assets/audio/beach_ambience.mp3', function (buffer) {
+                    sound.setBuffer(buffer);
+                    sound.setLoop(true);
+                    sound.setVolume(0.3);
+                    sound.play();
+                });
+                scene.userData.ambientSound = sound;
+            }
+
             activeIdleKey = 'resting'; // Default to resting while building
 
             while (levelGroup.children.length > 0) levelGroup.remove(levelGroup.children[0]);
+            // Clear any previous juice objects
+            if (scene.userData.seagullSprites) scene.userData.seagullSprites = [];
+            if (scene.userData.waterPlane) {
+                scene.remove(scene.userData.waterPlane);
+                scene.userData.waterPlane = null;
+            }
+
             // Reset Level Arrays
             walls = []; roads = []; shards = [];
             patrols = []; movingGates = []; movingPlatforms = []; conveyorTiles = [];
@@ -1947,12 +1975,48 @@
                             geo = new THREE.BoxGeometry(cellSize, wallH, cellSize);
                         }
                         const b = new THREE.Mesh(geo, mats.build);
+                        // Add palm trees on level 1 (randomly on some walls)
+                        if (num === 1 && Math.random() < 0.2) {
+                            const palmGeo = new THREE.CylinderGeometry(10, 10, 200, 6);
+                            const palmMat = new THREE.MeshStandardMaterial({ color: 0x2e8b57 });
+                            const trunk = new THREE.Mesh(palmGeo, palmMat);
+                            trunk.position.set(px, 100, pz);
+                            levelGroup.add(trunk);
+                            // Simple frond using sphere
+                            const frondGeo = new THREE.SphereGeometry(60, 8, 8);
+                            const frondMat = new THREE.MeshStandardMaterial({ color: 0x228b22 });
+                            const frond = new THREE.Mesh(frondGeo, frondMat);
+                            frond.position.set(px, 250, pz);
+                            levelGroup.add(frond);
+                        }
                         b.position.set(px, wallH / 2, pz);
                         levelGroup.add(b);
                         walls.push(b);
                         if (isTransitioning) b.position.y = -(wallH / 2) - 500;
                     } else {
                         const r = new THREE.Mesh(new THREE.PlaneGeometry(cellSize, cellSize), mats.road);
+                        // Replace road material with sand for level 1
+                        if (num === 1) {
+                            r.material = new THREE.MeshStandardMaterial({
+                                color: 0xC2B280,
+                                roughness: 0.9,
+                                metalness: 0.1
+                            });
+                        }
+                        r.rotation.x = -Math.PI / 2; r.position.set(px, 0, pz);
+                        levelGroup.add(r);
+                        roads.push(r);
+                        // Add seagull sprites (level 1 only)
+                        if (num === 1 && Math.random() < 0.01) {
+                            const spriteMap = new THREE.TextureLoader().load('assets/textures/seagull.png');
+                            const spriteMat = new THREE.SpriteMaterial({ map: spriteMap, color: 0xffffff });
+                            const sprite = new THREE.Sprite(spriteMat);
+                            sprite.position.set(px, 300, pz);
+                            sprite.scale.set(80, 40, 1);
+                            scene.add(sprite);
+                            if (!scene.userData.seagullSprites) scene.userData.seagullSprites = [];
+                            scene.userData.seagullSprites.push({ sprite, speed: 0.5 + Math.random() * 0.5 });
+                        }
                         r.rotation.x = -Math.PI / 2; r.position.set(px, 0, pz);
                         levelGroup.add(r);
                         roads.push(r);
@@ -1965,6 +2029,31 @@
             }
 
             goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 5 }));
+            // Add water plane for level 1 (large gentle water surface)
+            if (num === 1) {
+                const waterGeo = new THREE.PlaneGeometry(5000, 5000, 32, 32);
+                const waterMat = new THREE.MeshStandardMaterial({
+                    color: 0x1e90ff,
+                    transparent: true,
+                    opacity: 0.6,
+                    roughness: 0.1,
+                    metalness: 0.0
+                });
+                const water = new THREE.Mesh(waterGeo, waterMat);
+                water.rotation.x = -Math.PI / 2;
+                water.position.y = 5;
+                scene.add(water);
+                scene.userData.waterPlane = water;
+            }
+            // Add animated sun for level 2 (rotating directional light)
+            if (num === 2) {
+                if (!scene.userData.sunLight) {
+                    const sun = new THREE.DirectionalLight(0xffdd88, 1.2);
+                    sun.position.set(1000, 800, 0);
+                    scene.add(sun);
+                    scene.userData.sunLight = sun;
+                }
+            }
             goalOrb.position.set(mapData.goal.x * cellSize - mapOffset, 300, mapData.goal.z * cellSize - mapOffset);
             levelGroup.add(goalOrb);
 
@@ -1995,6 +2084,17 @@
                         levelGroup.add(cyl);
                         pillarMeshes.push(cyl);
                         obstacleCells.add(p.x + ',' + p.z);
+                        // Add floating debris on water for level 2
+                        if (num === 2 && Math.random() < 0.05) {
+                            const debrisGeo = new THREE.BoxGeometry(30, 15, 30);
+                            const debrisMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+                            const debris = new THREE.Mesh(debrisGeo, debrisMat);
+                            debris.position.set(px, 10, pz);
+                            debris.userData.baseY = 10;
+                            scene.add(debris);
+                            if (!scene.userData.debris) scene.userData.debris = [];
+                            scene.userData.debris.push(debris);
+                        }
                     }
                 });
             }
@@ -2161,6 +2261,13 @@
             }
 
             // Draw Shards: normal = cyan dot, key = gold square with glow
+            // Add screen shake on key collection (triggered elsewhere)
+            if (scene.userData.shakeTime && scene.userData.shakeTime > 0) {
+                const shakeAmt = Math.sin(scene.userData.shakeTime * 30) * 2;
+                camera.position.x += shakeAmt;
+                camera.position.y += shakeAmt;
+                scene.userData.shakeTime -= delta;
+            }
             shards.forEach(s => {
                 const sx = (s.position.x + mapOffset) / cellSize;
                 const sz = (s.position.z + mapOffset) / cellSize;
