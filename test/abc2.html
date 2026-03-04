@@ -1964,6 +1964,14 @@
 
             for (let z = 0; z < mapData.grid.length; z++) {
                 for (let x = 0; x < mapData.grid[z].length; x++) {
+                    // Fix: If level design placed a door on a wall (1), force it back to a path (0) so it functions
+                    if (mapData.grid[z][x] === 1) {
+                        let isGate = false;
+                        if (features.gateForKey && features.gateForKey.x === x && features.gateForKey.z === z) isGate = true;
+                        if (features.gates && features.gates.some(g => g.x === x && g.z === z)) isGate = true;
+                        if (features.timedDoor && features.timedDoor.x === x && features.timedDoor.z === z) isGate = true;
+                        if (isGate) mapData.grid[z][x] = 0;
+                    }
                     const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
                     if (mapData.grid[z][x] === 1) {
                         let geo;
@@ -2083,7 +2091,7 @@
                         cyl.position.set(px, pillarH / 2, pz);
                         levelGroup.add(cyl);
                         pillarMeshes.push(cyl);
-                        obstacleCells.add(p.x + ',' + p.z);
+                        // Removed obstacleCells.add to allow squeezing past; collision is now per-mesh
                         // Add floating debris on water for level 2
                         if (num === 2 && Math.random() < 0.05) {
                             const debrisGeo = new THREE.BoxGeometry(30, 15, 30);
@@ -2213,7 +2221,7 @@
                 spin.userData.spinning = true;
                 levelGroup.add(spin);
                 pillarMeshes.push(spin);
-                obstacleCells.add(s.x + ',' + s.z);
+                // Removed obstacleCells.add to allow squeezing past; collision is now per-mesh
             }
 
             document.getElementById('lvl-name').innerText = `LEVEL ${num}: ${theme.name}`;
@@ -2593,9 +2601,17 @@
                     if (dist < 350) { triggerHitEffect(); velX *= -0.5; velZ *= -0.5; }
                 });
 
-                // Spinning pillars
+                // Spinning and solid pillars (smooth distance-based collision)
                 pillarMeshes.forEach(p => {
                     if (p.userData.spinning) p.rotation.y += delta * 1.5;
+                    const diff = modelContainer.position.clone().sub(p.position);
+                    diff.y = 0;
+                    const dist = diff.length();
+                    if (dist < 320) { // 320 units radius for pillar impact
+                        diff.normalize();
+                        modelContainer.position.x += diff.x * (320 - dist) * 0.2;
+                        modelContainer.position.z += diff.z * (320 - dist) * 0.2;
+                    }
                 });
 
                 // Leaning Juice: Tilt model based on turning/sideways movement
