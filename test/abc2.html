@@ -1812,7 +1812,7 @@
             const platformPath = 'platformer/platformer/Models/GLB format/';
 
             const assetsToLoad = [
-                { key: 'grass', path: platformPath + 'block-grass.glb' },
+                { key: 'ground', path: naturePath + 'ground_grass.glb' },
                 { key: 'tree', path: naturePath + 'tree_oak.glb' },
                 { key: 'rock', path: naturePath + 'rock_largeA.glb' },
                 { key: 'flower', path: naturePath + 'flower_redA.glb' },
@@ -1870,74 +1870,74 @@
                 for (let x = 0; x < mapData.grid[z].length; x++) {
                     const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
                     
-                    // EVERY cell gets a grass block floor now - No "empty space" below
-                    if (newTypeAssets.grass) {
-                        const floor = newTypeAssets.grass.clone();
-                        // Sink it slightly so models on top sit well
-                        floor.position.set(px, -20, pz);
-                        floor.scale.set(900, 900, 900);
-                        levelGroup.add(floor);
-                        roads.push(floor);
+                    // EVERY cell gets a flat grass ground tile
+                    if (newTypeAssets.ground) {
+                        const ground = newTypeAssets.ground.clone();
+                        ground.position.set(px, 0, pz);
+                        // Kenney nature_ground is 4x4 or 2x2? Scale to 450 to make it 1800 if it's 4 units.
+                        // Based on standard kenney nature, it's 2x2 units. We need 1800. Scale = 900.
+                        ground.scale.set(900, 900, 900);
+                        levelGroup.add(ground);
+                        roads.push(ground);
                     }
 
                     if (mapData.grid[z][x] === 1) {
-                        // WALL CELL: High density rocks, trees, and fencing
+                        // WALL CELL: DENSE Boundaries
                         obstacleCells.add(`${x},${z}`);
 
-                        // Add Fencing
+                        // Add Rock (Large)
+                        if (newTypeAssets.rock) {
+                            const r = newTypeAssets.rock.clone();
+                            r.position.set(px, 0, pz);
+                            r.scale.set(1000, 1000, 1000); 
+                            r.rotation.y = Math.random() * Math.PI;
+                            levelGroup.add(r);
+                            walls.push(r);
+                        }
+
+                        // Add Dense Bushes/Trees around/on the rock
+                        for (let i = 0; i < 3; i++) {
+                            if (newTypeAssets.bush) {
+                                const b = newTypeAssets.bush.clone();
+                                const ox = (Math.random()-0.5)*1200, oz = (Math.random()-0.5)*1200;
+                                b.position.set(px + ox, 0, pz + oz);
+                                b.scale.set(600, 600, 600);
+                                levelGroup.add(b);
+                                walls.push(b);
+                            }
+                        }
+
+                        if (Math.random() > 0.5 && newTypeAssets.tree) {
+                            const t = newTypeAssets.tree.clone();
+                            t.position.set(px, 0, pz);
+                            t.scale.set(1200, 1200, 1200);
+                            levelGroup.add(t);
+                            walls.push(t);
+                        }
+                        
+                        // Fencing on the path side? Just place it in the center for now.
                         if (newTypeAssets.fence) {
                             const f = newTypeAssets.fence.clone();
                             f.position.set(px, 0, pz);
                             f.scale.set(900, 900, 900);
-                            // Face the fence randomly for variety
                             f.rotation.y = (Math.floor(Math.random() * 4) * Math.PI) / 2;
                             levelGroup.add(f);
                         }
-
-                        // Add Rock or Tree for bulk
-                        if (Math.random() > 0.4 && newTypeAssets.rock) {
-                            const r = newTypeAssets.rock.clone();
-                            r.position.set(px + (Math.random()-0.5)*200, 50, pz + (Math.random()-0.5)*200);
-                            r.scale.set(500 + Math.random()*300, 500 + Math.random()*300, 500 + Math.random()*300);
-                            r.rotation.y = Math.random() * Math.PI;
-                            levelGroup.add(r);
-                            walls.push(r);
-                        } else if (newTypeAssets.tree) {
-                            const t = newTypeAssets.tree.clone();
-                            t.position.set(px, 0, pz);
-                            t.scale.set(800 + Math.random()*400, 800 + Math.random()*400, 800 + Math.random()*400);
-                            t.rotation.y = Math.random() * Math.PI;
-                            levelGroup.add(t);
-                            walls.push(t);
-                        }
                     } else {
-                        // PATH CELL: Decorative flora and occasional structures
-                        
-                        // Random Bushes
+                        // PATH CELL: Sparse flora
                         if (Math.random() < 0.2 && newTypeAssets.bush) {
                             const b = newTypeAssets.bush.clone();
-                            const ox = (Math.random()-0.5)*1200, oz = (Math.random()-0.5)*1200;
+                            const ox = (Math.random()-0.5)*1400, oz = (Math.random()-0.5)*1400;
                             b.position.set(px + ox, 0, pz + oz);
                             b.scale.set(400, 400, 400);
                             levelGroup.add(b);
                         }
-
-                        // Random Flowers
-                        if (Math.random() < 0.15 && newTypeAssets.flower) {
+                        if (Math.random() < 0.3 && newTypeAssets.flower) {
                             const fl = newTypeAssets.flower.clone();
-                            const ox = (Math.random()-0.5)*1400, oz = (Math.random()-0.5)*1400;
+                            const ox = (Math.random()-0.5)*1500, oz = (Math.random()-0.5)*1500;
                             fl.position.set(px + ox, 0, pz + oz);
-                            fl.scale.set(450, 450, 450);
+                            fl.scale.set(500, 500, 500);
                             levelGroup.add(fl);
-                        }
-
-                        // Rare Decoration: Bridge
-                        if (Math.random() < 0.05 && newTypeAssets.bridge) {
-                            const bridge = newTypeAssets.bridge.clone();
-                            bridge.position.set(px, 0, pz);
-                            bridge.scale.set(600, 600, 600);
-                            bridge.rotation.y = (Math.floor(Math.random() * 2) * Math.PI) / 2;
-                            levelGroup.add(bridge);
                         }
                         
                         // Shards
