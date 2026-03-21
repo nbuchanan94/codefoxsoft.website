@@ -1814,11 +1814,18 @@
             const assetsToLoad = [
                 { key: 'ground', path: naturePath + 'ground_grass.glb' },
                 { key: 'tree', path: naturePath + 'tree_oak.glb' },
+                { key: 'tree_detailed', path: naturePath + 'tree_detailed.glb' },
                 { key: 'rock', path: naturePath + 'rock_largeA.glb' },
+                { key: 'stone_tall', path: naturePath + 'stone_tallA.glb' },
                 { key: 'flower', path: naturePath + 'flower_redA.glb' },
                 { key: 'bush', path: naturePath + 'plant_bush.glb' },
-                { key: 'bridge', path: naturePath + 'bridge_wood.glb' },
-                { key: 'fence', path: platformPath + 'fence-straight.glb' }
+                { key: 'bridge_stone', path: naturePath + 'bridge_stone.glb' },
+                { key: 'fence', path: platformPath + 'fence-straight.glb' },
+                { key: 'tent', path: naturePath + 'tent_smallOpen.glb' },
+                { key: 'campfire', path: naturePath + 'campfire_stones.glb' },
+                { key: 'logs', path: naturePath + 'log_stack.glb' },
+                { key: 'obelisk', path: naturePath + 'statue_obelisk.glb' },
+                { key: 'dirt_row', path: naturePath + 'crops_dirtRow.glb' }
             ];
 
             await Promise.all(assetsToLoad.map(a => {
@@ -1853,41 +1860,49 @@
         }
 
         function buildNewTypeLevel1() {
-            log("Building New Type Level 1...", "info");
+            log("Building Enhanced Nature Level 1...", "info");
             
             const num = 1;
             const mapData = maps[num];
             
-            // New Type Styling
-            scene.background = new THREE.Color(0x87CEEB); // Sky blue
-            scene.fog = new THREE.FogExp2(0x87CEEB, 0.00015);
+            // New Type Styling: Cleared Fog & Softer Lighting
+            const skyCol = 0x87CEEB;
+            scene.background = new THREE.Color(skyCol);
+            // Significantly reduce fog density to remove the "cloudy haze"
+            scene.fog = new THREE.FogExp2(skyCol, 0.00006);
             
             const ambLight = scene.children.find(l => l instanceof THREE.AmbientLight);
-            if (ambLight) ambLight.intensity = 1.8;
-            if (nikoLight) nikoLight.color.set(0xffffff);
+            if (ambLight) ambLight.intensity = 1.2; // Reduced from 1.8 to prevent washing out
+            if (nikoLight) {
+                nikoLight.color.set(0xffffff);
+                nikoLight.intensity = 1500; // Boost point light locally
+            }
 
             for (let z = 0; z < mapData.grid.length; z++) {
                 for (let x = 0; x < mapData.grid[z].length; x++) {
                     const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
                     
-                    // EVERY cell gets a flat grass ground tile
-                    if (newTypeAssets.ground) {
-                        const ground = newTypeAssets.ground.clone();
+                    // GROUND
+                    let groundType = 'ground';
+                    // Use dirt rows for some path sections
+                    if (mapData.grid[z][x] === 0 && (x + z) % 7 === 0) groundType = 'dirt_row';
+
+                    if (newTypeAssets[groundType]) {
+                        const ground = newTypeAssets[groundType].clone();
                         ground.position.set(px, 0, pz);
-                        // Kenney nature_ground is 4x4 or 2x2? Scale to 450 to make it 1800 if it's 4 units.
-                        // Based on standard kenney nature, it's 2x2 units. We need 1800. Scale = 900.
                         ground.scale.set(900, 900, 900);
                         levelGroup.add(ground);
                         roads.push(ground);
                     }
 
                     if (mapData.grid[z][x] === 1) {
-                        // WALL CELL: DENSE Boundaries
+                        // WALL CELL
                         obstacleCells.add(`${x},${z}`);
 
-                        // Add Rock (Large)
-                        if (newTypeAssets.rock) {
-                            const r = newTypeAssets.rock.clone();
+                        // Choose random Rock type
+                        const rockType = Math.random() > 0.3 ? 'rock' : 'stone_tall';
+                        if (newTypeAssets[rockType]) {
+                            const r = newTypeAssets[rockType].clone();
                             r.position.set(px, 0, pz);
                             r.scale.set(1000, 1000, 1000); 
                             r.rotation.y = Math.random() * Math.PI;
@@ -1895,53 +1910,87 @@
                             walls.push(r);
                         }
 
-                        // Add Dense Bushes/Trees around/on the rock
-                        for (let i = 0; i < 3; i++) {
-                            if (newTypeAssets.bush) {
-                                const b = newTypeAssets.bush.clone();
-                                const ox = (Math.random()-0.5)*1200, oz = (Math.random()-0.5)*1200;
-                                b.position.set(px + ox, 0, pz + oz);
-                                b.scale.set(600, 600, 600);
-                                levelGroup.add(b);
-                                walls.push(b);
-                            }
-                        }
-
-                        if (Math.random() > 0.5 && newTypeAssets.tree) {
-                            const t = newTypeAssets.tree.clone();
+                        // Choose random Tree type
+                        const treeType = Math.random() > 0.4 ? 'tree_detailed' : 'tree';
+                        if (newTypeAssets[treeType]) {
+                            const t = newTypeAssets[treeType].clone();
                             t.position.set(px, 0, pz);
                             t.scale.set(1200, 1200, 1200);
+                            t.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(t);
                             walls.push(t);
                         }
-                        
-                        // Fencing on the path side? Just place it in the center for now.
-                        if (newTypeAssets.fence) {
-                            const f = newTypeAssets.fence.clone();
-                            f.position.set(px, 0, pz);
-                            f.scale.set(900, 900, 900);
-                            f.rotation.y = (Math.floor(Math.random() * 4) * Math.PI) / 2;
-                            levelGroup.add(f);
-                        }
-                    } else {
-                        // PATH CELL: Sparse flora
-                        if (Math.random() < 0.2 && newTypeAssets.bush) {
+
+                        // Decorative Bush
+                        if (newTypeAssets.bush) {
                             const b = newTypeAssets.bush.clone();
-                            const ox = (Math.random()-0.5)*1400, oz = (Math.random()-0.5)*1400;
+                            const ox = (Math.random()-0.5)*1000, oz = (Math.random()-0.5)*1000;
                             b.position.set(px + ox, 0, pz + oz);
-                            b.scale.set(400, 400, 400);
+                            b.scale.set(600, 600, 600);
                             levelGroup.add(b);
                         }
-                        if (Math.random() < 0.3 && newTypeAssets.flower) {
-                            const fl = newTypeAssets.flower.clone();
-                            const ox = (Math.random()-0.5)*1500, oz = (Math.random()-0.5)*1500;
-                            fl.position.set(px + ox, 0, pz + oz);
-                            fl.scale.set(500, 500, 500);
-                            levelGroup.add(fl);
+                    } else {
+                        // PATH CELL
+                        // Landmark: Obelisks
+                        if ((x === 5 && z === 10) || (x === 12 && z === 5)) {
+                            if (newTypeAssets.obelisk) {
+                                const ob = newTypeAssets.obelisk.clone();
+                                ob.position.set(px, 0, pz);
+                                ob.scale.set(1200, 1200, 1200);
+                                levelGroup.add(ob);
+                                obstacleCells.add(`${x},${z}`); // Make it an obstacle
+                            }
+                        }
+                        // Landmark: Camp Area
+                        else if (x === 8 && z === 8) {
+                            if (newTypeAssets.tent) {
+                                const tent = newTypeAssets.tent.clone();
+                                tent.position.set(px + 400, 0, pz + 400);
+                                tent.scale.set(800, 800, 800);
+                                levelGroup.add(tent);
+                            }
+                            if (newTypeAssets.campfire) {
+                                const fire = newTypeAssets.campfire.clone();
+                                fire.position.set(px - 300, 0, pz - 300);
+                                fire.scale.set(600, 600, 600);
+                                levelGroup.add(fire);
+                            }
+                            if (newTypeAssets.logs) {
+                                const logs = newTypeAssets.logs.clone();
+                                logs.position.set(px - 500, 0, pz + 300);
+                                logs.scale.set(700, 700, 700);
+                                levelGroup.add(logs);
+                            }
+                        }
+                        // Landmark: Bridge
+                        else if (x === 15 && z === 15) {
+                            if (newTypeAssets.bridge_stone) {
+                                const bridge = newTypeAssets.bridge_stone.clone();
+                                bridge.position.set(px, 0, pz);
+                                bridge.scale.set(1000, 1000, 1000);
+                                levelGroup.add(bridge);
+                            }
+                        }
+                        else {
+                            // Flora
+                            if (Math.random() < 0.1 && newTypeAssets.bush) {
+                                const b = newTypeAssets.bush.clone();
+                                const ox = (Math.random()-0.5)*1400, oz = (Math.random()-0.5)*1400;
+                                b.position.set(px + ox, 0, pz + oz);
+                                b.scale.set(400, 400, 400);
+                                levelGroup.add(b);
+                            }
+                            if (Math.random() < 0.2 && newTypeAssets.flower) {
+                                const fl = newTypeAssets.flower.clone();
+                                const ox = (Math.random()-0.5)*1500, oz = (Math.random()-0.5)*1500;
+                                fl.position.set(px + ox, 0, pz + oz);
+                                fl.scale.set(500, 500, 500);
+                                levelGroup.add(fl);
+                            }
                         }
                         
                         // Shards
-                        if (Math.random() > 0.8 && (x !== mapData.start.x || z !== mapData.start.z)) {
+                        if (Math.random() > 0.85 && (x !== mapData.start.x || z !== mapData.start.z)) {
                             spawnShard(px, pz, 0x00ffcc);
                         }
                     }
