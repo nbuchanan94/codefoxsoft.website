@@ -1092,8 +1092,8 @@
         let obstacleCells = new Set();  // grid key "gx,gz" for impassable decor like pillars
         let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0, celebrationTargetRotation = 0;
         let shakeIntensity = 0;
-        let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 1000;
-        let targetPitch = 25, targetDistance = 1000;
+        let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 450;
+        let targetPitch = 25, targetDistance = 450;
 
         // Camera settings
         let camPitch = 25;
@@ -1544,8 +1544,9 @@
                 // HEIGHT FIX: Ensure feet are on the floor (Y=0)
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
-                // Scale to 280 units tall (was 80 - fix for "ant-sized" feel)
-                model.scale.setScalar(280 / size.y);
+                // Standard Scale: 80 units tall for start menu and classic levels
+                window.baseModelSizeY = size.y;
+                model.scale.setScalar(80 / window.baseModelSizeY);
 
                 // Compute box again after scale to get precise offset
                 const scaledBox = new THREE.Box3().setFromObject(model);
@@ -1896,6 +1897,14 @@
             await loadNewTypeAssets();
             isNewTypeMode = !isNewTypeMode;
             if (isNewTypeMode) isBestTypeMode = false; // Mutually exclusive
+            
+            // DYNAMIC SCALE RESET: Ensure standard size if Best mode is off
+            if (model && window.baseModelSizeY) {
+                const s = isBestTypeMode ? 280 : 80;
+                model.scale.setScalar(s / window.baseModelSizeY);
+                targetDistance = isBestTypeMode ? 1000 : 450;
+            }
+
             log(`MODE: ${isNewTypeMode ? 'NEW TYPE ENHANCED' : 'CLASSIC MAZE'}`, "success");
             buildLevel(currentLevel);
         }
@@ -1973,6 +1982,15 @@
             await loadBestTypeAssets();
             isBestTypeMode = !isBestTypeMode;
             if (isBestTypeMode) isNewTypeMode = false; // Mutually exclusive
+            
+            // DYNAMIC SCALE TOGGLE: Scale character and pull camera for Nature mode
+            if (model && window.baseModelSizeY) {
+                const s = isBestTypeMode ? 280 : 80;
+                model.scale.setScalar(s / window.baseModelSizeY);
+                targetDistance = isBestTypeMode ? 1000 : 450;
+                log(`DYNAMIC SCALE: ${s} units`, "info");
+            }
+
             log(`MODE: ${isBestTypeMode ? 'BEST NATURE' : 'CLASSIC MAZE'}`, "success");
             buildLevel(currentLevel);
         }
@@ -3422,8 +3440,11 @@
                 const isDancing = keys['KeyN'] || keys['n'];
 
                 // NEW: Base speed logic, boosted by shardBoostTimer
-                // INCREASED SPEED for larger 280-unit character
-                let spd = isSprinting ? 120 : 60;
+                // DYNAMIC SPEED: Boosted for larger 280-unit character in Best Nature
+                const baseWalk = isBestTypeMode ? 60 : 40;
+                const baseSprint = isBestTypeMode ? 120 : 75;
+                let spd = isSprinting ? baseSprint : baseWalk;
+
                 if (shardBoostTimer > 0) {
                     spd += 60; // Extra speed burst!
                     if (Date.now() % 100 < 32) spawnGhost(); // Speed trails only when boosted
