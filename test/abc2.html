@@ -1461,8 +1461,8 @@
                 startAction();
 
                 if (e.code === 'KeyT') {
-                    targetPitch = (targetPitch < 40 ? 85 : 25); // Match standard 25 pitch
-                    targetDistance = (targetPitch === 85 ? 4000 : 1000); // FIX: Match new 1000-unit cam distance
+                    targetPitch = (targetPitch < 40 ? 85 : 25);
+                    targetDistance = (targetPitch === 85 ? 4000 : (isBestTypeMode ? 800 : 450)); // Match new 800-unit nature distance
                     log(`Birds-eye: ${targetPitch === 85 ? "ON" : "OFF"}`, "info");
                 }
 
@@ -1902,7 +1902,7 @@
             if (model && window.baseModelSizeY) {
                 const s = isBestTypeMode ? 280 : 80;
                 model.scale.setScalar(s / window.baseModelSizeY);
-                targetDistance = isBestTypeMode ? 1000 : 450;
+                targetDistance = isBestTypeMode ? 800 : 450;
             }
 
             log(`MODE: ${isNewTypeMode ? 'NEW TYPE ENHANCED' : 'CLASSIC MAZE'}`, "success");
@@ -1987,7 +1987,7 @@
             if (model && window.baseModelSizeY) {
                 const s = isBestTypeMode ? 280 : 80;
                 model.scale.setScalar(s / window.baseModelSizeY);
-                targetDistance = isBestTypeMode ? 1000 : 450;
+                targetDistance = isBestTypeMode ? 800 : 450;
                 log(`DYNAMIC SCALE: ${s} units`, "info");
             }
 
@@ -2131,8 +2131,9 @@
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
-                                const ox = (Math.random()-0.5)*600 + (Math.sign(Math.random()-0.5)*500);
-                                const oz = (Math.random()-0.5)*600 + (Math.sign(Math.random()-0.5)*500);
+                                // OFFSET: Pushed further back (min 650 offset) to clear the path
+                                const ox = (650 + Math.random() * 200) * (Math.sign(Math.random() - 0.5) || 1);
+                                const oz = (650 + Math.random() * 200) * (Math.sign(Math.random() - 0.5) || 1);
                                 t.position.set(px + ox, 0, pz + oz);
                                 const s = 2500 + Math.random()*2500;
                                 t.scale.set(s, s, s);
@@ -3727,18 +3728,28 @@
             // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focusY = inStartMenu ? 60 : 115; // Raised to 115 to clear UI (Time/Shards) overlap with head
-            const focusX = 0; // Fixed CSS left:50% handles UI alignment now. Focus camera straight down world origin.
+            const focusY = inStartMenu ? 60 : (isBestTypeMode ? 250 : 115); 
+            const focusX = 0; 
             const focus = modelContainer.position.clone().add(new THREE.Vector3(focusX, focusY, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
 
             // Use actualCamYaw for smooth rotation (e.g. facing front during idle dance)
             const activeYaw = actualCamYaw;
 
+            let finalCamDist = camDistance;
+            // CAMERA CLIPPING FIX: If camera's theoretical pos is inside a wall, pull it in
+            const testX = focus.x + finalCamDist * Math.sin(activeYaw) * Math.cos(pr);
+            const testZ = focus.z + finalCamDist * Math.cos(activeYaw) * Math.cos(pr);
+            const tgx = Math.floor((testX + mapOffset + cellSize / 2) / cellSize);
+            const tgz = Math.floor((testZ + mapOffset + cellSize / 2) / cellSize);
+            if (obstacleCells.has(tgx + ',' + tgz)) {
+                finalCamDist *= 0.5; // Snap camera forward if in a hedge/wall
+            }
+
             const tPos = new THREE.Vector3(
-                focus.x + camDistance * Math.sin(activeYaw) * Math.cos(pr) + sX,
-                focus.y + camDistance * Math.sin(pr) + sY,
-                focus.z + camDistance * Math.cos(activeYaw) * Math.cos(pr)
+                focus.x + finalCamDist * Math.sin(activeYaw) * Math.cos(pr) + sX,
+                focus.y + finalCamDist * Math.sin(pr) + sY,
+                focus.z + finalCamDist * Math.cos(activeYaw) * Math.cos(pr)
             );
             camera.position.lerp(tPos, 0.8); // Increased from 0.2 to 0.8 to prevent "zoom out" feel
             camera.lookAt(focus);
