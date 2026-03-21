@@ -1093,7 +1093,7 @@
         let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0, celebrationTargetRotation = 0;
         let shakeIntensity = 0;
         let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 450;
-        let targetPitch = 25, targetDistance = 450; // New for lerping
+        let targetPitch = 25, targetDistance = 1000; // Increased from 450 for larger character
 
         // Camera settings
         let camPitch = 25;
@@ -1302,7 +1302,7 @@
             sun.position.set(2000, 4000, 1000);
             scene.add(sun);
 
-            nikoLight = new THREE.PointLight(0xffffff, 100, 2000);
+            nikoLight = new THREE.PointLight(0xffffff, 150, 4000); // Increased intensity/range
             scene.add(nikoLight);
 
             // const grid = new THREE.GridHelper(20000, 20, 0x444444, 0x222222);
@@ -1544,8 +1544,8 @@
                 // HEIGHT FIX: Ensure feet are on the floor (Y=0)
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
-                // Scale to 80 units tall (user request for one notch smaller)
-                model.scale.setScalar(80 / size.y);
+                // Scale to 280 units tall (was 80 - fix for "ant-sized" feel)
+                model.scale.setScalar(280 / size.y);
 
                 // Compute box again after scale to get precise offset
                 const scaledBox = new THREE.Box3().setFromObject(model);
@@ -2072,10 +2072,10 @@
                             const ox = (Math.random()-0.5)*cellSize, oz = (Math.random()-0.5)*cellSize;
                             g.position.set(px + ox, -20, pz + oz);
                             
-                            // SCALING: TINY (carpet effect)
-                            let s = 10 + Math.random() * 15; 
-                            if (cell === 0) s *= 0.5; 
-                            if (gKey === 'grass_tall' || gKey === 'grass_wispy') s *= 1.5; 
+                            // SCALING: MUCH SMALLER relative to new 280-unit character
+                            let s = 5 + Math.random() * 8; 
+                            if (cell === 0) s *= 0.4; 
+                            if (gKey === 'grass_tall' || gKey === 'grass_wispy') s *= 1.8; 
                             
                             g.scale.set(s, s, s);
                             g.rotation.y = Math.random() * Math.PI;
@@ -2102,9 +2102,13 @@
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
-                                const ox = (Math.random()-0.5)*800, oz = (Math.random()-0.5)*800; // Centered
+                                // OFFSET: Tightened to keep walls wide (hallway feel)
+                                const ox = (Math.random()-0.5)*400 + (Math.sign(Math.random()-0.5)*600);
+                                const oz = (Math.random()-0.5)*400 + (Math.sign(Math.random()-0.5)*600);
                                 t.position.set(px + ox, 0, pz + oz);
-                                t.scale.set(700 + Math.random()*400, 700 + Math.random()*400, 700 + Math.random()*400); // Smaller trees
+                                // MASSIVE TREES: Now 2500-4500 units to reach for the sky
+                                const s = 2500 + Math.random()*2000;
+                                t.scale.set(s, s, s);
                                 t.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(t);
                                 walls.push(t);
@@ -3410,7 +3414,8 @@
                 const isDancing = keys['KeyN'] || keys['n'];
 
                 // NEW: Base speed logic, boosted by shardBoostTimer
-                let spd = isSprinting ? 75 : 40;
+                // INCREASED SPEED for larger 280-unit character
+                let spd = isSprinting ? 120 : 60;
                 if (shardBoostTimer > 0) {
                     spd += 60; // Extra speed burst!
                     if (Date.now() % 100 < 32) spawnGhost(); // Speed trails only when boosted
@@ -3572,7 +3577,7 @@
                     }
                 }
 
-                if (nikoLight) nikoLight.position.set(modelContainer.position.x, modelContainer.position.y + 300, modelContainer.position.z);
+                if (nikoLight) nikoLight.position.set(modelContainer.position.x, modelContainer.position.y + 600, modelContainer.position.z);
 
                 for (let i = shards.length - 1; i >= 0; i--) {
                     const s = shards[i];
