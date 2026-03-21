@@ -1900,17 +1900,27 @@
             await Promise.all(assetsToLoad.map(a => {
                 return new Promise(resolve => {
                     gltfLoader.load(a.path, (gltf) => {
-                        bestTypeAssets[a.key] = gltf.scene;
+                        const scene = gltf.scene;
                         
-                        // Compute bounding box to fix origin
-                        const box = new THREE.Box3().setFromObject(gltf.scene);
-                        const bottom = box.min.y;
-                        gltf.scene.traverse(node => {
+                        // Robust Centering and Bottom-Aligning
+                        const box = new THREE.Box3().setFromObject(scene);
+                        const center = box.getCenter(new THREE.Vector3());
+                        const size = box.getSize(new THREE.Vector3());
+                        
+                        // Shift the scene so it's centered on X/Z and bottom at Y=0
+                        scene.position.x = -center.x;
+                        scene.position.z = -center.z;
+                        scene.position.y = -box.min.y;
+                        
+                        // Wrap in a group to preserve the fixed origin when cloning/positioning
+                        const wrapper = new THREE.Group();
+                        wrapper.add(scene);
+                        bestTypeAssets[a.key] = wrapper;
+
+                        scene.traverse(node => {
                             if (node.isMesh) {
                                 node.material.roughness = 0.8;
                                 node.material.metalness = 0.1;
-                                // Offset individual meshes within the scene to bottom-align
-                                node.position.y -= bottom;
                             }
                         });
                         
@@ -2000,7 +2010,7 @@
                     // GROUND: Detailed Rock Path + Grass Base
                     if (bestTypeAssets.grass_short) {
                         const g = bestTypeAssets.grass_short.clone();
-                        g.position.set(px, 0, pz);
+                        g.position.set(px, -15, pz); // Nudge down slightly to be below feet
                         g.scale.set(900, 900, 900);
                         levelGroup.add(g);
                         roads.push(g);
@@ -2010,23 +2020,23 @@
                         // Path Detail
                         if (bestTypeAssets.path_round && Math.random() > 0.6) {
                             const p = bestTypeAssets.path_round.clone();
-                            p.position.set(px + (Math.random()-0.5)*500, 0, pz + (Math.random()-0.5)*500);
-                            p.scale.set(800, 800, 800);
+                            p.position.set(px + (Math.random()-0.5)*500, 5, pz + (Math.random()-0.5)*500); // Nudge up to sit on grass
+                            p.scale.set(600, 600, 600); // Smaller than before
                             p.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(p);
                         }
                         // Random Flora
-                        if (bestTypeAssets.fern && Math.random() > 0.85) {
+                        if (bestTypeAssets.fern && Math.random() > 0.9) { // Less frequent
                             const f = bestTypeAssets.fern.clone();
                             f.position.set(px + (Math.random()-0.5)*800, 0, pz + (Math.random()-0.5)*800);
-                            f.scale.set(120, 120, 120); // Down from 600
+                            f.scale.set(80, 80, 80); // Even smaller
                             f.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(f);
                         }
-                        if (bestTypeAssets.bush && Math.random() > 0.9) {
+                        if (bestTypeAssets.bush && Math.random() > 0.95) { // Less frequent
                             const b = bestTypeAssets.bush.clone();
                             b.position.set(px + (Math.random()-0.5)*800, 0, pz + (Math.random()-0.5)*800);
-                            b.scale.set(150, 150, 150);
+                            b.scale.set(100, 100, 100); // Even smaller
                             levelGroup.add(b);
                         }
                     }
