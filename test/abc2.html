@@ -2132,6 +2132,10 @@
             const wallH = theme.wallH || 6000;
             const wallShape = theme.wallShape || 'box';
 
+            const geo = (wallShape === 'cylinder') 
+                ? new THREE.CylinderGeometry(cellSize * 0.45, cellSize * 0.45, wallH, 16) 
+                : (wallShape === 'blade' ? new THREE.BoxGeometry(cellSize * 0.15, wallH, cellSize) : new THREE.BoxGeometry(cellSize, wallH, cellSize));
+
             for (let z = 0; z < mapData.grid.length; z++) {
                 for (let x = 0; x < mapData.grid[z].length; x++) {
                     // Fix: If level design placed a door on a wall (1), force it back to a path (0) so it functions
