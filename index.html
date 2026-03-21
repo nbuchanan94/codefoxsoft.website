@@ -20,8 +20,8 @@
     <meta property="og:description"
         content="Indie Game/App & Web Dev. Creator of Fox Run and Space Pong. Commission custom games, mobile apps, and web applications.">
 
-    <meta property="og:image" content="https://www.codefoxsoft.com/appsgamessites.png">
-    <meta property="og:image:secure_url" content="https://www.codefoxsoft.com/appsgamessites.png">
+    <meta property="og:image" content="https://www.codefoxsoft.com/resImg/pages/index/appsgamessites.png">
+    <meta property="og:image:secure_url" content="https://www.codefoxsoft.com/resImg/pages/index/appsgamessites.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:type" content="image/png">
@@ -37,7 +37,7 @@
     <meta name="twitter:title" content="CodeFoxSoft - Indie Game/App & Web Dev">
     <meta name="twitter:description"
         content="Indie Game/App & Web Dev. Creator of Fox Run and Space Pong. Commission custom games, mobile apps, and web applications.">
-    <meta name="twitter:image" content="https://www.codefoxsoft.com/appsgamessites.png">
+    <meta name="twitter:image" content="https://www.codefoxsoft.com/resImg/pages/index/appsgamessites.png">
 
     <title>CodeFoxSoft - Indie Game, App & Web Development</title>
     <link rel="canonical" href="https://www.codefoxsoft.com/">
@@ -270,7 +270,7 @@
       "@type": "Organization",
       "name": "CodeFoxSoft",
       "url": "https://www.codefoxsoft.com",
-      "logo": "https://www.codefoxsoft.com/logo.png",
+      "logo": "https://www.codefoxsoft.com/resImg/logo.png",
       "sameAs": [
         "https://github.com/codefoxsoft",
         "https://linkedin.com/in/codefoxsoft",
@@ -291,11 +291,11 @@
     }
     </script>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-v2.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-v2-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon-v2-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="resImg/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="resImg/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="resImg/favicon-16x16.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="favicon-v2.ico">
+    <link rel="icon" href="resImg/favicon.ico">
     <meta name="theme-color" content="#1a202c">
     <meta property="og:image:alt" content="CodeFoxSoft Logo - A stylized fox head with code elements.">
 
@@ -309,7 +309,7 @@
             <!-- Logo and Company Name -->
             <a href="#" class="text-2xl sm:text-3xl font-bold text-green-500 flex items-center">
                 <!-- Using a placeholder image for the logo -->
-                <img src="logo.png" alt="CodeFoxSoft Logo" class="h-12 w-12 rounded-full mr-3">
+                <img src="resImg/logo.png" alt="CodeFoxSoft Logo" class="h-12 w-12 rounded-full mr-3">
                 <span class="hidden md:block">CodeFoxSoft™</span>
                 <span class="block md:hidden"><i class="fas fa-fox mr-2"></i> CodeFoxSoft™</span>
             </a>
@@ -457,9 +457,15 @@
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10 js-project-title">Our Projects</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 js-project-cards">
                     <!-- Project Card 1 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
-                        <!-- Using a placeholder image for the project -->
-                        <img src="foxrun2.jpg" alt="Fox Run!" class="w-full h-48 object-cover project-image">
+                    <div class="bg-gray-800 rounded-2xl overflow-hidden shadow-2xl project-card group reveal slide-left">
+                                    <div class="relative overflow-hidden aspect-video">
+                                        <img src="resImg/logo.png"
+ alt="CodeFox Projects Preview"
+                                            class="w-full h-full object-cover project-image group-hover:scale-110 transition-transform duration-500">
+                                        <div
+                                            class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60">
+                                        </div>
+                                    </div>
                         <div class="p-8">
                             <h3 class="text-2xl sm:text-3xl font-semibold text-white mb-3">Fox Run (Android)</h3>
                             <p class="text-gray-300 mb-4">
