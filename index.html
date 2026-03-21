@@ -28,6 +28,8 @@
     <meta property="og:url" content="https://www.codefoxsoft.com">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="CodeFoxSoft">
+    <meta property="og:image:alt" content="CodeFoxSoft - Indie Game, App & Web Development">
+    <meta name="theme-color" content="#1a202c">
     <meta property="og:locale" content="en_US">
 
     <!-- Twitter Card Meta Tags -->
@@ -294,6 +296,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-v2-16x16.png">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="favicon-v2.ico">
+    <meta name="theme-color" content="#1a202c">
+    <meta property="og:image:alt" content="CodeFoxSoft Logo - A stylized fox head with code elements.">
 
 </head>
 
@@ -301,7 +305,7 @@
 
     <!-- Header -->
     <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
-        <div class="container mx-auto flex justify-between items-center px-6">
+        <nav class="container mx-auto flex justify-between items-center px-6" aria-label="Main Navigation">
             <!-- Logo and Company Name -->
             <a href="#" class="text-2xl sm:text-3xl font-bold text-green-500 flex items-center">
                 <!-- Using a placeholder image for the logo -->
@@ -324,14 +328,15 @@
 
             <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
             <button id="menu-button"
-                class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
+                class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300"
+                aria-label="Open Mobile Menu" aria-expanded="false" aria-controls="mobile-menu">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
                     </path>
                 </svg>
             </button>
-        </div>
+        </nav>
     </header>
 
     <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
@@ -413,28 +418,28 @@
                 <div
                     class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto js-about-cards">
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 slide-left">
+                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-left" style="opacity: 0;">
                         <i class="fas fa-code text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Nearly 2 Decades Exp.</h3>
                         <p class="text-gray-300">Extensive programming across diverse industries and technologies since
                             2006.</p>
                     </div>
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 slide-right">
+                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-right" style="opacity: 0;">
                         <i class="fas fa-brain text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">AI Innovation</h3>
                         <p class="text-gray-300">Pioneering research and application of Artificial Intelligence in
                             real-world scenarios.</p>
                     </div>
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 slide-left">
+                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-left" style="opacity: 0;">
                         <i class="fas fa-gamepad text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Game Development</h3>
                         <p class="text-gray-300">Creating immersive and engaging interactive entertainment experiences.
                         </p>
                     </div>
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 slide-right">
+                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-right" style="opacity: 0;">
                         <i class="fas fa-desktop text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Websites and Applications</h3>
                         <p class="text-gray-300">Commission me for robust and intuitive applications and websites for
@@ -452,7 +457,7 @@
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10 js-project-title">Our Projects</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 js-project-cards">
                     <!-- Project Card 1 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card" style="opacity: 0;">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
                         <!-- Using a placeholder image for the project -->
                         <img src="foxrun2.jpg" alt="Fox Run!" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -468,7 +473,7 @@
                         </div>
                     </div>
                     <!-- Project Card 2 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card" style="opacity: 0;">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
                         <!-- Using a placeholder image for the project -->
                         <img src="pongplay.png" alt="pongplay" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -485,7 +490,7 @@
                         </div>
                     </div>
                     <!-- Project Card 3 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card" style="opacity: 0;">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
                         <img src="furryrave1.png" alt="Furry Rave Screensaver"
                             class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -503,7 +508,7 @@
                         </div>
                     </div>
                     <!-- Project Card 4 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card" style="opacity: 0;">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
                         <!-- More Projects image -->
                         <img src="synkrfox2.png" alt="SynkrFox" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -520,7 +525,7 @@
                     </div>
 
                     <!-- Project Card 5: Shadowlark -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card" style="opacity: 0;">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
                         <img src="resImg/pages/shadowlarkoracle/shadowlarkoracle0.png" alt="Shadowlark Oracle"
                             class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -537,7 +542,7 @@
                     </div>
 
                     <!-- Project Card 6 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card" style="opacity: 0;">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
                         <!-- More Projects image -->
                         <img src="moreprojects.jpg" alt="More Projects" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -563,7 +568,7 @@
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10 js-blog-title">Latest from Our Blog</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 js-blog-cards">
                     <!-- Blog Post 1: Java Portfolio -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card" style="opacity: 0;">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card slide-left" style="opacity: 0;">
                         <img src="javaprojects.jpg" alt="Java Portfolio" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">Java Portfolio</h3>
@@ -578,7 +583,7 @@
                         </div>
                     </div>
                     <!-- Blog Post 2: Launch -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card" style="opacity: 0;">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card slide-right" style="opacity: 0;">
                         <img src="launchr.png" alt="Company Launch" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">Company Launch!</h3>
@@ -593,7 +598,7 @@
                         </div>
                     </div>
                     <!-- Blog Post 3: More Blogs -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card" style="opacity: 0;">
+                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card slide-left" style="opacity: 0;">
                         <img src="moreblogs.png" alt="More Blogs" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">More Blogs</h3>
@@ -657,9 +662,9 @@
         <div class="container mx-auto px-6">
             <p>&copy; <span id="year"></span> CodeFoxSoft™. All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nick Larkin.</p>
-            <p class="mt-2 italic font-semibold text-green-400">Code Made Clean. Fox Made Clever. Software Made
+            <p class="mt-2 italic font-semibold text-green-500">Code Made Clean. Fox Made Clever. Software Made
                 Powerful.</p>
-            <a href="https://www.codefoxsoft.com/privacy.html">Privacy Policy</a>
+            <a href="privacy.html" class="underline hover:text-green-300">Privacy Policy</a>
 
             <div class="flex justify-center space-x-6 mt-4">
             </div>
@@ -1090,287 +1095,153 @@
 
             renderer.render(scene, camera);
         }
-
         // --- Combined window.onload for both scripts ---
         window.onload = function () {
             // Initialize the galaxy scene
             init();
+
+            // Mobile menu toggle logic with ADA support
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', () => {
+                    const isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
+                    menuButton.setAttribute('aria-expanded', !isExpanded);
+                    mobileMenu.classList.toggle('hidden');
+                });
+                // Close menu when clicking links
+                mobileMenu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                        menuButton.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            }
+
             // Start the animation loop - pass timestamp for frame rate limiting
             animate(performance.now());
 
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-            // --- anime.js: Hero staggered reveal (always run when anime is available — works on mobile too) ---
+            // --- anime.js: Hero staggered reveal ---
             if (typeof anime !== 'undefined') {
                 const heroBox = document.querySelector('.hero-content-box.hero-anim-in');
                 if (heroBox) {
                     anime.timeline({ easing: 'easeOutExpo', duration: 600 })
-                        .add({ targets: '.hero-title-brand', opacity: [0, 1], translateY: [24, 0], duration: 650, easing: 'easeOutElastic(1, 0.6)' }, 0)
-                        .add({ targets: '.hero-tagline', opacity: [0, 1], translateY: [24, 0], duration: 650, easing: 'easeOutElastic(1, 0.6)' }, 120)
-                        .add({ targets: '.hero-desc', opacity: [0, 1], translateY: [24, 0], duration: 700, easing: 'easeOutElastic(1, 0.5)' }, 220)
-                        .add({ targets: '.hero-cta', opacity: [0, 1], translateY: [24, 0], duration: 650, easing: 'easeOutElastic(1, 0.6)' }, 380);
+                        .add({ targets: '.hero-title-brand', opacity: [0, 1], translateY: [24, 0], duration: 800, easing: 'easeOutElastic(1, 0.6)' }, 0)
+                        .add({ targets: '.hero-tagline', opacity: [0, 1], translateY: [24, 0], duration: 800, easing: 'easeOutElastic(1, 0.6)' }, 120)
+                        .add({ targets: '.hero-desc', opacity: [0, 1], translateY: [24, 0], duration: 800, easing: 'easeOutElastic(1, 0.5)' }, 220)
+                        .add({ targets: '.hero-cta', opacity: [0, 1], translateY: [24, 0], duration: 800, easing: 'easeOutElastic(1, 0.6)' }, 380);
                     heroBox.classList.remove('hero-anim-in');
                 }
             }
 
-            // --- Scroll and other juice: use anime when available and user hasn’t asked for reduced motion ---
+            // --- Unified Scroll Reveal Strategy ---
             if (typeof anime !== 'undefined' && !prefersReducedMotion) {
-                const fadersAll = document.querySelectorAll('.fade-in, .slide-left, .slide-right');
-                const faders = Array.from(fadersAll).filter(el =>
-                    !el.closest('.js-about-cards') && !el.closest('.js-project-cards') && !el.closest('.js-blog-cards')
-                );
+                // Select all elements that should participate in the bouncy reveal
+                const revealElements = document.querySelectorAll('.fade-in, .slide-left, .slide-right, .project-card, .blog-card, .js-dl-card, .js-footer-reveal');
+ 
                 const isMobileDevice = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 const appearOptions = {
-                    threshold: isMobileDevice ? 0.1 : 0.15,
-                    rootMargin: isMobileDevice ? "50px 0px -50px 0px" : "0px 0px -100px 0px"
+                    threshold: 0,
+                    rootMargin: "0px 0px -50px 0px"
                 };
 
                 const appearOnScroll = new IntersectionObserver(function (entries) {
                     entries.forEach(entry => {
                         const el = entry.target;
-                        const isFade = el.classList.contains('fade-in');
-                        const isLeft = el.classList.contains('slide-left');
-                        const isRight = el.classList.contains('slide-right');
                         if (entry.isIntersecting) {
+                            // Determine directional offset for "rolling" effect from classes
+                            let fromX = 0;
+                            if (el.classList.contains('slide-left')) fromX = -100;
+                            else if (el.classList.contains('slide-right')) fromX = 100;
+
+                            // Professional "Bounce & Roll" in (using Back easing for cleaner overshoot)
                             anime({
                                 targets: el,
-                                opacity: 1,
-                                translateX: 0,
-                                translateY: 0,
-                                duration: 700,
-                                easing: 'easeOutElastic(1, 0.5)'
+                                opacity: [0, 1],
+                                translateX: [fromX, 0],
+                                translateY: [30, 0],
+                                rotateZ: [fromX / 30, 0],
+                                scale: [0.95, 1],
+                                duration: 800,
+                                easing: 'easeOutBack(1.7)'
                             });
                             el.classList.add('visible');
                         } else {
+                            // Roll "Out" smoothly
                             el.classList.remove('visible');
-                            const toX = isLeft ? -100 : (isRight ? 100 : 0);
-                            const toY = isFade ? 20 : 0;
-                            el.style.opacity = '0';
-                            el.style.transform = 'translateX(' + toX + 'px) translateY(' + toY + 'px)';
+                            const isLeft = el.classList.contains('slide-left');
+                            const isRight = el.classList.contains('slide-right');
+                            const toX = isLeft ? -80 : (isRight ? 80 : 0);
+                            
+                            anime({
+                                targets: el,
+                                opacity: 0,
+                                translateX: toX,
+                                translateY: 20,
+                                rotateZ: toX / 30,
+                                scale: 0.95,
+                                duration: 400,
+                                easing: 'easeOutQuint'
+                            });
                         }
                     });
                 }, appearOptions);
 
-                faders.forEach(fader => appearOnScroll.observe(fader));
+                revealElements.forEach(el => appearOnScroll.observe(el));
 
-                // --- anime.js: Section card stagger (Projects) ---
-                const sectionStaggerOptions = { threshold: 0.15, rootMargin: '0px 0px -50px 0px' };
-                const projectSection = document.getElementById('projects');
-                const projectCards = document.querySelectorAll('.js-project-cards > .project-card');
-                const projectTitle = document.querySelector('.js-project-title');
-
-                if (projectTitle) {
-                    projectTitle.style.opacity = '0';
-                    projectTitle.style.transform = 'translateY(20px)';
-                }
-
-                if (projectSection) {
-                    const projectObserver = new IntersectionObserver(function (entries, observer) {
-                        if (entries[0].isIntersecting && projectCards.length) {
-                            // Unobserve to prevent re-triggering
-                            observer.unobserve(projectSection);
-
-                            // Animate Title
-                            if (projectTitle) {
-                                anime({
-                                    targets: projectTitle,
-                                    opacity: 1,
-                                    translateY: 0,
-                                    duration: 800,
-                                    easing: 'easeOutExpo'
-                                });
-                            }
-
-                            // Juicy Roll-in for Project Cards
-                            anime({
-                                targets: projectCards,
-                                opacity: [0, 1],
-                                translateY: [100, 0],
-                                rotateY: [45, 0],
-                                rotateZ: [5, 0],
-                                scale: [0.8, 1],
-                                duration: 1200,
-                                delay: anime.stagger(150, { start: 200 }),
-                                easing: 'easeOutElastic(1, 0.6)'
-                            });
-                        }
-                    }, sectionStaggerOptions);
-                    projectObserver.observe(projectSection);
-                }
-
-                // --- anime.js: Section card stagger (Blog) ---
-                const blogSection = document.getElementById('blog');
-                const blogCards = document.querySelectorAll('.js-blog-cards > .blog-card');
-                const blogTitle = document.querySelector('.js-blog-title');
-
-                if (blogTitle) {
-                    blogTitle.style.opacity = '0';
-                    blogTitle.style.transform = 'translateY(20px)';
-                }
-
-                if (blogSection) {
-                    const blogObserver = new IntersectionObserver(function (entries, observer) {
-                        if (entries[0].isIntersecting && blogCards.length) {
-                            // Unobserve to prevent re-triggering
-                            observer.unobserve(blogSection);
-
-                            // Animate Title
-                            if (blogTitle) {
-                                anime({
-                                    targets: blogTitle,
-                                    opacity: 1,
-                                    translateY: 0,
-                                    duration: 800,
-                                    easing: 'easeOutExpo'
-                                });
-                            }
-
-                            // Juicy Cascade for Blog Cards
-                            // Alternating slide-in from left and right
-                            anime({
-                                targets: blogCards,
-                                opacity: [0, 1],
-                                translateX: function (el, i) {
-                                    return i % 2 === 0 ? [-100, 0] : [100, 0];
-                                },
-                                scale: [0.8, 1],
-                                duration: 1000,
-                                delay: anime.stagger(200, { start: 200 }),
-                                easing: 'easeOutElastic(1.2, 0.5)'
-                            });
-                        }
-                    }, sectionStaggerOptions);
-                    blogObserver.observe(blogSection);
-                }
-
-
-                // --- anime.js: Section card stagger (About) ---
-                const aboutCards = document.querySelectorAll('.js-about-cards > div');
-
-                function runStagger(cards, fromY, fromX) {
-                    if (!cards.length) return;
-                    cards.forEach((c, i) => {
-                        c.style.opacity = '0';
-                        c.style.transform = (fromX !== undefined ? 'translateX(' + fromX + 'px) ' : '') + 'translateY(' + fromY + 'px)';
-                    });
-                    anime({
-                        targets: cards,
-                        opacity: 1,
-                        translateX: 0,
-                        translateY: 0,
-                        duration: 600,
-                        delay: anime.stagger(70, { start: 0 }),
-                        easing: 'easeOutElastic(1, 0.5)'
-                    });
-                }
-
-                const aboutObserver = new IntersectionObserver(function (entries, observer) {
-                    if (entries[0].isIntersecting && aboutCards.length) {
-                        observer.unobserve(entries[0].target);
-                        runStagger(aboutCards, 24, 0);
-                    }
-                }, sectionStaggerOptions);
-                const aboutSection = document.getElementById('about');
-                if (aboutSection) aboutObserver.observe(aboutSection);
-
-                // --- anime.js: Footer reveal ---
-                const footerEl = document.querySelector('.js-footer-reveal');
-                if (footerEl) {
-                    const footerObserver = new IntersectionObserver(function (entries) {
-                        if (entries[0].isIntersecting) {
-                            anime({ targets: footerEl, opacity: 1, translateY: 0, duration: 700, easing: 'easeOutElastic(1, 0.5)' });
-                        }
-                    }, { threshold: 0.1 });
-                    footerObserver.observe(footerEl);
-                }
-
-                // --- anime.js: CTA button hover pop ---
+                // --- Special: CTA button hover pop ---
                 document.querySelectorAll('.js-cta-pop').forEach(btn => {
                     btn.addEventListener('mouseenter', function () {
-                        anime({ targets: this, scale: 1.06, duration: 320, easing: 'easeOutElastic(1, 0.6)' });
+                        anime({ targets: this, scale: 1.08, duration: 400, easing: 'easeOutBack(1.7)' });
                     });
                     btn.addEventListener('mouseleave', function () {
-                        anime({ targets: this, scale: 1, duration: 350, easing: 'easeOutElastic(1, 0.4)' });
+                        anime({ targets: this, scale: 1, duration: 400, easing: 'easeOutQuint' });
                     });
                 });
 
-                // --- anime.js: Hero CTA arrow nudge ---
-                const heroCta = document.querySelector('.hero-cta');
-                if (heroCta) {
-                    const arrow = heroCta.querySelector('i.fa-arrow-right');
-                    if (arrow) {
-                        heroCta.addEventListener('mouseenter', () => anime({ targets: arrow, translateX: 5, duration: 280, easing: 'easeOutElastic(1, 0.6)' }));
-                        heroCta.addEventListener('mouseleave', () => anime({ targets: arrow, translateX: 0, duration: 250, easing: 'easeOutQuad' }));
-                    }
-                }
-
-                // --- anime.js: Nav link hover lift ---
-                document.querySelectorAll('header nav ul a').forEach(link => {
-                    link.addEventListener('mouseenter', function () {
-                        anime({ targets: this, translateY: -2, duration: 200, easing: 'easeOutQuad' });
-                    });
-                    link.addEventListener('mouseleave', function () {
-                        anime({ targets: this, translateY: 0, duration: 200, easing: 'easeOutQuad' });
-                    });
-                });
-
-                // --- anime.js: Contact input focus ---
-                document.querySelectorAll('.js-contact-input').forEach(input => {
-                    input.addEventListener('focus', function () {
-                        anime({ targets: this, scale: 1.01, duration: 220, easing: 'easeOutQuad' });
-                    });
-                    input.addEventListener('blur', function () {
-                        anime({ targets: this, scale: 1, duration: 200, easing: 'easeOutQuad' });
-                    });
-                });
-
-                // --- anime.js: Juicy Card Hover Effects (Projects & Blog) ---
-                const allJuicyCards = document.querySelectorAll('.project-card, .blog-card');
-                allJuicyCards.forEach(card => {
-                    card.addEventListener('mouseenter', function (e) {
-                        // Image pop
+                // --- Special: Card Hover Effects (Projects & Blog) ---
+                const cards = document.querySelectorAll('.project-card, .blog-card');
+                cards.forEach(card => {
+                    card.addEventListener('mouseenter', function () {
                         const img = card.querySelector('img');
-                        if (img) {
-                            anime({ targets: img, scale: 1.1, duration: 400, easing: 'easeOutElastic(1, 0.6)' });
-                        }
-
-                        // Card float + shadow
+                        if (img) anime({ targets: img, scale: 1.12, duration: 600, easing: 'easeOutBack(1.7)' });
+                        
                         anime({
                             targets: card,
-                            translateY: -8,
-                            scale: 1.02,
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                            duration: 400,
-                            easing: 'easeOutElastic(1, 0.6)'
+                            translateY: -12,
+                            scale: 1.03,
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
+                            duration: 600,
+                            easing: 'easeOutBack(1.7)'
                         });
                     });
-                    card.addEventListener('mouseleave', function (e) {
-                        // Image reset
+                    card.addEventListener('mouseleave', function () {
                         const img = card.querySelector('img');
-                        if (img) {
-                            anime({ targets: img, scale: 1, duration: 350, easing: 'easeOutQuad' });
-                        }
-
-                        // Card reset
+                        if (img) anime({ targets: img, scale: 1, duration: 400, easing: 'easeOutQuad' });
+                        
                         anime({
                             targets: card,
                             translateY: 0,
                             scale: 1,
                             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                            duration: 350,
+                            duration: 400,
                             easing: 'easeOutQuad'
                         });
                     });
                 });
 
+                // --- Nav link hover lift ---
+                document.querySelectorAll('header nav ul a').forEach(link => {
+                    link.addEventListener('mouseenter', () => anime({ targets: link, translateY: -3, color: '#4ade80', duration: 250, easing: 'easeOutQuad' }));
+                    link.addEventListener('mouseleave', () => anime({ targets: link, translateY: 0, color: '#f3f4f6', duration: 250, easing: 'easeOutQuad' }));
+                });
+
             } else {
-                // Fallback: CSS-only scroll (when anime didn’t load or user prefers reduced motion)
-                const faders = document.querySelectorAll('.fade-in, .slide-left, .slide-right');
-                const isMobileDevice = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                const appearOptions = {
-                    threshold: isMobileDevice ? 0.1 : 0.15,
-                    rootMargin: isMobileDevice ? "50px 0px -50px 0px" : "0px 0px -100px 0px"
-                };
+                // Fallback: CSS-only scroll (for reduced motion or no anime.js)
+                const faders = document.querySelectorAll('.fade-in, .slide-left, .slide-right, .project-card, .blog-card, .js-footer-reveal');
+                const appearOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
                 const appearOnScroll = new IntersectionObserver(function (entries) {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) entry.target.classList.add('visible');
@@ -1378,15 +1249,6 @@
                     });
                 }, appearOptions);
                 faders.forEach(fader => appearOnScroll.observe(fader));
-                // Show hero content immediately only if anime didn’t load (hero already ran if anime loaded)
-                if (typeof anime === 'undefined') {
-                    document.querySelectorAll('.hero-content-box.hero-anim-in .hero-title-brand, .hero-content-box.hero-anim-in .hero-tagline, .hero-content-box.hero-anim-in .hero-desc, .hero-content-box.hero-anim-in .hero-cta').forEach(el => {
-                        el.style.opacity = '1';
-                        el.style.transform = 'none';
-                    });
-                    const hb = document.querySelector('.hero-content-box.hero-anim-in');
-                    if (hb) hb.classList.remove('hero-anim-in');
-                }
             }
 
             // Event Listeners from the galaxy code

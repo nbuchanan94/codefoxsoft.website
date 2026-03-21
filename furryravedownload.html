@@ -23,6 +23,8 @@
     <meta property="og:url" content="https://www.codefoxsoft.com/furryravedownload.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="CodeFoxSoft">
+    <meta property="og:image:alt" content="Furry Rave - High Energy Gameplay Preview">
+    <meta name="theme-color" content="#1a202c">
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
@@ -119,7 +121,7 @@
 
     <!-- Header -->
     <header class="bg-gray-800 bg-opacity-70 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
-        <nav class="container mx-auto flex justify-between items-center px-6">
+        <nav class="container mx-auto flex justify-between items-center px-6" aria-label="Main Navigation">
             <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
                 <img src="logo.png" alt="CodeFoxSoft™" class="h-12 w-12 rounded-full mr-3">
                 <span class="hidden md:block">CodeFoxSoft™</span>
@@ -140,8 +142,10 @@
                 </li>
             </ul>
 
+            <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
             <button id="menu-button"
-                class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
+                class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300"
+                aria-label="Open Mobile Menu" aria-expanded="false" aria-controls="mobile-menu">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
@@ -238,7 +242,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-300">
                         <div>
                             <h3 class="text-xl font-semibold text-green-400 mb-2">High-Quality Video</h3>
-                            <p>Smoothly loops <a href="https://youtu.be/uoypWQrm9IU?si=RwuAefgP6Tn7X4jZ"
+                            <p>Smoothly loops <a href="https://youtu.be/uoypWQrmnIU?si=RwuAefgP6Tn7X4jZ"
                                     class="text-blue-400 underline" target="_blank">this adorable animation</a> in
                                 full-screen glory, ensuring zero visible seams during
                                 playback.</p>
@@ -283,9 +287,9 @@
         <div class="container mx-auto px-6">
             <p>&copy; <span id="year"></span> CodeFoxSoft™. All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nick Larkin.</p>
-            <p class="mt-2 italic font-semibold text-green-400">Code Made Clean. Fox Made Clever. Software Made
+            <p class="mt-2 italic font-semibold text-green-500">Code Made Clean. Fox Made Clever. Software Made
                 Powerful.</p>
-            <a href="https://www.codefoxsoft.com/privacy.html">Privacy Policy</a>
+            <a href="https://www.codefoxsoft.com/privacy.html" class="underline hover:text-green-300">Privacy Policy</a>
         </div>
     </footer>
 
@@ -297,7 +301,18 @@
 
             if (menuButton && mobileMenu) {
                 menuButton.addEventListener('click', () => {
+                    const isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
+                    menuButton.setAttribute('aria-expanded', !isExpanded);
                     mobileMenu.classList.toggle('hidden');
+                });
+ 
+                // Close the menu when a link is clicked
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                        menuButton.setAttribute('aria-expanded', 'false');
+                    });
                 });
             }
         });

@@ -24,6 +24,8 @@
     <meta property="og:url" content="https://www.codefoxsoft.com/javaapps.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="CodeFoxSoft">
+    <meta property="og:image:alt" content="CodeFoxSoft Java Apps - Archive of legacy projects">
+    <meta name="theme-color" content="#1a202c">
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
@@ -276,7 +278,7 @@
 
     <!-- Header -->
     <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
-        <nav class="container mx-auto flex justify-between items-center px-6">
+        <nav class="container mx-auto flex justify-between items-center px-6" aria-label="Main Navigation">
             <a href="index.html" class="text-3xl font-bold text-green-500 flex items-center">
                 <!-- Logo -->
                 <img src="logo.png"
@@ -303,7 +305,8 @@
 
             <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
             <button id="menu-button"
-                class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300">
+                class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300"
+                aria-label="Open Mobile Menu" aria-expanded="false" aria-controls="mobile-menu">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
@@ -2777,15 +2780,15 @@
     </script>
 
     <!-- Lightbox Modal -->
-    <div id="lightbox-modal" class="modal" onclick="closeLightbox()">
-        <span class="lb-close" onclick="closeLightbox()">&times;</span>
+    <div id="lightbox-modal" class="modal" role="dialog" aria-modal="true" aria-label="Project Screenshot Gallery" onclick="closeLightbox()">
+        <button class="lb-close" aria-label="Close gallery" onclick="closeLightbox()">&times;</button>
 
         <!-- Navigation Arrows -->
-        <a class="lb-prev" onclick="event.stopPropagation(); navigateLightbox(-1)">&#10094;</a>
-        <a class="lb-next" onclick="event.stopPropagation(); navigateLightbox(1)">&#10095;</a>
+        <button class="lb-prev" aria-label="Previous image" onclick="event.stopPropagation(); navigateLightbox(-1)">&#10094;</button>
+        <button class="lb-next" aria-label="Next image" onclick="event.stopPropagation(); navigateLightbox(1)">&#10095;</button>
 
-        <img class="modal-content" id="lightbox-content" onclick="event.stopPropagation()">
-        <div id="lightbox-caption" onclick="event.stopPropagation()"></div>
+        <img class="modal-content" id="lightbox-content" alt="Enlarged project screenshot" onclick="event.stopPropagation()">
+        <div id="lightbox-caption"></div>
     </div>
 
 
@@ -2795,7 +2798,24 @@
         let currentGalleryIndex = 0;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Scrape content from the DOM
+            // 1. Mobile menu toggle logic with ADA support
+            const menuBtn = document.getElementById('menu-button');
+            const mobileMnu = document.getElementById('mobile-menu');
+            if (menuBtn && mobileMnu) {
+                menuBtn.addEventListener('click', () => {
+                    const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
+                    menuBtn.setAttribute('aria-expanded', !isExpanded);
+                    mobileMnu.classList.toggle('hidden');
+                });
+                mobileMnu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMnu.classList.add('hidden');
+                        menuBtn.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            }
+
+            // 2. Collect all gallery items
             const entries = document.querySelectorAll('.program-entry');
             entries.forEach((entry, index) => {
                 const img = entry.querySelector('.program-image img');
@@ -2814,20 +2834,30 @@
                         desc: desc
                     });
 
-                    // 2. Override existing click behavior
+                    // 2. Override existing click behavior & add ADA support
                     // Remove inline onclick attribute
                     img.removeAttribute('onclick');
+                    
+                    // Add attributes to make image behave like a button for screen readers and keyboard users
+                    img.setAttribute('role', 'button');
+                    img.setAttribute('tabindex', '0');
+                    img.setAttribute('aria-label', `View full screenshot for ${title}`);
+                    img.style.cursor = 'pointer';
 
-                    // Attach new listener
+                    // Attach click listener
                     img.addEventListener('click', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        // Refresh src in case it changed (e.g. placeholder fallback)
                         openLightbox(index);
                     });
 
-                    // Visual cue
-                    img.style.cursor = 'pointer';
+                    // Add keyboard listener (Enter or Space to trigger)
+                    img.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            openLightbox(index);
+                        }
+                    });
                 }
             });
 
