@@ -1092,8 +1092,8 @@
         let obstacleCells = new Set();  // grid key "gx,gz" for impassable decor like pillars
         let isTransitioning = false, transitionTime = 0, hasShifted = false, celebrationTime = 0, celebrationTargetRotation = 0;
         let shakeIntensity = 0;
-        let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 450;
-        let targetPitch = 25, targetDistance = 1000; // Increased from 450 for larger character
+        let camYaw = 0, actualCamYaw = 0, lastSafeYaw = 0, camDistance = 1000;
+        let targetPitch = 25, targetDistance = 1000;
 
         // Camera settings
         let camPitch = 25;
@@ -1461,8 +1461,8 @@
                 startAction();
 
                 if (e.code === 'KeyT') {
-                    targetPitch = (targetPitch < 40 ? 85 : 18);
-                    targetDistance = (targetPitch === 85 ? 4000 : 250);
+                    targetPitch = (targetPitch < 40 ? 85 : 25); // Match standard 25 pitch
+                    targetDistance = (targetPitch === 85 ? 4000 : 1000); // FIX: Match new 1000-unit cam distance
                     log(`Birds-eye: ${targetPitch === 85 ? "ON" : "OFF"}`, "info");
                 }
 
@@ -1999,9 +1999,7 @@
             levelGroup.add(light);
         }
         function buildBestTypeLevel1() {
-            log("Building 'Best' Nature Level 1...", "info");
-            
-            const num = 1;
+            const num = currentLevel;
             const mapData = maps[num];
             
             // Hyper-Detailed Environment
@@ -2013,7 +2011,7 @@
             if (ambLight) ambLight.intensity = 1.4;
             if (nikoLight) {
                 nikoLight.color.set(0xffffff);
-                nikoLight.intensity = 1800;
+                nikoLight.intensity = 200; // FIX: Tone down from 1800 to reasonable 200
             }
 
             // --- LUSH GROUND PLANE ---
@@ -2063,7 +2061,8 @@
                     
                     // --- TRAIL-AWARE SCATTERING ---
                     // Paths: Denser at edges, sparse in center. Walls: Extremely dense.
-                    const scatterCount = isOutside ? 5 : (cell === 0 ? 25 : 40); 
+                    // OPTIMIZED: Reduced count slightly to maintain 60fps with high-detail models
+                    const scatterCount = isOutside ? 3 : (cell === 0 ? 15 : 25); 
                     for (let i = 0; i < scatterCount; i++) {
                         // All flora available for edges/walls; paths get clovers/flowers
                         const gPool = (cell === 0) ? ['clover', 'flower_group', 'grass_short'] : ['grass_short', 'grass_tall', 'grass_wispy', 'clover', 'flower_group', 'mushroom', 'fern'];
