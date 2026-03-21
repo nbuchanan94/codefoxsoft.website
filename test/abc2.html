@@ -861,26 +861,48 @@
             }
         }
 
-        /* Loading state for start menu */
-        .menu-loading .menu-buttons {
-            opacity: 0.3;
+        /* START MENU LOADING STATE */
+        #start-menu.menu-loading .menu-buttons,
+        #start-menu.menu-loading .hud-arc {
+            opacity: 0;
             pointer-events: none;
         }
 
-        .menu-loading .menu-title-area h1 {
-            animation: titleFloat 3s ease-in-out infinite, loadPulse 1.5s ease-in-out infinite;
+        #menu-loading-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            bottom: 12%;
+            width: 100%;
+            z-index: 260;
         }
 
-        @keyframes loadPulse {
+        #start-menu.menu-loading #menu-loading-overlay {
+            display: flex;
+        }
 
-            0%,
-            100% {
-                opacity: 1;
-            }
+        .loading-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2em;
+            color: #00ffcc;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+            animation: textPulse 1.5s ease-in-out infinite;
+        }
 
-            50% {
-                opacity: 0.4;
-            }
+        @keyframes textPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Particles Deferment */
+        .menu-particle {
+            display: none;
+        }
+        #start-menu:not(.menu-loading) .menu-particle {
+            display: block;
         }
     </style>
 </head>
@@ -890,44 +912,40 @@
     <div id="start-menu" class="menu-loading">
         <div class="menu-title-area">
             <h1>CyberNiko</h1>
-            <div class="subtitle">Maze Runner</div>
+            <div class="subtitle">EXPERIENCE THE BIOMORPHIC MAZE</div>
         </div>
+
+        <div id="menu-loading-overlay">
+            <div class="loading-text">SYSTEM LOADING...</div>
+            <div id="load-bar-container">
+                <div id="load-bar"></div>
+            </div>
+            <div id="status-text" style="font-family: 'Courier New', monospace; font-size: 0.8em; margin-top: 10px; color: #444;">INITIALIZING...</div>
+        </div>
+
+        <div class="hud-arc"></div>
+
         <div class="menu-buttons">
-            <div class="hud-arc"></div>
             <div class="menu-btn" id="btn-settings" onclick="menuAction('settings')">
                 <div class="btn-circle">
                     <div class="btn-inner-ring"></div>
-                    <span class="btn-icon">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.73 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .43-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.49-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
-                        </svg>
-                    </span>
+                    <span class="btn-icon">⚙</span>
                 </div>
-                <span class="btn-label">Settings</span>
+                <span class="btn-label">Calibrate</span>
             </div>
             <div class="menu-btn play-btn" id="btn-play" onclick="menuAction('play')">
                 <div class="btn-circle">
                     <div class="btn-inner-ring"></div>
-                    <span class="btn-icon">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M4 6l8 6-8 6V6zm10 0l8 6-8 6V6z" />
-                        </svg>
-                    </span>
+                    <span class="btn-icon">▶</span>
                 </div>
-                <span class="btn-label">Play</span>
+                <span class="btn-label">Execute</span>
             </div>
             <div class="menu-btn" id="btn-exit" onclick="menuAction('exit')">
-                <div class="btn-circle">
+                <div class="btn-circle" style="border-color: #ff3300;">
                     <div class="btn-inner-ring"></div>
-                    <span class="btn-icon">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
-                        </svg>
-                    </span>
+                    <span class="btn-icon">✖</span>
                 </div>
-                <span class="btn-label">Exit</span>
+                <span class="btn-label">Terminate</span>
             </div>
         </div>
     </div>
@@ -1477,8 +1495,9 @@
             document.getElementById('intro-overlay').style.display = 'none';
 
             buildLevel(currentLevel);
+            if (window.menuPlatformGroup) window.menuPlatformGroup.visible = false; // Hide until ready
             loadAllAssets();
-            spawnMenuParticles();
+            // spawnMenuParticles() deferred until loadAllAssets is ready
             animate();
         }
 
@@ -1785,6 +1804,9 @@
             // Enable start menu (remove loading state)
             if (inStartMenu) {
                 document.getElementById('start-menu').classList.remove('menu-loading');
+                if (window.menuPlatformGroup) window.menuPlatformGroup.visible = true;
+                spawnMenuParticles();
+                
                 // Set menu camera: slightly elevated, closer up
                 camPitch = 12;
                 targetPitch = 12;
