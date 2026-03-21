@@ -1825,7 +1825,18 @@
                 { key: 'campfire', path: naturePath + 'campfire_stones.glb' },
                 { key: 'logs', path: naturePath + 'log_stack.glb' },
                 { key: 'obelisk', path: naturePath + 'statue_obelisk.glb' },
-                { key: 'dirt_row', path: naturePath + 'crops_dirtRow.glb' }
+                { key: 'dirt_row', path: naturePath + 'crops_dirtRow.glb' },
+                { key: 'river', path: naturePath + 'ground_riverStraight.glb' },
+                { key: 'lily', path: naturePath + 'lily_large.glb' },
+                { key: 'coin', path: platformPath + 'coin-gold.glb' },
+                { key: 'jewel', path: platformPath + 'jewel.glb' },
+                { key: 'star', path: platformPath + 'star.glb' },
+                { key: 'key', path: platformPath + 'key.glb' },
+                { key: 'statue_head', path: naturePath + 'statue_head.glb' },
+                { key: 'statue_ring', path: naturePath + 'statue_ring.glb' },
+                { key: 'mushrooms', path: naturePath + 'mushrooms.glb' },
+                { key: 'grass_clump', path: naturePath + 'grass.glb' },
+                { key: 'fence_planks', path: platformPath + 'fence_planks.glb' }
             ];
 
             await Promise.all(assetsToLoad.map(a => {
@@ -1859,143 +1870,207 @@
             buildLevel(currentLevel);
         }
 
+        function spawnNewTypeCollectible(x, z, forceType = null) {
+            const types = ['coin', 'coin', 'coin', 'jewel', 'star'];
+            const type = forceType || types[Math.floor(Math.random() * types.length)];
+            if (!newTypeAssets[type]) return;
+
+            const mesh = newTypeAssets[type].clone();
+            const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
+            mesh.position.set(px, 150, pz);
+            mesh.scale.set(700, 700, 700);
+            if (type === 'key') mesh.rotation.set(Math.PI/2, 0, 0); // Orient key
+            levelGroup.add(mesh);
+            shards.push(mesh); 
+            
+            const col = type === 'jewel' ? 0xff0000 : (type === 'star' ? 0xffff00 : (type === 'key' ? 0xffcc00 : 0x00ffcc));
+            const light = new THREE.PointLight(col, 150, 1000);
+            light.position.set(px, 200, pz);
+            levelGroup.add(light);
+        }
+
         function buildNewTypeLevel1() {
             log("Building Enhanced Nature Level 1...", "info");
             
             const num = 1;
             const mapData = maps[num];
             
-            // New Type Styling: Cleared Fog & Softer Lighting
+            // Environment Tuning
             const skyCol = 0x87CEEB;
             scene.background = new THREE.Color(skyCol);
-            // Significantly reduce fog density to remove the "cloudy haze"
             scene.fog = new THREE.FogExp2(skyCol, 0.00006);
             
             const ambLight = scene.children.find(l => l instanceof THREE.AmbientLight);
-            if (ambLight) ambLight.intensity = 1.2; // Reduced from 1.8 to prevent washing out
+            if (ambLight) ambLight.intensity = 1.2;
             if (nikoLight) {
                 nikoLight.color.set(0xffffff);
-                nikoLight.intensity = 1500; // Boost point light locally
+                nikoLight.intensity = 1500;
             }
 
-            for (let z = 0; z < mapData.grid.length; z++) {
-                for (let x = 0; x < mapData.grid[z].length; x++) {
+            // EXTENDED BOUNDARY: Add a river moat around the map
+            const expSize = 3; 
+            for (let z = -expSize; z < mapData.grid.length + expSize; z++) {
+                for (let x = -expSize; x < mapData.grid[0].length + expSize; x++) {
                     const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
+                    const isOutside = x < 0 || x >= mapData.grid[0].length || z < 0 || z >= mapData.grid.length;
                     
+                    if (isOutside) {
+                        if (newTypeAssets.river) {
+                            const river = newTypeAssets.river.clone();
+                            river.position.set(px, 0, pz);
+                            river.scale.set(900, 900, 900);
+                            river.rotation.y = (x % 2 === 0) ? 0 : Math.PI;
+                            levelGroup.add(river);
+                        }
+                        if (Math.abs(x) > mapData.grid[0].length || Math.abs(z) > mapData.grid.length) {
+                             if (newTypeAssets.tree) {
+                                const t = newTypeAssets.tree.clone();
+                                t.position.set(px, 0, pz);
+                                t.scale.set(1500, 1500, 1500);
+                                levelGroup.add(t);
+                             }
+                        }
+                        continue;
+                    }
+
+                    // INSIDE GRID
+                    const cell = mapData.grid[z][x];
+                    
+                    // INTERNAL RIVER LOGIC
+                    let hasInternalRiver = false;
+                    if (cell === 0 && (x+z) % 11 === 0 && x > 2 && z > 2) {
+                        hasInternalRiver = true;
+                    }
+
                     // GROUND
-                    let groundType = 'ground';
-                    // Use dirt rows for some path sections
-                    if (mapData.grid[z][x] === 0 && (x + z) % 7 === 0) groundType = 'dirt_row';
+                    let groundType = (cell === 0 && (x + z) % 7 === 0) ? 'dirt_row' : 'ground';
+                    if (hasInternalRiver) groundType = 'river';
 
                     if (newTypeAssets[groundType]) {
                         const ground = newTypeAssets[groundType].clone();
                         ground.position.set(px, 0, pz);
                         ground.scale.set(900, 900, 900);
+                        if (hasInternalRiver) ground.rotation.y = (x % 2 === 0) ? 0 : Math.PI / 2;
                         levelGroup.add(ground);
                         roads.push(ground);
                     }
 
-                    if (mapData.grid[z][x] === 1) {
-                        // WALL CELL
+                    if (cell === 1) {
+                        // WALL CELL: DENSE FOREST BARRIER
                         obstacleCells.add(`${x},${z}`);
 
-                        // Choose random Rock type
-                        const rockType = Math.random() > 0.3 ? 'rock' : 'stone_tall';
-                        if (newTypeAssets[rockType]) {
-                            const r = newTypeAssets[rockType].clone();
-                            r.position.set(px, 0, pz);
-                            r.scale.set(1000, 1000, 1000); 
-                            r.rotation.y = Math.random() * Math.PI;
-                            levelGroup.add(r);
-                            walls.push(r);
+                        // Ruins?
+                        if (Math.random() > 0.9) {
+                            const rType = Math.random() > 0.5 ? 'statue_head' : 'statue_ring';
+                            if (newTypeAssets[rType]) {
+                                const st = newTypeAssets[rType].clone();
+                                st.position.set(px, 0, pz);
+                                st.scale.set(1000, 1000, 1000);
+                                levelGroup.add(st);
+                            }
                         }
 
-                        // Choose random Tree type
-                        const treeType = Math.random() > 0.4 ? 'tree_detailed' : 'tree';
-                        if (newTypeAssets[treeType]) {
-                            const t = newTypeAssets[treeType].clone();
-                            t.position.set(px, 0, pz);
-                            t.scale.set(1200, 1200, 1200);
-                            t.rotation.y = Math.random() * Math.PI;
-                            levelGroup.add(t);
-                            walls.push(t);
+                        // Dense Rocks
+                        for (let i = 0; i < 3; i++) {
+                            const rType = Math.random() > 0.5 ? 'rock' : 'stone_tall';
+                            if (newTypeAssets[rType]) {
+                                const r = newTypeAssets[rType].clone();
+                                const ox = (Math.random()-0.5)*1200, oz = (Math.random()-0.5)*1200;
+                                r.position.set(px + ox, 0, pz + oz);
+                                r.scale.set(800 + Math.random()*500, 800 + Math.random()*500, 800 + Math.random()*500);
+                                r.rotation.y = Math.random() * Math.PI;
+                                levelGroup.add(r);
+                                walls.push(r);
+                            }
                         }
 
-                        // Decorative Bush
-                        if (newTypeAssets.bush) {
-                            const b = newTypeAssets.bush.clone();
-                            const ox = (Math.random()-0.5)*1000, oz = (Math.random()-0.5)*1000;
-                            b.position.set(px + ox, 0, pz + oz);
-                            b.scale.set(600, 600, 600);
-                            levelGroup.add(b);
+                        // Dense Trees
+                        for (let i = 0; i < 5; i++) {
+                            const tType = Math.random() > 0.5 ? 'tree_detailed' : 'tree';
+                            if (newTypeAssets[tType]) {
+                                const t = newTypeAssets[tType].clone();
+                                const ox = (Math.random()-0.5)*1400, oz = (Math.random()-0.5)*1400;
+                                t.position.set(px + ox, 0, pz + oz);
+                                t.scale.set(1200 + Math.random()*600, 1200 + Math.random()*600, 1200 + Math.random()*600);
+                                t.rotation.y = Math.random() * Math.PI;
+                                levelGroup.add(t);
+                                walls.push(t);
+                            }
+                        }
+
+                        // Mushrooms and Grass at base
+                        for (let i = 0; i < 6; i++) {
+                            const fType = Math.random() > 0.7 ? 'mushrooms' : 'grass_clump';
+                            if (newTypeAssets[fType]) {
+                                const f = newTypeAssets[fType].clone();
+                                const ox = (Math.random()-0.5)*1500, oz = (Math.random()-0.5)*1500;
+                                f.position.set(px + ox, 0, pz + oz);
+                                f.scale.set(400, 400, 400);
+                                levelGroup.add(f);
+                            }
                         }
                     } else {
                         // PATH CELL
-                        // Landmark: Obelisks
-                        if ((x === 5 && z === 10) || (x === 12 && z === 5)) {
-                            if (newTypeAssets.obelisk) {
-                                const ob = newTypeAssets.obelisk.clone();
-                                ob.position.set(px, 0, pz);
-                                ob.scale.set(1200, 1200, 1200);
-                                levelGroup.add(ob);
-                                obstacleCells.add(`${x},${z}`); // Make it an obstacle
-                            }
-                        }
-                        // Landmark: Camp Area
-                        else if (x === 8 && z === 8) {
-                            if (newTypeAssets.tent) {
-                                const tent = newTypeAssets.tent.clone();
-                                tent.position.set(px + 400, 0, pz + 400);
-                                tent.scale.set(800, 800, 800);
-                                levelGroup.add(tent);
-                            }
-                            if (newTypeAssets.campfire) {
-                                const fire = newTypeAssets.campfire.clone();
-                                fire.position.set(px - 300, 0, pz - 300);
-                                fire.scale.set(600, 600, 600);
-                                levelGroup.add(fire);
-                            }
-                            if (newTypeAssets.logs) {
-                                const logs = newTypeAssets.logs.clone();
-                                logs.position.set(px - 500, 0, pz + 300);
-                                logs.scale.set(700, 700, 700);
-                                levelGroup.add(logs);
-                            }
-                        }
-                        // Landmark: Bridge
-                        else if (x === 15 && z === 15) {
+                        if (hasInternalRiver) {
                             if (newTypeAssets.bridge_stone) {
-                                const bridge = newTypeAssets.bridge_stone.clone();
-                                bridge.position.set(px, 0, pz);
-                                bridge.scale.set(1000, 1000, 1000);
-                                levelGroup.add(bridge);
+                                const br = newTypeAssets.bridge_stone.clone();
+                                br.position.set(px, 0, pz);
+                                br.scale.set(1000, 1000, 1000);
+                                br.rotation.y = (x % 2 === 0) ? Math.PI / 2 : 0;
+                                levelGroup.add(br);
                             }
-                        }
-                        else {
-                            // Flora
-                            if (Math.random() < 0.1 && newTypeAssets.bush) {
-                                const b = newTypeAssets.bush.clone();
-                                const ox = (Math.random()-0.5)*1400, oz = (Math.random()-0.5)*1400;
-                                b.position.set(px + ox, 0, pz + oz);
-                                b.scale.set(400, 400, 400);
-                                levelGroup.add(b);
+                            if (newTypeAssets.lily && Math.random() > 0.5) {
+                                const lily = newTypeAssets.lily.clone();
+                                const ox = (Math.random()-0.5)*800, oz = (Math.random()-0.5)*800;
+                                lily.position.set(px + ox, 10, pz + oz);
+                                lily.scale.set(300, 300, 300);
+                                levelGroup.add(lily);
                             }
-                            if (Math.random() < 0.2 && newTypeAssets.flower) {
-                                const fl = newTypeAssets.flower.clone();
-                                const ox = (Math.random()-0.5)*1500, oz = (Math.random()-0.5)*1500;
-                                fl.position.set(px + ox, 0, pz + oz);
-                                fl.scale.set(500, 500, 500);
-                                levelGroup.add(fl);
+                        } else {
+                            // Landmarks
+                            if ((x === 5 && z === 10) || (x === 12 && z === 5)) {
+                                if (newTypeAssets.obelisk) {
+                                    const ob = newTypeAssets.obelisk.clone();
+                                    ob.position.set(px, 0, pz);
+                                    ob.scale.set(1200, 1200, 1200);
+                                    levelGroup.add(ob);
+                                    obstacleCells.add(`${x},${z}`);
+                                }
+                            } else if (x === 8 && z === 8) {
+                                if (newTypeAssets.tent) {
+                                    const tent = newTypeAssets.tent.clone();
+                                    tent.position.set(px + 400, 0, pz + 400);
+                                    tent.scale.set(800, 800, 800);
+                                    levelGroup.add(tent);
+                                }
+                                if (newTypeAssets.campfire) {
+                                    const fire = newTypeAssets.campfire.clone();
+                                    fire.position.set(px - 300, 0, pz - 300);
+                                    fire.scale.set(600, 600, 600);
+                                    levelGroup.add(fire);
+                                }
+                            }
+                            
+                            // Guide Fences
+                            if (Math.random() > 0.9 && newTypeAssets.fence_planks) {
+                                const fence = newTypeAssets.fence_planks.clone();
+                                fence.position.set(px, 0, pz);
+                                fence.scale.set(900, 900, 900);
+                                fence.rotation.y = Math.random() * Math.PI;
+                                levelGroup.add(fence);
                             }
                         }
                         
-                        // Shards
+                        // Collectibles
                         if (Math.random() > 0.85 && (x !== mapData.start.x || z !== mapData.start.z)) {
-                            spawnShard(px, pz, 0x00ffcc);
+                            // Place a Key at a specific location, otherwise random
+                            if (x === 15 && z === 15) spawnNewTypeCollectible(x, z, 'key');
+                            else spawnNewTypeCollectible(x, z);
                         }
                     }
                 }
             }
+
             
             // Goal Orb
             goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 5 }));
