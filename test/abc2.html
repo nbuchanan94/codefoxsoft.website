@@ -1901,12 +1901,19 @@
                 return new Promise(resolve => {
                     gltfLoader.load(a.path, (gltf) => {
                         bestTypeAssets[a.key] = gltf.scene;
+                        
+                        // Compute bounding box to fix origin
+                        const box = new THREE.Box3().setFromObject(gltf.scene);
+                        const bottom = box.min.y;
                         gltf.scene.traverse(node => {
                             if (node.isMesh) {
                                 node.material.roughness = 0.8;
                                 node.material.metalness = 0.1;
+                                // Offset individual meshes within the scene to bottom-align
+                                node.position.y -= bottom;
                             }
                         });
+                        
                         resolve();
                     }, undefined, (err) => {
                         log(`Failed to load ${a.key}: ${a.path}`, "error");
@@ -1975,14 +1982,14 @@
                         if (bestTypeAssets.tree1 && Math.random() > 0.3) {
                             const t = bestTypeAssets.tree1.clone();
                             t.position.set(px + (Math.random()-0.5)*cellSize, 0, pz + (Math.random()-0.5)*cellSize);
-                            t.scale.set(1800, 1800, 1800);
+                            t.scale.set(1200, 1200, 1200); // Down from 1800
                             t.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(t);
                         }
                         if (bestTypeAssets.tree3 && Math.random() > 0.6) {
                             const t = bestTypeAssets.tree3.clone();
                             t.position.set(px + (Math.random()-0.5)*cellSize, 0, pz + (Math.random()-0.5)*cellSize);
-                            t.scale.set(2200, 2200, 2200);
+                            t.scale.set(1600, 1600, 1600); // Down from 2200
                             levelGroup.add(t);
                         }
                         continue;
@@ -2009,11 +2016,18 @@
                             levelGroup.add(p);
                         }
                         // Random Flora
-                        if (bestTypeAssets.fern && Math.random() > 0.8) {
+                        if (bestTypeAssets.fern && Math.random() > 0.85) {
                             const f = bestTypeAssets.fern.clone();
                             f.position.set(px + (Math.random()-0.5)*800, 0, pz + (Math.random()-0.5)*800);
-                            f.scale.set(600, 600, 600);
+                            f.scale.set(120, 120, 120); // Down from 600
+                            f.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(f);
+                        }
+                        if (bestTypeAssets.bush && Math.random() > 0.9) {
+                            const b = bestTypeAssets.bush.clone();
+                            b.position.set(px + (Math.random()-0.5)*800, 0, pz + (Math.random()-0.5)*800);
+                            b.scale.set(150, 150, 150);
+                            levelGroup.add(b);
                         }
                     }
 
@@ -2027,7 +2041,7 @@
                                 const t = bestTypeAssets[tKey].clone();
                                 const ox = (Math.random()-0.5)*1600, oz = (Math.random()-0.5)*1600;
                                 t.position.set(px + ox, 0, pz + oz);
-                                t.scale.set(1500 + Math.random()*800, 1500 + Math.random()*800, 1500 + Math.random()*800);
+                                t.scale.set(1000 + Math.random()*600, 1000 + Math.random()*600, 1000 + Math.random()*600); // Down from 1500-2300
                                 t.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(t);
                                 walls.push(t);
@@ -2037,7 +2051,7 @@
                         if (bestTypeAssets.rock && Math.random() > 0.4) {
                             const r = bestTypeAssets.rock.clone();
                             r.position.set(px + (Math.random()-0.5)*1200, 0, pz + (Math.random()-0.5)*1200);
-                            r.scale.set(1000 + Math.random()*1000, 1000 + Math.random()*1000, 1000 + Math.random()*1000);
+                            r.scale.set(500 + Math.random()*500, 500 + Math.random()*500, 500 + Math.random()*500); // Down from 1000-2000
                             levelGroup.add(r);
                         }
                         // Forest Floor Detail
@@ -2048,7 +2062,9 @@
                                 const d = bestTypeAssets[dKey].clone();
                                 const ox = (Math.random()-0.5)*1600, oz = (Math.random()-0.5)*1600;
                                 d.position.set(px + ox, 0, pz + oz);
-                                d.scale.set(600, 600, 600);
+                                // Much smaller floor detail
+                                const s = dKey === 'mushroom' ? 60 : (dKey === 'fern' ? 120 : 150);
+                                d.scale.set(s, s, s);
                                 levelGroup.add(d);
                             }
                         }
