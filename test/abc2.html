@@ -1900,7 +1900,7 @@
             
             // DYNAMIC SCALE RESET: Ensure standard size if Best mode is off
             if (model && window.baseModelSizeY) {
-                const s = isBestTypeMode ? 280 : 80;
+                const s = isBestTypeMode ? 180 : 80;
                 model.scale.setScalar(s / window.baseModelSizeY);
                 targetDistance = isBestTypeMode ? 800 : 450;
             }
@@ -1985,7 +1985,7 @@
             
             // DYNAMIC SCALE TOGGLE: Scale character and pull camera for Nature mode
             if (model && window.baseModelSizeY) {
-                const s = isBestTypeMode ? 280 : 80;
+                const s = isBestTypeMode ? 180 : 80;
                 model.scale.setScalar(s / window.baseModelSizeY);
                 targetDistance = isBestTypeMode ? 800 : 450;
                 log(`DYNAMIC SCALE: ${s} units`, "info");
@@ -2110,11 +2110,12 @@
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
-                                // OFFSET: Maximum pushback (750-900 units) to ensure canopies clear the path
-                                const ox = (750 + Math.random() * 100) * (Math.sign(Math.random() - 0.5) || 1);
-                                const oz = (750 + Math.random() * 100) * (Math.sign(Math.random() - 0.5) || 1);
+                                // OFFSET: Max pushback (880 units) to the very corner of the cell
+                                const ox = 880 * (Math.sign(Math.random() - 0.5) || 1);
+                                const oz = 880 * (Math.sign(Math.random() - 0.5) || 1);
                                 t.position.set(px + ox, 0, pz + oz);
-                                const s = 2500 + Math.random()*2500;
+                                // SCALE: Re-balanced (1500-2200) to ensure canopies clear the path
+                                const s = 1500 + Math.random()*700;
                                 t.scale.set(s, s, s);
                                 t.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(t);
@@ -2122,16 +2123,16 @@
                             }
                         }
                         
-                        // FILLER: Large Bushes and Ferns strictly in the wall corners
+                        // FILLER: Re-balanced Bushes strictly in the wall corners
                         for (let i = 0; i < 8; i++) {
                             const bKey = Math.random() > 0.3 ? 'bush' : 'bush_flowers';
                             if (bestTypeAssets[bKey]) {
                                 const b = bestTypeAssets[bKey].clone();
-                                // Force wall fillers back
-                                const ox = (750 + Math.random() * 100) * (Math.sign(Math.random() - 0.5) || 1);
-                                const oz = (750 + Math.random() * 100) * (Math.sign(Math.random() - 0.5) || 1);
+                                // Absolute cornering
+                                const ox = 880 * (Math.sign(Math.random() - 0.5) || 1);
+                                const oz = 880 * (Math.sign(Math.random() - 0.5) || 1);
                                 b.position.set(px + ox, 0, pz + oz);
-                                const s = 500 + Math.random()*500; 
+                                const s = 300 + Math.random()*200; 
                                 b.scale.set(s, s, s);
                                 b.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(b);
@@ -2140,8 +2141,8 @@
 
                         if (bestTypeAssets.rock && Math.random() > 0.5) {
                             const r = bestTypeAssets.rock.clone();
-                            const ox = (750 + Math.random() * 100) * (Math.sign(Math.random() - 0.5) || 1);
-                            const oz = (750 + Math.random() * 100) * (Math.sign(Math.random() - 0.5) || 1);
+                            const ox = 880 * (Math.sign(Math.random() - 0.5) || 1);
+                            const oz = 880 * (Math.sign(Math.random() - 0.5) || 1);
                             r.position.set(px + ox, 0, pz + oz);
                             r.scale.set(400 + Math.random()*400, 400 + Math.random()*400, 400 + Math.random()*400);
                             levelGroup.add(r);
@@ -3425,9 +3426,9 @@
                 const isDancing = keys['KeyN'] || keys['n'];
 
                 // NEW: Base speed logic, boosted by shardBoostTimer
-                // DYNAMIC SPEED: Boosted for larger 280-unit character in Best Nature
-                const baseWalk = isBestTypeMode ? 60 : 40;
-                const baseSprint = isBestTypeMode ? 120 : 75;
+                // DYNAMIC SPEED: Boosted slightly for 180-unit character in Best Nature
+                const baseWalk = isBestTypeMode ? 50 : 40;
+                const baseSprint = isBestTypeMode ? 100 : 75;
                 let spd = isSprinting ? baseSprint : baseWalk;
 
                 if (shardBoostTimer > 0) {
@@ -3712,7 +3713,7 @@
             // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focusY = inStartMenu ? 60 : (isBestTypeMode ? 250 : 115); 
+            const focusY = inStartMenu ? 60 : (isBestTypeMode ? 160 : 115); 
             const focusX = 0; 
             const focus = modelContainer.position.clone().add(new THREE.Vector3(focusX, focusY, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
