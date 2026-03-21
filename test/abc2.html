@@ -1027,6 +1027,7 @@
     <script type="module">
         import * as THREE from 'three';
         import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -1034,6 +1035,9 @@
         let scene, camera, renderer, composer, bloomPass, mixer, clock, model, modelContainer, fixGroup, goalOrb, nikoLight;
         let hudNotifTimer = 0;
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
+        let isNewTypeMode = false;
+        let newTypeAssets = {};
+        let assetsLoaded = false;
         let particles = [], ghosts = [], floatingTexts = [];
         let actions = {}, currentAction, activeIdleKey = 'twerk';
         let animationScores = {}; // Tracks link success %
@@ -1193,7 +1197,33 @@
             const rCtx = rC.getContext('2d');
             rCtx.fillStyle = theme.sidewalkColor; rCtx.fillRect(0, 0, 512, 512);
             rCtx.fillStyle = theme.roadColor; rCtx.fillRect(60, 0, 392, 512);
+
+            // Grid & Detail
+            rCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+            for (let i = 0; i < 512; i += 32) {
+                rCtx.beginPath(); rCtx.moveTo(i, 0); rCtx.lineTo(i, 512); rCtx.stroke();
+                rCtx.beginPath(); rCtx.moveTo(0, i); rCtx.lineTo(512, i); rCtx.stroke();
+            }
+
+            // Energy Ribbons
+            const edgeCol = new THREE.Color(theme.lightColor).getStyle();
+            const grad = rCtx.createLinearGradient(0, 0, 512, 0);
+            grad.addColorStop(0.12, edgeCol); grad.addColorStop(0.15, 'transparent');
+            grad.addColorStop(0.85, 'transparent'); grad.addColorStop(0.88, edgeCol);
+            rCtx.fillStyle = grad; rCtx.globalAlpha = 0.3; rCtx.fillRect(0,0,512,512); rCtx.globalAlpha = 1;
+
+            // Noise
+            for (let i = 0; i < 1000; i++) {
+                rCtx.fillStyle = `rgba(255,255,255,${Math.random()*0.04})`;
+                rCtx.fillRect(Math.random()*512, Math.random()*512, 1, 1);
+            }
+
             rCtx.fillStyle = '#444'; for (let i = 0; i < 512; i += 64) rCtx.fillRect(250, i, 12, 32);
+
+            const roadTex = new THREE.CanvasTexture(rC);
+            roadTex.wrapS = roadTex.wrapT = THREE.RepeatWrapping;
+            roadTex.anisotropy = 16;
+            window.currentRoadTex = roadTex;
 
             const bC = document.createElement('canvas'); bC.width = 512; bC.height = 1024;
             const bCtx = bC.getContext('2d'); bCtx.fillStyle = theme.buildColor; bCtx.fillRect(0, 0, 512, 1024);
@@ -1210,11 +1240,13 @@
                 }
             }
             return {
-                road: new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(rC) }),
+                road: new THREE.MeshStandardMaterial({ map: roadTex, roughness: 0.6, metalness: 0.2 }),
                 build: new THREE.MeshStandardMaterial({
                     map: new THREE.CanvasTexture(bC),
                     emissiveMap: new THREE.CanvasTexture(eC),
-                    emissive: 0xffffff, emissiveIntensity: theme.emissiveStrength || 1.5
+                    emissive: 0xffffff,
+                    emissiveIntensity: theme.emissiveStrength || 1.5,
+                    roughness: 0.4, metalness: 0.3
                 }),
                 lightColor: theme.lightColor
             };
@@ -1416,6 +1448,10 @@
                 if (e.code === 'Backslash') {
                     log("Developer Skip Triggered", "info");
                     startLevelTransition();
+                }
+
+                if (e.key === '1') {
+                    switchToNewType();
                 }
             });
             window.addEventListener('mousedown', (e) => {
@@ -1768,6 +1804,133 @@
             }
         }
 
+        async function loadNewTypeAssets() {
+            if (assetsLoaded) return;
+            log("Loading New Type Assets (Kenney)...", "info");
+            const gltfLoader = new GLTFLoader();
+            const naturePath = 'platformer/nature/Models/GLTF format/';
+            const platformPath = 'platformer/platformer/Models/GLB format/';
+
+            const assetsToLoad = [
+                { key: 'grass', path: platformPath + 'block-grass.glb' },
+                { key: 'tree', path: naturePath + 'tree_default.glb' },
+                { key: 'rock', path: naturePath + 'rock_largeA.glb' },
+                { key: 'flower', path: naturePath + 'flower_redA.glb' },
+                { key: 'fence', path: platformPath + 'fence-straight.glb' }
+            ];
+
+            await Promise.all(assetsToLoad.map(a => {
+                return new Promise(resolve => {
+                    gltfLoader.load(a.path, (gltf) => {
+                        newTypeAssets[a.key] = gltf.scene;
+                        // Pre-process materials for better look in our world
+                        gltf.scene.traverse(node => {
+                            if (node.isMesh) {
+                                node.material.roughness = 0.7;
+                                node.material.metalness = 0.2;
+                            }
+                        });
+                        resolve();
+                    }, undefined, (err) => {
+                        log(`Failed to load ${a.key}: ${a.path}`, "error");
+                        resolve();
+                    });
+                });
+            }));
+
+            assetsLoaded = true;
+            log("New Type Assets Loaded!", "success");
+        }
+
+        async function switchToNewType() {
+            if (menuTransitioning) return;
+            await loadNewTypeAssets();
+            isNewTypeMode = !isNewTypeMode;
+            log(`MODE: ${isNewTypeMode ? 'NEW TYPE ENHANCED' : 'CLASSIC MAZE'}`, "success");
+            buildLevel(currentLevel);
+        }
+
+        function buildNewTypeLevel1() {
+            log("Building New Type Level 1...", "info");
+            
+            const num = 1;
+            const mapData = maps[num];
+            
+            // New Type Styling
+            scene.background = new THREE.Color(0x87CEEB); // Sky blue
+            scene.fog = new THREE.FogExp2(0x87CEEB, 0.00015);
+            
+            const ambLight = scene.children.find(l => l instanceof THREE.AmbientLight);
+            if (ambLight) ambLight.intensity = 1.8;
+            if (nikoLight) nikoLight.color.set(0xffffff);
+
+            for (let z = 0; z < mapData.grid.length; z++) {
+                for (let x = 0; x < mapData.grid[z].length; x++) {
+                    const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
+                    
+                    // Floor (Grass Block)
+                    if (newTypeAssets.grass) {
+                        const floor = newTypeAssets.grass.clone();
+                        floor.position.set(px, -20, pz);
+                        floor.scale.set(900, 900, 900);
+                        levelGroup.add(floor);
+                        roads.push(floor);
+                    }
+
+                    if (mapData.grid[z][x] === 1) {
+                        // Wall (Fence + Rock)
+                        if (newTypeAssets.fence) {
+                            const f = newTypeAssets.fence.clone();
+                            f.position.set(px, 0, pz);
+                            f.scale.set(900, 900, 900);
+                            levelGroup.add(f);
+                        }
+                        if (newTypeAssets.rock) {
+                            const r = newTypeAssets.rock.clone();
+                            r.position.set(px, 50, pz);
+                            r.scale.set(400 + Math.random()*200, 400 + Math.random()*200, 400 + Math.random()*200);
+                            r.rotation.y = Math.random() * Math.PI;
+                            levelGroup.add(r);
+                            walls.push(r);
+                        }
+                        obstacleCells.add(`${x},${z}`);
+                    } else {
+                        // Path decoration
+                        if (Math.random() < 0.15 && newTypeAssets.tree) {
+                            const t = newTypeAssets.tree.clone();
+                            const ox = (Math.random()-0.5)*800, oz = (Math.random()-0.5)*800;
+                            t.position.set(px + ox, 0, pz + oz);
+                            t.scale.set(600, 600, 600);
+                            t.rotation.y = Math.random() * Math.PI;
+                            levelGroup.add(t);
+                        }
+                        if (Math.random() < 0.1 && newTypeAssets.flower) {
+                            const fl = newTypeAssets.flower.clone();
+                            const ox = (Math.random()-0.5)*1200, oz = (Math.random()-0.5)*1200;
+                            fl.position.set(px + ox, 0, pz + oz);
+                            fl.scale.set(400, 400, 400);
+                            levelGroup.add(fl);
+                        }
+                        
+                        if (Math.random() > 0.8 && (x !== mapData.start.x || z !== mapData.start.z)) {
+                            spawnShard(px, pz, 0x00ffcc);
+                        }
+                    }
+                }
+            }
+            
+            // Goal Orb
+            goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 5 }));
+            const gx = mapData.goal.x * cellSize - mapOffset;
+            const gz = mapData.goal.z * cellSize - mapOffset;
+            goalOrb.position.set(gx, 300, gz);
+            levelGroup.add(goalOrb);
+
+            document.getElementById('lvl-name').innerText = `LEVEL ${num}: ENHANCED NATURE`;
+            document.getElementById('intro-title').innerText = "ENHANCED NATURE";
+            if (bloomPass) bloomPass.strength = 0.4;
+        }
+
         // ===== START MENU SYSTEM =====
         function menuFlash() {
             const flash = document.getElementById('menu-flash');
@@ -1949,6 +2112,11 @@
             movingGoalIndex = 0;
             movingGoalBasePos = null;
 
+            if (isNewTypeMode && num === 1) {
+                buildNewTypeLevel1();
+                return;
+            }
+
             const theme = themes[num];
             const mapData = maps[num];
             const features = levelFeatures[num] || {};
@@ -1976,15 +2144,30 @@
                     }
                     const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
                     if (mapData.grid[z][x] === 1) {
-                        let geo;
-                        if (wallShape === 'cylinder') {
-                            geo = new THREE.CylinderGeometry(cellSize * 0.5, cellSize * 0.55, wallH, 8);
-                        } else if (wallShape === 'blade') {
-                            geo = new THREE.BoxGeometry(cellSize * 0.35, wallH, cellSize * 0.35);
-                        } else {
-                            geo = new THREE.BoxGeometry(cellSize, wallH, cellSize);
-                        }
                         const b = new THREE.Mesh(geo, mats.build);
+                        
+                        // BEEF UP: Structural details for boxes/canals
+                        if (wallShape === 'box') {
+                            if (Math.random() > 0.5) {
+                                // Vertical Ribs
+                                const ribGeo = new THREE.BoxGeometry(cellSize * 0.15, wallH, cellSize * 1.05);
+                                const rib = new THREE.Mesh(ribGeo, mats.build);
+                                b.add(rib);
+                            }
+                            if (Math.random() > 0.5) {
+                                // Horizontal Bands
+                                const bandGeo = new THREE.BoxGeometry(cellSize * 1.1, wallH * 0.1, cellSize * 1.1);
+                                const band = new THREE.Mesh(bandGeo, mats.build);
+                                band.position.y = (Math.random() - 0.5) * wallH * 0.5;
+                                b.add(band);
+                            }
+                        } else if (wallShape === 'cylinder') {
+                             // Added "collar" to pillars
+                             const collarGeo = new THREE.CylinderGeometry(cellSize * 0.58, cellSize * 0.58, wallH * 0.05, 12);
+                             const collar = new THREE.Mesh(collarGeo, mats.build);
+                             collar.position.y = wallH * 0.2;
+                             b.add(collar);
+                        }
                         // Add palm trees on level 1 (randomly on some walls)
                         if (num === 1 && Math.random() < 0.2) {
                             const palmGeo = new THREE.CylinderGeometry(10, 10, 200, 6);
@@ -2066,6 +2249,25 @@
             }
             goalOrb.position.set(mapData.goal.x * cellSize - mapOffset, 300, mapData.goal.z * cellSize - mapOffset);
             levelGroup.add(goalOrb);
+
+            // DISTANT ENVIRONMENT: Sprawling low-poly city silhouettes
+            for (let i = 0; i < 30; i++) {
+                const h = 8000 + Math.random() * 18000;
+                const w = 2000 + Math.random() * 5000;
+                const ebGeo = new THREE.BoxGeometry(w, h, w);
+                const ebMat = new THREE.MeshStandardMaterial({
+                    color: 0x000000,
+                    emissive: theme.lightColor,
+                    emissiveIntensity: 0.04 + Math.random() * 0.08,
+                    transparent: true,
+                    opacity: 0.7
+                });
+                const eb = new THREE.Mesh(ebGeo, ebMat);
+                const a = Math.random() * Math.PI * 2;
+                const d = 25000 + Math.random() * 20000;
+                eb.position.set(Math.cos(a) * d, h * 0.4 - 5000, Math.sin(a) * d);
+                levelGroup.add(eb);
+            }
 
             // ----- Level features: geometry, gates, platforms, patrols, etc. -----
             const grid = mapData.grid;
@@ -2509,6 +2711,11 @@
             requestAnimationFrame(animate);
             if (isPaused) return;
             const delta = clock.getDelta();
+
+            // Scrolling Road Texture (Cyberpunk feel)
+            if (window.currentRoadTex && gameActive) {
+                window.currentRoadTex.offset.y -= delta * 1.5;
+            }
 
             // NEW: Update shard boost timer
             if (shardBoostTimer > 0) {
