@@ -1900,7 +1900,7 @@
             
             // DYNAMIC SCALE RESET: Ensure standard size if Best mode is off
             if (model && window.baseModelSizeY) {
-                const s = isBestTypeMode ? 180 : 80;
+                const s = isBestTypeMode ? 200 : 80;
                 model.scale.setScalar(s / window.baseModelSizeY);
                 targetDistance = isBestTypeMode ? 800 : 450;
             }
@@ -1985,7 +1985,7 @@
             
             // DYNAMIC SCALE TOGGLE: Scale character and pull camera for Nature mode
             if (model && window.baseModelSizeY) {
-                const s = isBestTypeMode ? 180 : 80;
+                const s = isBestTypeMode ? 200 : 80;
                 model.scale.setScalar(s / window.baseModelSizeY);
                 targetDistance = isBestTypeMode ? 800 : 450;
                 log(`DYNAMIC SCALE: ${s} units`, "info");
@@ -2058,18 +2058,21 @@
                     const isOutside = x < 0 || x >= mapData.grid[0].length || z < 0 || z >= mapData.grid.length;
                     
                     if (isOutside) {
-                        // Dense Forest Perimeter
-                        if (bestTypeAssets.tree1 && Math.random() > 0.3) {
+                        // STRICT PERIMETER: Push trees 1500+ units away from the maze boundary
+                        const pushX = (x < 0 ? -1500 : (x >= width ? 1500 : 0));
+                        const pushZ = (z < 0 ? -1500 : (z >= height ? 1500 : 0));
+                        
+                        if (bestTypeAssets.tree1 && Math.random() > 0.4) {
                             const t = bestTypeAssets.tree1.clone();
-                            t.position.set(px + (Math.random()-0.5)*cellSize, 0, pz + (Math.random()-0.5)*cellSize);
-                            t.scale.set(1200, 1200, 1200); // Down from 1800
+                            t.position.set(px + pushX + (Math.random()-0.5)*cellSize, 0, pz + pushZ + (Math.random()-0.5)*cellSize);
+                            t.scale.set(800, 800, 800); 
                             t.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(t);
                         }
-                        if (bestTypeAssets.tree3 && Math.random() > 0.6) {
+                        if (bestTypeAssets.tree3 && Math.random() > 0.7) {
                             const t = bestTypeAssets.tree3.clone();
-                            t.position.set(px + (Math.random()-0.5)*cellSize, 0, pz + (Math.random()-0.5)*cellSize);
-                            t.scale.set(1600, 1600, 1600); // Down from 2200
+                            t.position.set(px + pushX + (Math.random()-0.5)*cellSize, 0, pz + pushZ + (Math.random()-0.5)*cellSize);
+                            t.scale.set(1000, 1000, 1000); 
                             levelGroup.add(t);
                         }
                         continue;
@@ -2110,12 +2113,12 @@
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
-                                // OFFSET: Max pushback (880 units) to the very corner of the cell
+                                // OFFSET: Absolute Corner Lock (880 units)
                                 const ox = 880 * (Math.sign(Math.random() - 0.5) || 1);
                                 const oz = 880 * (Math.sign(Math.random() - 0.5) || 1);
                                 t.position.set(px + ox, 0, pz + oz);
-                                // SCALE: Re-balanced (1500-2200) to ensure canopies clear the path
-                                const s = 1500 + Math.random()*700;
+                                // SCALE: Shrink-to-fit (800-1200) to guarantee path clearance
+                                const s = 800 + Math.random()*400;
                                 t.scale.set(s, s, s);
                                 t.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(t);
@@ -2123,16 +2126,15 @@
                             }
                         }
                         
-                        // FILLER: Re-balanced Bushes strictly in the wall corners
+                        // FILLER: Discrete Bushes strictly in cell corners
                         for (let i = 0; i < 8; i++) {
                             const bKey = Math.random() > 0.3 ? 'bush' : 'bush_flowers';
                             if (bestTypeAssets[bKey]) {
                                 const b = bestTypeAssets[bKey].clone();
-                                // Absolute cornering
                                 const ox = 880 * (Math.sign(Math.random() - 0.5) || 1);
                                 const oz = 880 * (Math.sign(Math.random() - 0.5) || 1);
                                 b.position.set(px + ox, 0, pz + oz);
-                                const s = 300 + Math.random()*200; 
+                                const s = 200 + Math.random()*150; 
                                 b.scale.set(s, s, s);
                                 b.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(b);
@@ -2144,7 +2146,7 @@
                             const ox = 880 * (Math.sign(Math.random() - 0.5) || 1);
                             const oz = 880 * (Math.sign(Math.random() - 0.5) || 1);
                             r.position.set(px + ox, 0, pz + oz);
-                            r.scale.set(400 + Math.random()*400, 400 + Math.random()*400, 400 + Math.random()*400);
+                            r.scale.set(300 + Math.random()*200, 300 + Math.random()*200, 300 + Math.random()*200);
                             levelGroup.add(r);
                         }
                     }
@@ -3426,9 +3428,9 @@
                 const isDancing = keys['KeyN'] || keys['n'];
 
                 // NEW: Base speed logic, boosted by shardBoostTimer
-                // DYNAMIC SPEED: Boosted slightly for 180-unit character in Best Nature
-                const baseWalk = isBestTypeMode ? 50 : 40;
-                const baseSprint = isBestTypeMode ? 100 : 75;
+                // DYNAMIC SPEED: Re-balanced for 200-unit giant size
+                const baseWalk = isBestTypeMode ? 55 : 40;
+                const baseSprint = isBestTypeMode ? 110 : 75;
                 let spd = isSprinting ? baseSprint : baseWalk;
 
                 if (shardBoostTimer > 0) {
@@ -3713,7 +3715,7 @@
             // --- UNIVERSAL CAMERA & OBJECT UPDATES ---
             const sX = (Math.random() - 0.5) * shakeIntensity;
             const sY = (Math.random() - 0.5) * shakeIntensity;
-            const focusY = inStartMenu ? 60 : (isBestTypeMode ? 160 : 115); 
+            const focusY = inStartMenu ? 60 : (isBestTypeMode ? 180 : 115); 
             const focusX = 0; 
             const focus = modelContainer.position.clone().add(new THREE.Vector3(focusX, focusY, 0));
             const pr = THREE.MathUtils.degToRad(camPitch);
