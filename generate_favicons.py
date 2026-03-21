@@ -13,7 +13,7 @@ def generate_favicons(source_file):
 
         # Favicon sizes
         icon_sizes = [(16, 16), (32, 32), (48, 48)]
-        img.save('favicon.ico', sizes=icon_sizes)
+        img.save(os.path.join(os.path.dirname(source_file), 'favicon.ico'), sizes=icon_sizes)
         print("Generated favicon.ico")
 
         # PNG Favicons
@@ -27,11 +27,12 @@ def generate_favicons(source_file):
 
         for filename, size in sizes.items():
             resized_img = img.resize(size, Image.Resampling.LANCZOS)
-            resized_img.save(filename)
-            print(f"Generated {filename}")
+            output_path = os.path.join(os.path.dirname(source_file), filename)
+            resized_img.save(output_path)
+            print(f"Generated {output_path}")
 
     except Exception as e:
         print(f"Error generating favicons: {e}")
 
 if __name__ == "__main__":
-    generate_favicons("favicon.png")
+    generate_favicons("resImg/logo/codefox-logo.png")
