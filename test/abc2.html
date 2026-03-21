@@ -1908,15 +1908,25 @@
 
             const assetsToLoad = [
                 { key: 'tree1', path: bestPath + 'CommonTree_1.gltf' },
-                { key: 'tree2', path: bestPath + 'TwistedTree_1.gltf' },
+                { key: 'tree2', path: bestPath + 'CommonTree_2.gltf' },
                 { key: 'tree3', path: bestPath + 'Pine_1.gltf' },
+                { key: 'tree4', path: bestPath + 'Pine_3.gltf' },
                 { key: 'tree_dead', path: bestPath + 'DeadTree_1.gltf' },
                 { key: 'bush', path: bestPath + 'Bush_Common.gltf' },
+                { key: 'bush_flowers', path: bestPath + 'Bush_Common_Flowers.gltf' },
                 { key: 'fern', path: bestPath + 'Fern_1.gltf' },
+                { key: 'clover', path: bestPath + 'Clover_1.gltf' },
+                { key: 'flower_group', path: bestPath + 'Flower_3_Group.gltf' },
                 { key: 'mushroom', path: bestPath + 'Mushroom_common.gltf' },
                 { key: 'rock', path: bestPath + 'Rock_Medium_1.gltf' },
-                { key: 'path_round', path: bestPath + 'RockPath_Round_Small_1.gltf' },
-                { key: 'grass_short', path: bestPath + 'Grass_Common_Short.gltf' }
+                { key: 'grass_short', path: bestPath + 'Grass_Common_Short.gltf' },
+                { key: 'grass_tall', path: bestPath + 'Grass_Common_Tall.gltf' },
+                { key: 'grass_wispy', path: bestPath + 'Grass_Wispy_Tall.gltf' },
+                // Collectibles (re-use from platformer/ if needed, but we'll use keys here)
+                { key: 'coin', path: 'platformer/gold_coin.glb' },
+                { key: 'jewel', path: 'platformer/jewel.glb' },
+                { key: 'star', path: 'platformer/star.glb' },
+                { key: 'key', path: 'platformer/key.glb' }
             ];
 
             await Promise.all(assetsToLoad.map(a => {
@@ -1967,12 +1977,15 @@
             buildLevel(currentLevel);
         }
 
-        function spawnNewTypeCollectible(x, z, forceType = null) {
+                function spawnNewTypeCollectible(x, z, forceType = null) {
             const types = ['coin', 'coin', 'coin', 'jewel', 'star'];
             const type = forceType || types[Math.floor(Math.random() * types.length)];
-            if (!newTypeAssets[type]) return;
+            
+            // Search both asset packs
+            const asset = bestTypeAssets[type] || newTypeAssets[type];
+            if (!asset) return;
 
-            const mesh = newTypeAssets[type].clone();
+            const mesh = asset.clone();
             const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
             mesh.position.set(px, 150, pz);
             mesh.scale.set(700, 700, 700);
@@ -2003,6 +2016,25 @@
                 nikoLight.intensity = 1800;
             }
 
+            // --- LUSH GROUND PLANE ---
+            // Create a huge base plane to ensure the ground is never empty "blue"
+            const groundSize = 30000;
+            const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize);
+            const texLoader = new THREE.TextureLoader();
+            const grassTex = texLoader.load('platformer/best/glTF/Grass.png');
+            grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping;
+            grassTex.repeat.set(20, 20); // Tile the texture
+            const groundMat = new THREE.MeshStandardMaterial({ 
+                map: grassTex, 
+                color: 0x228B22, // Forest Green fallback/tint
+                roughness: 0.9,
+                metalness: 0.0
+            });
+            const groundPlane = new THREE.Mesh(groundGeo, groundMat);
+            groundPlane.rotation.x = -Math.PI / 2;
+            groundPlane.position.y = -20; // Slightly below grass clumps
+            levelGroup.add(groundPlane);
+
             const expSize = 4; // Larger boundary for "Best"
             for (let z = -expSize; z < mapData.grid.length + expSize; z++) {
                 for (let x = -expSize; x < mapData.grid[0].length + expSize; x++) {
@@ -2029,51 +2061,59 @@
 
                     const cell = mapData.grid[z][x];
                     
-                    // GROUND: Detailed Rock Path + Grass Base
-                    if (bestTypeAssets.grass_short) {
-                        const g = bestTypeAssets.grass_short.clone();
-                        g.position.set(px, -15, pz); // Nudge down slightly to be below feet
-                        g.scale.set(900, 900, 900);
-                        levelGroup.add(g);
-                        roads.push(g);
+                    // --- DENSE SCATTERING ---
+                    // Place 3-5 random grass clumps per cell for a lush feel
+                    const scatterCount = isOutside ? 2 : 4;
+                    for (let i = 0; i < scatterCount; i++) {
+                        const gPool = ['grass_short', 'grass_tall', 'grass_wispy', 'clover'];
+                        const gKey = gPool[Math.floor(Math.random() * gPool.length)];
+                        if (bestTypeAssets[gKey]) {
+                            const g = bestTypeAssets[gKey].clone();
+                            const ox = (Math.random()-0.5)*cellSize, oz = (Math.random()-0.5)*cellSize;
+                            g.position.set(px + ox, -15, pz + oz);
+                            const s = 700 + Math.random() * 400;
+                            g.scale.set(s, s, s);
+                            g.rotation.y = Math.random() * Math.PI;
+                            levelGroup.add(g);
+                        }
                     }
 
                     if (cell === 0) {
-                        // Path Detail
-                        if (bestTypeAssets.path_round && Math.random() > 0.6) {
+                        // Path Detail: Pebble/Rock Path
+                        if (bestTypeAssets.path_round && Math.random() > 0.4) {
                             const p = bestTypeAssets.path_round.clone();
-                            p.position.set(px + (Math.random()-0.5)*500, 5, pz + (Math.random()-0.5)*500); // Nudge up to sit on grass
-                            p.scale.set(600, 600, 600); // Smaller than before
+                            p.position.set(px + (Math.random()-0.5)*800, 5, pz + (Math.random()-0.5)*800);
+                            p.scale.set(600, 600, 600);
                             p.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(p);
                         }
-                        // Random Flora
-                        if (bestTypeAssets.fern && Math.random() > 0.9) { // Less frequent
-                            const f = bestTypeAssets.fern.clone();
-                            f.position.set(px + (Math.random()-0.5)*800, 0, pz + (Math.random()-0.5)*800);
-                            f.scale.set(80, 80, 80); // Even smaller
-                            f.rotation.y = Math.random() * Math.PI;
-                            levelGroup.add(f);
-                        }
-                        if (bestTypeAssets.bush && Math.random() > 0.95) { // Less frequent
-                            const b = bestTypeAssets.bush.clone();
-                            b.position.set(px + (Math.random()-0.5)*800, 0, pz + (Math.random()-0.5)*800);
-                            b.scale.set(100, 100, 100); // Even smaller
-                            levelGroup.add(b);
+                        // Path Flora: Keep it very small and non-obstructive
+                        if (Math.random() > 0.8) {
+                            const fPool = ['fern', 'mushroom', 'flower_group'];
+                            const fKey = fPool[Math.floor(Math.random() * fPool.length)];
+                            if (bestTypeAssets[fKey]) {
+                                const f = bestTypeAssets[fKey].clone();
+                                const ox = (Math.random()-0.5)*1200, oz = (Math.random()-0.5)*1200;
+                                f.position.set(px + ox, 0, pz + oz);
+                                const s = fKey === 'mushroom' ? 40 : 80;
+                                f.scale.set(s, s, s);
+                                levelGroup.add(f);
+                            }
                         }
                     }
 
                     if (cell === 1) {
                         obstacleCells.add(`${x},${z}`);
-                        // Hyper-Dense Forest Walls
+                        // Wall Cells: More conservative offsets to keep trunks deep in walls
                         for (let i = 0; i < 4; i++) {
-                            const tPool = ['tree1', 'tree2', 'tree3', 'tree_dead'];
+                            const tPool = ['tree1', 'tree2', 'tree3', 'tree4', 'tree_dead'];
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
-                                const ox = (Math.random()-0.5)*1600, oz = (Math.random()-0.5)*1600;
+                                // OFFSET REDUCED: Max 500 units from center (within 900 wall bound)
+                                const ox = (Math.random()-0.5)*1000, oz = (Math.random()-0.5)*1000;
                                 t.position.set(px + ox, 0, pz + oz);
-                                t.scale.set(1000 + Math.random()*600, 1000 + Math.random()*600, 1000 + Math.random()*600); // Down from 1500-2300
+                                t.scale.set(900 + Math.random()*500, 900 + Math.random()*500, 900 + Math.random()*500);
                                 t.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(t);
                                 walls.push(t);
@@ -2111,6 +2151,19 @@
                     }
                 }
             }
+
+            // --- GOAL ORB ---
+            goalOrb = new THREE.Mesh(new THREE.SphereGeometry(250), new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 5 }));
+            const gx = mapData.goal.x * cellSize - mapOffset;
+            const gz = mapData.goal.z * cellSize - mapOffset;
+            goalOrb.position.set(gx, 300, gz);
+            levelGroup.add(goalOrb);
+
+            // --- HUD UPDATES ---
+            document.getElementById('lvl-name').innerText = `LEVEL ${num}: BEST NATURE`;
+            document.getElementById('intro-title').innerText = "BEST NATURE";
+            document.getElementById('status-text').innerText = "DIMENSION STABLE";
+
             log("'Best' Nature Level 1 Built!", "success");
         }
 
