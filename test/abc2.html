@@ -1277,7 +1277,7 @@
             clock = new THREE.Clock();
             scene = new THREE.Scene();
 
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 10, 60000);
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 10, 100000);
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.toneMapping = THREE.ReinhardToneMapping;
@@ -2017,23 +2017,23 @@
             }
 
             // --- LUSH GROUND PLANE ---
-            // Create a huge base plane to ensure the ground is never empty "blue"
-            const groundSize = 30000;
+            const groundSize = 80000; 
             const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize);
             const texLoader = new THREE.TextureLoader();
-            const grassTex = texLoader.load('platformer/best/glTF/Grass.png');
-            grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping;
-            grassTex.repeat.set(20, 20); // Tile the texture
-            const groundMat = new THREE.MeshStandardMaterial({ 
+            const grassTex = texLoader.load('platformer/best/glTF/Grass.png', (tex) => {
+                tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+                tex.repeat.set(150, 150); // Millions of blades feel
+            });
+            const groundMat = new THREE.MeshLambertMaterial({ 
                 map: grassTex, 
-                color: 0x228B22, // Forest Green fallback/tint
-                roughness: 0.9,
-                metalness: 0.0
+                color: 0x1a4a1a, 
+                emissive: 0x051005, // Slight self-glow to ensure visibility
+                side: THREE.DoubleSide
             });
             const groundPlane = new THREE.Mesh(groundGeo, groundMat);
             groundPlane.rotation.x = -Math.PI / 2;
-            groundPlane.position.y = -20; // Slightly below grass clumps
-            levelGroup.add(groundPlane);
+            groundPlane.position.set(0, -30, 0); 
+            scene.add(groundPlane); 
 
             const expSize = 4; // Larger boundary for "Best"
             for (let z = -expSize; z < mapData.grid.length + expSize; z++) {
@@ -2062,16 +2062,21 @@
                     const cell = mapData.grid[z][x];
                     
                     // --- DENSE SCATTERING ---
-                    // Place 3-5 random grass clumps per cell for a lush feel
-                    const scatterCount = isOutside ? 2 : 4;
+                    // --- LUSH CARPET SCATTERING ---
+                    const scatterCount = isOutside ? 5 : (cell === 0 ? 2 : 16); 
                     for (let i = 0; i < scatterCount; i++) {
-                        const gPool = ['grass_short', 'grass_tall', 'grass_wispy', 'clover'];
+                        const gPool = (cell === 0) ? ['clover'] : ['grass_short', 'grass_tall', 'grass_wispy', 'clover', 'flower_group'];
                         const gKey = gPool[Math.floor(Math.random() * gPool.length)];
                         if (bestTypeAssets[gKey]) {
                             const g = bestTypeAssets[gKey].clone();
                             const ox = (Math.random()-0.5)*cellSize, oz = (Math.random()-0.5)*cellSize;
-                            g.position.set(px + ox, -15, pz + oz);
-                            const s = 700 + Math.random() * 400;
+                            g.position.set(px + ox, -20, pz + oz);
+                            
+                            // SCALING: TINY (carpet effect)
+                            let s = 10 + Math.random() * 15; 
+                            if (cell === 0) s *= 0.5; 
+                            if (gKey === 'grass_tall' || gKey === 'grass_wispy') s *= 1.5; 
+                            
                             g.scale.set(s, s, s);
                             g.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(g);
@@ -2079,41 +2084,27 @@
                     }
 
                     if (cell === 0) {
-                        // Path Detail: Pebble/Rock Path
-                        if (bestTypeAssets.path_round && Math.random() > 0.4) {
+                        // Path Detail: Tiny Pebbles only
+                        if (bestTypeAssets.path_round && Math.random() > 0.5) {
                             const p = bestTypeAssets.path_round.clone();
                             p.position.set(px + (Math.random()-0.5)*800, 5, pz + (Math.random()-0.5)*800);
-                            p.scale.set(600, 600, 600);
+                            p.scale.set(300, 300, 300);
                             p.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(p);
-                        }
-                        // Path Flora: Keep it very small and non-obstructive
-                        if (Math.random() > 0.8) {
-                            const fPool = ['fern', 'mushroom', 'flower_group'];
-                            const fKey = fPool[Math.floor(Math.random() * fPool.length)];
-                            if (bestTypeAssets[fKey]) {
-                                const f = bestTypeAssets[fKey].clone();
-                                const ox = (Math.random()-0.5)*1200, oz = (Math.random()-0.5)*1200;
-                                f.position.set(px + ox, 0, pz + oz);
-                                const s = fKey === 'mushroom' ? 40 : 80;
-                                f.scale.set(s, s, s);
-                                levelGroup.add(f);
-                            }
                         }
                     }
 
                     if (cell === 1) {
                         obstacleCells.add(`${x},${z}`);
-                        // Wall Cells: More conservative offsets to keep trunks deep in walls
-                        for (let i = 0; i < 4; i++) {
+                        // Wall Cells: Fewer trees for cleaner look, but kept in wall boundaries
+                        for (let i = 0; i < 2; i++) {
                             const tPool = ['tree1', 'tree2', 'tree3', 'tree4', 'tree_dead'];
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
-                                // OFFSET REDUCED: Max 500 units from center (within 900 wall bound)
-                                const ox = (Math.random()-0.5)*1000, oz = (Math.random()-0.5)*1000;
+                                const ox = (Math.random()-0.5)*800, oz = (Math.random()-0.5)*800; // Centered
                                 t.position.set(px + ox, 0, pz + oz);
-                                t.scale.set(900 + Math.random()*500, 900 + Math.random()*500, 900 + Math.random()*500);
+                                t.scale.set(700 + Math.random()*400, 700 + Math.random()*400, 700 + Math.random()*400); // Smaller trees
                                 t.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(t);
                                 walls.push(t);
