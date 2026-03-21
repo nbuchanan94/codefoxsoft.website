@@ -1036,8 +1036,11 @@
         let hudNotifTimer = 0;
         let currentLevel = 1, levelGroup, gameActive = false, startTime = 0;
         let isNewTypeMode = false;
+        let isBestTypeMode = false;
         let newTypeAssets = {};
+        let bestTypeAssets = {};
         let assetsLoaded = false;
+        let bestAssetsLoaded = false;
         let particles = [], ghosts = [], floatingTexts = [];
         let actions = {}, currentAction, activeIdleKey = 'twerk';
         let animationScores = {}; // Tracks link success %
@@ -1453,6 +1456,10 @@
                 if (e.key === '1') {
                     switchToNewType();
                 }
+
+                if (e.key === '2') {
+                    switchToBestType();
+                }
             });
             window.addEventListener('mousedown', (e) => {
                 if (inStartMenu || menuTransitioning) return; // Don't start game from menu clicks
@@ -1866,7 +1873,58 @@
             if (menuTransitioning) return;
             await loadNewTypeAssets();
             isNewTypeMode = !isNewTypeMode;
+            if (isNewTypeMode) isBestTypeMode = false; // Mutually exclusive
             log(`MODE: ${isNewTypeMode ? 'NEW TYPE ENHANCED' : 'CLASSIC MAZE'}`, "success");
+            buildLevel(currentLevel);
+        }
+
+        async function loadBestTypeAssets() {
+            if (bestAssetsLoaded) return;
+            log("Loading 'Best' Nature Assets (High Detail)...", "info");
+            const gltfLoader = new GLTFLoader();
+            const bestPath = 'platformer/best/glTF/';
+
+            const assetsToLoad = [
+                { key: 'tree1', path: bestPath + 'CommonTree_1.gltf' },
+                { key: 'tree2', path: bestPath + 'TwistedTree_1.gltf' },
+                { key: 'tree3', path: bestPath + 'Pine_1.gltf' },
+                { key: 'tree_dead', path: bestPath + 'DeadTree_1.gltf' },
+                { key: 'bush', path: bestPath + 'Bush_Common.gltf' },
+                { key: 'fern', path: bestPath + 'Fern_1.gltf' },
+                { key: 'mushroom', path: bestPath + 'Mushroom_common.gltf' },
+                { key: 'rock', path: bestPath + 'Rock_Medium_1.gltf' },
+                { key: 'path_round', path: bestPath + 'RockPath_Round_Small_1.gltf' },
+                { key: 'grass_short', path: bestPath + 'Grass_Common_Short.gltf' }
+            ];
+
+            await Promise.all(assetsToLoad.map(a => {
+                return new Promise(resolve => {
+                    gltfLoader.load(a.path, (gltf) => {
+                        bestTypeAssets[a.key] = gltf.scene;
+                        gltf.scene.traverse(node => {
+                            if (node.isMesh) {
+                                node.material.roughness = 0.8;
+                                node.material.metalness = 0.1;
+                            }
+                        });
+                        resolve();
+                    }, undefined, (err) => {
+                        log(`Failed to load ${a.key}: ${a.path}`, "error");
+                        resolve();
+                    });
+                });
+            }));
+
+            bestAssetsLoaded = true;
+            log("'Best' Type Assets Loaded!", "success");
+        }
+
+        async function switchToBestType() {
+            if (menuTransitioning) return;
+            await loadBestTypeAssets();
+            isBestTypeMode = !isBestTypeMode;
+            if (isBestTypeMode) isNewTypeMode = false; // Mutually exclusive
+            log(`MODE: ${isBestTypeMode ? 'BEST NATURE' : 'CLASSIC MAZE'}`, "success");
             buildLevel(currentLevel);
         }
 
@@ -1888,6 +1946,126 @@
             light.position.set(px, 200, pz);
             levelGroup.add(light);
         }
+        function buildBestTypeLevel1() {
+            log("Building 'Best' Nature Level 1...", "info");
+            
+            const num = 1;
+            const mapData = maps[num];
+            
+            // Hyper-Detailed Environment
+            const skyCol = 0xAAE5FF;
+            scene.background = new THREE.Color(skyCol);
+            scene.fog = new THREE.FogExp2(skyCol, 0.00008);
+            
+            const ambLight = scene.children.find(l => l instanceof THREE.AmbientLight);
+            if (ambLight) ambLight.intensity = 1.4;
+            if (nikoLight) {
+                nikoLight.color.set(0xffffff);
+                nikoLight.intensity = 1800;
+            }
+
+            const expSize = 4; // Larger boundary for "Best"
+            for (let z = -expSize; z < mapData.grid.length + expSize; z++) {
+                for (let x = -expSize; x < mapData.grid[0].length + expSize; x++) {
+                    const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
+                    const isOutside = x < 0 || x >= mapData.grid[0].length || z < 0 || z >= mapData.grid.length;
+                    
+                    if (isOutside) {
+                        // Dense Forest Perimeter
+                        if (bestTypeAssets.tree1 && Math.random() > 0.3) {
+                            const t = bestTypeAssets.tree1.clone();
+                            t.position.set(px + (Math.random()-0.5)*cellSize, 0, pz + (Math.random()-0.5)*cellSize);
+                            t.scale.set(1800, 1800, 1800);
+                            t.rotation.y = Math.random() * Math.PI;
+                            levelGroup.add(t);
+                        }
+                        if (bestTypeAssets.tree3 && Math.random() > 0.6) {
+                            const t = bestTypeAssets.tree3.clone();
+                            t.position.set(px + (Math.random()-0.5)*cellSize, 0, pz + (Math.random()-0.5)*cellSize);
+                            t.scale.set(2200, 2200, 2200);
+                            levelGroup.add(t);
+                        }
+                        continue;
+                    }
+
+                    const cell = mapData.grid[z][x];
+                    
+                    // GROUND: Detailed Rock Path + Grass Base
+                    if (bestTypeAssets.grass_short) {
+                        const g = bestTypeAssets.grass_short.clone();
+                        g.position.set(px, 0, pz);
+                        g.scale.set(900, 900, 900);
+                        levelGroup.add(g);
+                        roads.push(g);
+                    }
+
+                    if (cell === 0) {
+                        // Path Detail
+                        if (bestTypeAssets.path_round && Math.random() > 0.6) {
+                            const p = bestTypeAssets.path_round.clone();
+                            p.position.set(px + (Math.random()-0.5)*500, 0, pz + (Math.random()-0.5)*500);
+                            p.scale.set(800, 800, 800);
+                            p.rotation.y = Math.random() * Math.PI;
+                            levelGroup.add(p);
+                        }
+                        // Random Flora
+                        if (bestTypeAssets.fern && Math.random() > 0.8) {
+                            const f = bestTypeAssets.fern.clone();
+                            f.position.set(px + (Math.random()-0.5)*800, 0, pz + (Math.random()-0.5)*800);
+                            f.scale.set(600, 600, 600);
+                            levelGroup.add(f);
+                        }
+                    }
+
+                    if (cell === 1) {
+                        obstacleCells.add(`${x},${z}`);
+                        // Hyper-Dense Forest Walls
+                        for (let i = 0; i < 4; i++) {
+                            const tPool = ['tree1', 'tree2', 'tree3', 'tree_dead'];
+                            const tKey = tPool[Math.floor(Math.random() * tPool.length)];
+                            if (bestTypeAssets[tKey]) {
+                                const t = bestTypeAssets[tKey].clone();
+                                const ox = (Math.random()-0.5)*1600, oz = (Math.random()-0.5)*1600;
+                                t.position.set(px + ox, 0, pz + oz);
+                                t.scale.set(1500 + Math.random()*800, 1500 + Math.random()*800, 1500 + Math.random()*800);
+                                t.rotation.y = Math.random() * Math.PI;
+                                levelGroup.add(t);
+                                walls.push(t);
+                            }
+                        }
+                        // Rock Formations
+                        if (bestTypeAssets.rock && Math.random() > 0.4) {
+                            const r = bestTypeAssets.rock.clone();
+                            r.position.set(px + (Math.random()-0.5)*1200, 0, pz + (Math.random()-0.5)*1200);
+                            r.scale.set(1000 + Math.random()*1000, 1000 + Math.random()*1000, 1000 + Math.random()*1000);
+                            levelGroup.add(r);
+                        }
+                        // Forest Floor Detail
+                        for (let i = 0; i < 3; i++) {
+                            const dPool = ['mushroom', 'fern', 'bush'];
+                            const dKey = dPool[Math.floor(Math.random() * dPool.length)];
+                            if (bestTypeAssets[dKey]) {
+                                const d = bestTypeAssets[dKey].clone();
+                                const ox = (Math.random()-0.5)*1600, oz = (Math.random()-0.5)*1600;
+                                d.position.set(px + ox, 0, pz + oz);
+                                d.scale.set(600, 600, 600);
+                                levelGroup.add(d);
+                            }
+                        }
+                    }
+
+                    // Collectibles
+                    if (mapData.shards && mapData.shards.some(s => s.x === x && s.z === z)) {
+                        spawnNewTypeCollectible(x, z);
+                    }
+                    if (mapData.keyShards && mapData.keyShards.some(k => k.x === x && k.z === z)) {
+                        spawnNewTypeCollectible(x, z, 'key');
+                    }
+                }
+            }
+            log("'Best' Nature Level 1 Built!", "success");
+        }
+
 
         function buildNewTypeLevel1() {
             log("Building Enhanced Nature Level 1...", "info");
@@ -2213,6 +2391,7 @@
             }
         }
 
+
         // Expose menu functions to global scope (for HTML onclick in module)
         window.menuAction = menuAction;
         window.updateVolume = updateVolume;
@@ -2267,6 +2446,11 @@
 
             if (isNewTypeMode && num === 1) {
                 buildNewTypeLevel1();
+                return;
+            }
+
+            if (isBestTypeMode && num === 1) {
+                buildBestTypeLevel1();
                 return;
             }
 
