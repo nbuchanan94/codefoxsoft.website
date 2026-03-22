@@ -1918,16 +1918,23 @@
             const assetsToLoad = [
                 { key: 'tree1', path: bestPath + 'CommonTree_1.gltf' },
                 { key: 'tree2', path: bestPath + 'CommonTree_2.gltf' },
-                { key: 'tree3', path: bestPath + 'Pine_1.gltf' },
-                { key: 'tree4', path: bestPath + 'Pine_3.gltf' },
-                { key: 'tree_dead', path: bestPath + 'DeadTree_1.gltf' },
+                { key: 'tree3', path: bestPath + 'CommonTree_3.gltf' },
+                { key: 'tree4', path: bestPath + 'CommonTree_4.gltf' },
+                { key: 'pine1', path: bestPath + 'Pine_1.gltf' },
+                { key: 'pine2', path: bestPath + 'Pine_3.gltf' },
+                { key: 'pine3', path: bestPath + 'Pine_5.gltf' },
+                { key: 'twisted1', path: bestPath + 'TwistedTree_1.gltf' },
+                { key: 'twisted2', path: bestPath + 'TwistedTree_3.gltf' },
+                { key: 'dead', path: bestPath + 'DeadTree_1.gltf' },
                 { key: 'bush', path: bestPath + 'Bush_Common.gltf' },
                 { key: 'bush_flowers', path: bestPath + 'Bush_Common_Flowers.gltf' },
                 { key: 'fern', path: bestPath + 'Fern_1.gltf' },
                 { key: 'clover', path: bestPath + 'Clover_1.gltf' },
                 { key: 'flower_group', path: bestPath + 'Flower_3_Group.gltf' },
                 { key: 'mushroom', path: bestPath + 'Mushroom_common.gltf' },
-                { key: 'rock', path: bestPath + 'Rock_Medium_1.gltf' },
+                { key: 'rock1', path: bestPath + 'Rock_Medium_1.gltf' },
+                { key: 'rock2', path: bestPath + 'Rock_Medium_2.gltf' },
+                { key: 'rock3', path: bestPath + 'Rock_Medium_3.gltf' },
                 { key: 'grass_short', path: bestPath + 'Grass_Common_Short.gltf' },
                 { key: 'grass_tall', path: bestPath + 'Grass_Common_Tall.gltf' },
                 { key: 'grass_wispy', path: bestPath + 'Grass_Wispy_Tall.gltf' },
@@ -2059,18 +2066,18 @@
                     
                     if (isOutside) {
                         // STRICT PERIMETER: Push trees 1500+ units away from the maze boundary
-                        const pushX = (x < 0 ? -1500 : (x >= width ? 1500 : 0));
-                        const pushZ = (z < 0 ? -1500 : (z >= height ? 1500 : 0));
+                        const pushX = (x < 0 ? -1500 : (x >= mapData.grid[0].length ? 1500 : 0));
+                        const pushZ = (z < 0 ? -1500 : (z >= mapData.grid.length ? 1500 : 0));
                         
-                        if (bestTypeAssets.tree1 && Math.random() > 0.4) {
-                            const t = bestTypeAssets.tree1.clone();
+                        if (bestTypeAssets.pine1 && Math.random() > 0.4) {
+                            const t = bestTypeAssets.pine1.clone();
                             t.position.set(px + pushX + (Math.random()-0.5)*cellSize, 0, pz + pushZ + (Math.random()-0.5)*cellSize);
                             t.scale.set(800, 800, 800); 
                             t.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(t);
                         }
-                        if (bestTypeAssets.tree3 && Math.random() > 0.7) {
-                            const t = bestTypeAssets.tree3.clone();
+                        if (bestTypeAssets.pine3 && Math.random() > 0.7) {
+                            const t = bestTypeAssets.pine3.clone();
                             t.position.set(px + pushX + (Math.random()-0.5)*cellSize, 0, pz + pushZ + (Math.random()-0.5)*cellSize);
                             t.scale.set(1000, 1000, 1000); 
                             levelGroup.add(t);
@@ -2107,18 +2114,19 @@
 
                     if (cell === 1) {
                         obstacleCells.add(`${x},${z}`);
-                        // Wall Cells: Dense foliage "hedge" strictly at cell boundaries
-                        for (let i = 0; i < 4; i++) {
-                            const tPool = ['tree1', 'tree2', 'tree3', 'tree4'];
+                        // Wall Cells: Diverse Adventure Map geometry (Trees, Pines, Twisted, Dead, Rocks)
+                        for (let i = 0; i < 5; i++) {
+                            const tPool = ['tree1', 'tree2', 'tree3', 'tree4', 'pine1', 'pine2', 'pine3', 'twisted1', 'twisted2', 'dead', 'rock1', 'rock2', 'rock3'];
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
                                 // OFFSET: Absolute Corner Lock (880 units)
                                 const ox = 880 * (Math.sign(Math.random() - 0.5) || 1);
                                 const oz = 880 * (Math.sign(Math.random() - 0.5) || 1);
-                                t.position.set(px + ox, 0, pz + oz);
+                                t.position.set(px + ox, -10, pz + oz);
                                 // SCALE: Shrink-to-fit (800-1200) to guarantee path clearance
-                                const s = 800 + Math.random()*400;
+                                let s = 800 + Math.random()*400;
+                                if (tKey.startsWith('rock')) s = 500 + Math.random()*400; // Rocks a bit smaller
                                 t.scale.set(s, s, s);
                                 t.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(t);
@@ -2141,14 +2149,7 @@
                             }
                         }
 
-                        if (bestTypeAssets.rock && Math.random() > 0.5) {
-                            const r = bestTypeAssets.rock.clone();
-                            const ox = 880 * (Math.sign(Math.random() - 0.5) || 1);
-                            const oz = 880 * (Math.sign(Math.random() - 0.5) || 1);
-                            r.position.set(px + ox, 0, pz + oz);
-                            r.scale.set(300 + Math.random()*200, 300 + Math.random()*200, 300 + Math.random()*200);
-                            levelGroup.add(r);
-                        }
+                        // No extra monolithic rock, handled by tPool now
                     }
 
                     // Collectibles
