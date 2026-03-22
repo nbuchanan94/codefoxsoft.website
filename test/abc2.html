@@ -996,7 +996,7 @@
     <!-- <div id="debug-log">DEBUG CONSOLE:<br></div> -->
     <div id="intro-overlay">
         <h1 id="intro-title">THE BRONX</h1>
-        <p id="status-text" style="color:white">CONNECTING TO CODEFOXSOFT...</p>
+        <p id="overlay-status-text" style="color:white">CONNECTING TO CODEFOXSOFT...</p>
         <div id="load-bar-container">
             <div id="load-bar"></div>
         </div>
@@ -1807,16 +1807,24 @@
                 gameActive = true;
                 currentLevel = 2; // Sync with "test 2" request
                 
-                // Nuclear UI Reset
+                // Nuclear UI Reset - Clean IDs and show HUD
                 document.getElementById('start-menu').classList.add('hidden');
                 document.getElementById('load-screen').style.display = 'none';
                 document.getElementById('intro-overlay').style.display = 'none';
                 document.getElementById('ui').style.display = 'block';
                 document.getElementById('score-display').style.display = 'block';
+                
                 const mm = document.getElementById('minimap-container');
-                if (mm) mm.style.display = 'flex';
-
+                if (mm) {
+                    mm.style.display = 'flex';
+                    mm.style.visibility = 'visible';
+                    mm.style.opacity = '1';
+                    mm.style.zIndex = '1000';
+                }
+                
                 resetNiko(); 
+                // Force immediate minimap update
+                if (typeof drawMinimap === 'function') setTimeout(drawMinimap, 100);
 
                 // Load Best Nature Mode immediately
                 if (typeof switchToBestType === 'function') switchToBestType();
@@ -2092,49 +2100,57 @@
                             const t = bestTypeAssets.pine1.clone();
                             t.position.set(px + pushX + (Math.random()-0.5)*cellSize*2, 0, pz + pushZ + (Math.random()-0.5)*cellSize*2);
                             t.scale.set(600, 600, 600); 
-                            t.rotation.y = Math.random() * Math.PI;
-                            levelGroup.add(t);
                         }
                         continue;
                     }
-
-                    const cell = mapData.grid[z][x];
+                    const cell = (mapData.grid[z] && mapData.grid[z][x] !== undefined) ? mapData.grid[z][x] : null;
 
                     if (cell === 0) {
                         // PATH CELL: 100% CLEAR
                         if (Math.random() > 0.8 && bestTypeAssets.clover) {
                             const g = bestTypeAssets.clover.clone();
                             g.position.set(px + (Math.random()-0.5)*600, -28, pz + (Math.random()-0.5)*600);
-                            g.scale.set(2, 2, 2);
+                            g.scale.set(1.5, 1.5, 1.5); // Tiny clovers
                             levelGroup.add(g);
                         }
                     } else if (cell === 1) {
                         obstacleCells.add(`${x},${z}`);
+                        // HEDGE-WALL PATTERN: 5 trees per wall cell for solid barrier
                         const tPool = ['tree1', 'tree2', 'tree3', 'tree4', 'pine1', 'pine2', 'pine3', 'twisted1', 'twisted2', 'dead'];
                         const fPool = ['bush', 'fern', 'mushroom', 'grass_short'];
                         
-                        const tKey = tPool[Math.floor(Math.random() * tPool.length)];
-                        if (bestTypeAssets[tKey]) {
-                            const t = bestTypeAssets[tKey].clone();
-                            t.position.set(px, -10, pz); 
-                            const s = 300 + Math.random()*200; 
-                            t.scale.set(s, s, s);
-                            t.rotation.y = Math.random() * Math.PI;
-                            
-                            t.userData.isNature = true;
-                            t.userData.collisionRadius = s * 0.25; 
-                            
-                            levelGroup.add(t);
-                            walls.push(t);
-                        }
+                        // Cross pattern: Center + 4 Corners
+                        const offsets = [
+                            {x: 0, z: 0},
+                            {x: 700, z: 700}, {x: -700, z: 700},
+                            {x: 700, z: -700}, {x: -700, z: -700}
+                        ];
 
+                        offsets.forEach(off => {
+                            const tKey = tPool[Math.floor(Math.random() * tPool.length)];
+                            if (bestTypeAssets[tKey]) {
+                                const t = bestTypeAssets[tKey].clone();
+                                t.position.set(px + off.x, -10, pz + off.z); 
+                                const s = 450 + Math.random()*200; // MUCH LARGER FOR SOLIDITY
+                                t.scale.set(s, s, s);
+                                t.rotation.y = Math.random() * Math.PI;
+                                
+                                t.userData.isNature = true;
+                                t.userData.collisionRadius = s * 0.45; // Broad blockage
+                                
+                                levelGroup.add(t);
+                                walls.push(t);
+                            }
+                        });
+
+                        // Floor details
                         for(let i=0; i<3; i++) {
                             const fKey = fPool[Math.floor(Math.random() * fPool.length)];
                             if (bestTypeAssets[fKey]) {
                                 const g = bestTypeAssets[fKey].clone();
-                                const ox = (Math.random()-0.5)*1000, oz = (Math.random()-0.5)*1000;
+                                const ox = (Math.random()-0.5)*1200, oz = (Math.random()-0.5)*1200;
                                 g.position.set(px + ox, -25, pz + oz);
-                                const s = fKey === 'bush' ? 12 : 35;
+                                const s = fKey === 'bush' ? 15 : 45;
                                 g.scale.set(s, s, s);
                                 levelGroup.add(g);
                             }
@@ -3770,7 +3786,9 @@
                 if (goalOrb.material && goalOrb.material.emissiveIntensity !== undefined) goalOrb.material.emissiveIntensity = emissive;
             }
 
-            drawMinimap();
+            if (isReady && !inStartMenu && !isPaused) {
+                drawMinimap();
+            }
 
             if (composer) {
                 composer.render();
