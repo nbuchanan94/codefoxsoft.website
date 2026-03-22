@@ -1801,6 +1801,15 @@
             }
 
             isReady = true;
+            // DEBUG ONLY: Auto-skip start menu to Best Nature
+            if (inStartMenu) {
+                setTimeout(() => {
+                    if (typeof menuAction === 'function') menuAction('play'); 
+                    setTimeout(() => {
+                        if (typeof switchToBestType === 'function') switchToBestType();
+                    }, 500);
+                }, 500);
+            }
 
             // Enable start menu (remove loading state)
             if (inStartMenu) {
@@ -2086,24 +2095,33 @@
                     }
 
                     const cell = mapData.grid[z][x];
-                    
-                    // --- ZERO-OBSTRUCTION SCATTERING ---
-                    // Paths: 0 (Strictly Clear). Walls: Dense (strictly at outer edges).
-                    const scatterCount = isOutside ? 3 : (cell === 0 ? 0 : 35); 
+                             // --- COUNTRY ROAD SCATTERING ---
+                    // Paths: Tiny bits of life. Walls: Dense forest floor.
+                    const scatterCount = isOutside ? 3 : (cell === 0 ? 12 : 45); 
                     for (let i = 0; i < scatterCount; i++) {
-                        const gPool = ['grass_short', 'grass_tall', 'grass_wispy', 'clover', 'flower_group', 'mushroom', 'fern'];
+                        let gPool = ['grass_short', 'grass_tall', 'grass_wispy', 'clover', 'flower_group', 'mushroom', 'fern'];
+                        if (cell === 0) gPool = ['grass_short', 'clover']; // Path: Only tiny stuff
+                        
                         const gKey = gPool[Math.floor(Math.random() * gPool.length)];
                         
                         if (bestTypeAssets[gKey]) {
                             const g = bestTypeAssets[gKey].clone();
-                            const ox = (Math.random() - 0.5) * 400;
-                            const oz = (Math.random() - 0.5) * 400;
-
+                            
+                            let ox, oz, s;
+                            if (cell === 0) {
+                                // PATH: Tiny grass/clover at character's feet
+                                ox = (Math.random() - 0.5) * 1400;
+                                oz = (Math.random() - 0.5) * 1400;
+                                s = 5 + Math.random() * 8; 
+                            } else {
+                                // WALL: Dense floor, slightly away from the absolute edge
+                                ox = (Math.random() - 0.5) * 600; 
+                                oz = (Math.random() - 0.5) * 600; 
+                                s = 20 + Math.random() * 30;
+                                if (gKey === 'grass_tall' || gKey === 'grass_wispy') s *= 1.5;
+                            }
+ 
                             g.position.set(px + ox, -28, pz + oz); 
-                            
-                            let s = (20 + Math.random() * 30); 
-                            if (gKey === 'grass_tall' || gKey === 'grass_wispy') s *= 1.5; 
-                            
                             g.scale.set(s, s, s);
                             g.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(g);
@@ -2113,38 +2131,38 @@
 
                     if (cell === 1) {
                         obstacleCells.add(`${x},${z}`);
-                        // Wall Cells: Diverse Adventure Map geometry (Trees, Pines, Twisted, Dead, Rocks)
-                        for (let i = 0; i < 5; i++) {
+                        // Wall Cells: High-Density Roadside Boundaries (Hedge look)
+                        for (let i = 0; i < 12; i++) {
                             const tPool = ['tree1', 'tree2', 'tree3', 'tree4', 'pine1', 'pine2', 'pine3', 'twisted1', 'twisted2', 'dead', 'rock1', 'rock2', 'rock3'];
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
-                                 // OFFSET: Centralized Core Clustering (-200 to 200)
-                                 const ox = (Math.random() - 0.5) * 400;
-                                 const oz = (Math.random() - 0.5) * 400;
+                                 // ROADSIDE ALIGNMENT: Scattered throughout the 1800 cell, clamped to avoid Path
+                                 const radius = tKey.startsWith('rock') ? 400 : 500;
+                                 const margin = 900 - radius - 50; // Ensure nothing reaches > 900
+                                 const ox = (Math.random() - 0.5) * (margin * 2);
+                                 const oz = (Math.random() - 0.5) * (margin * 2);
                                  t.position.set(px + ox, -10, pz + oz);
-                                 // SCALE: Safe sizing (700-1000) to ensure zero path clipping
+                                 
                                  let s = 700 + Math.random()*300;
                                  if (tKey.startsWith('rock')) s = 400 + Math.random()*400; 
                                  t.scale.set(s, s, s);
-                                t.rotation.y = Math.random() * Math.PI;
-                                levelGroup.add(t);
-                                walls.push(t);
+                                 t.rotation.y = Math.random() * Math.PI;
+                                 levelGroup.add(t);
+                                 walls.push(t);
                             }
                         }
                         
-                        // FILLER: Discrete Bushes strictly in cell corners
-                        for (let i = 0; i < 8; i++) {
-                            const bKey = Math.random() > 0.3 ? 'bush' : 'bush_flowers';
-                            if (bestTypeAssets[bKey]) {
-                                const b = bestTypeAssets[bKey].clone();
-                                 const ox = (Math.random() - 0.5) * 400;
-                                 const oz = (Math.random() - 0.5) * 400;
-                                 b.position.set(px + ox, 0, pz + oz);
-                                 const s = 150 + Math.random()*150; 
-                                 b.scale.set(s, s, s);
-                                b.rotation.y = Math.random() * Math.PI;
-                                levelGroup.add(b);
+                        // FLOWER EDGE: Flowers along the roadside (cell boundaries)
+                        for (let i = 0; i < 6; i++) {
+                            if (bestTypeAssets.flower_group) {
+                                const f = bestTypeAssets.flower_group.clone();
+                                // Push toward edges but keep on the grass
+                                const ox = (700 + Math.random()*150) * (Math.sign(Math.random()-0.5) || 1);
+                                const oz = (700 + Math.random()*150) * (Math.sign(Math.random()-0.5) || 1);
+                                f.position.set(px + ox, -20, pz + oz);
+                                f.scale.set(30, 30, 30);
+                                levelGroup.add(f);
                             }
                         }
 
