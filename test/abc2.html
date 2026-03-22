@@ -1804,11 +1804,12 @@
             // DEBUG ONLY: Auto-skip start menu to Best Nature
             if (inStartMenu) {
                 setTimeout(() => {
+                    log("AUTO-EXECUTING...", "warning");
                     if (typeof menuAction === 'function') menuAction('play'); 
                     setTimeout(() => {
                         if (typeof switchToBestType === 'function') switchToBestType();
-                    }, 500);
-                }, 500);
+                    }, 2500); // Wait for the full 1.5s dance + 0.8s transition
+                }, 1000);
             }
 
             // Enable start menu (remove loading state)
@@ -2097,7 +2098,7 @@
                     const cell = mapData.grid[z][x];
                              // --- COUNTRY ROAD SCATTERING ---
                     // Paths: Tiny bits of life. Walls: Dense forest floor.
-                    const scatterCount = isOutside ? 3 : (cell === 0 ? 12 : 45); 
+                    const scatterCount = isOutside ? 3 : (cell === 0 ? 3 : 45); 
                     for (let i = 0; i < scatterCount; i++) {
                         let gPool = ['grass_short', 'grass_tall', 'grass_wispy', 'clover', 'flower_group', 'mushroom', 'fern'];
                         if (cell === 0) gPool = ['grass_short', 'clover']; // Path: Only tiny stuff
@@ -2110,9 +2111,9 @@
                             let ox, oz, s;
                             if (cell === 0) {
                                 // PATH: Tiny grass/clover at character's feet
-                                ox = (Math.random() - 0.5) * 1400;
-                                oz = (Math.random() - 0.5) * 1400;
-                                s = 5 + Math.random() * 8; 
+                                ox = (Math.random() - 0.5) * 1200; // More centered
+                                oz = (Math.random() - 0.5) * 1200;
+                                s = 3 + Math.random() * 4; // Smaller
                             } else {
                                 // WALL: Dense floor, slightly away from the absolute edge
                                 ox = (Math.random() - 0.5) * 600; 
@@ -2138,8 +2139,8 @@
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
                                  // ROADSIDE ALIGNMENT: Scattered throughout the 1800 cell, clamped to avoid Path
-                                 const radius = tKey.startsWith('rock') ? 400 : 500;
-                                 const margin = 900 - radius - 50; // Ensure nothing reaches > 900
+                                 const radius = tKey.startsWith('rock') ? 400 : 550;
+                                 const margin = 900 - radius - 150; // Increased safety margin (from 50 -> 150)
                                  const ox = (Math.random() - 0.5) * (margin * 2);
                                  const oz = (Math.random() - 0.5) * (margin * 2);
                                  t.position.set(px + ox, -10, pz + oz);
