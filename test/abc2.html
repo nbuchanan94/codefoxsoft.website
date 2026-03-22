@@ -1802,11 +1802,12 @@
 
             isReady = true;
             // DEBUG ONLY: Instant Skip to Best Nature
-                log("INSTANT EXECUTING...", "warning");
+                log("INSTANT EXECUTING LEVEL 2...", "warning");
                 inStartMenu = false;
                 gameActive = true;
+                currentLevel = 2; // Sync with "test 2" request
                 
-                // Nuclear UI Reset: Hide menu, load screen, and intro
+                // Nuclear UI Reset
                 document.getElementById('start-menu').classList.add('hidden');
                 document.getElementById('load-screen').style.display = 'none';
                 document.getElementById('intro-overlay').style.display = 'none';
@@ -1814,7 +1815,7 @@
                 document.getElementById('score-display').style.display = '';
                 document.getElementById('minimap-container').style.display = '';
 
-                resetNiko(); // Spawn character correctly
+                resetNiko(); 
 
                 // Load Best Nature Mode immediately
                 if (typeof switchToBestType === 'function') switchToBestType();
@@ -2040,8 +2041,8 @@
             light.position.set(px, 200, pz);
             levelGroup.add(light);
         }
-        function buildBestTypeLevel1() {
-            const num = currentLevel;
+        function buildBestTypeLevel1(num = 1) {
+            log(`Building 'Best' Nature Level ${num}...`, "info");
             const mapData = maps[num];
             
             // Hyper-Detailed Environment
@@ -2124,8 +2125,12 @@
                                  const s = 250 + Math.random()*150; // Human-proportioned trees
                                  t.scale.set(s, s, s);
                                  t.rotation.y = Math.random() * Math.PI;
+                                 
+                                 // NATURE COLLISION DATA
+                                 t.userData.isNature = true;
+                                 t.userData.collisionRadius = s * 0.25; // Dynamic based on scale
+                                 
                                  levelGroup.add(t);
-                                 // Add to collision
                                  walls.push(t);
                              }
                         });
@@ -2171,10 +2176,8 @@
         }
 
 
-        function buildNewTypeLevel1() {
-            log("Building Enhanced Nature Level 1...", "info");
-            
-            const num = 1;
+        function buildNewTypeLevel1(num = 1) {
+            log(`Building Enhanced Nature Level ${num}...`, "info");
             const mapData = maps[num];
             
             // Environment Tuning
@@ -2261,6 +2264,11 @@
                                 r.position.set(px + ox, 0, pz + oz);
                                 r.scale.set(800 + Math.random()*500, 800 + Math.random()*500, 800 + Math.random()*500);
                                 r.rotation.y = Math.random() * Math.PI;
+                                
+                                // NATURE COLLISION
+                                r.userData.isNature = true;
+                                r.userData.collisionRadius = 200;
+
                                 levelGroup.add(r);
                                 walls.push(r);
                             }
@@ -2275,6 +2283,11 @@
                                 t.position.set(px + ox, 0, pz + oz);
                                 t.scale.set(1200 + Math.random()*600, 1200 + Math.random()*600, 1200 + Math.random()*600);
                                 t.rotation.y = Math.random() * Math.PI;
+                                
+                                // NATURE COLLISION
+                                t.userData.isNature = true;
+                                t.userData.collisionRadius = 250;
+
                                 levelGroup.add(t);
                                 walls.push(t);
                             }
@@ -2548,13 +2561,13 @@
             movingGoalIndex = 0;
             movingGoalBasePos = null;
 
-            if (isNewTypeMode && num === 1) {
-                buildNewTypeLevel1();
+            if (isNewTypeMode) {
+                buildNewTypeLevel1(num);
                 return;
             }
 
-            if (isBestTypeMode && num === 1) {
-                buildBestTypeLevel1();
+            if (isBestTypeMode) {
+                buildBestTypeLevel1(num);
                 return;
             }
 
@@ -3554,7 +3567,21 @@
                         const gateKey = gx + ',' + gz;
                         const blockedByGate = gateCellKeys.has(gateKey) && !gateOpenCells.has(gateKey);
                         const blockedByObstacle = obstacleCells.has(gateKey);
-                        if (currentGrid[gz][gx] === 0 && !blockedByGate && !blockedByObstacle) {
+                        
+                        let natureCollision = false;
+                        for (let i = 0; i < walls.length; i++) {
+                            const w = walls[i];
+                            if (w.userData && (w.userData.isTree || w.userData.isNature)) {
+                                const distSq = Math.pow(nX - w.position.x, 2) + Math.pow(nZ - w.position.z, 2);
+                                const radius = (w.userData.collisionRadius || 120) + 50; 
+                                if (distSq < radius * radius) {
+                                    natureCollision = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (currentGrid[gz][gx] === 0 && !blockedByGate && !blockedByObstacle && !natureCollision) {
                             modelContainer.position.x = nX;
                             modelContainer.position.z = nZ;
                             if (timedDoorTrigger && gx === timedDoorTrigger.x && gz === timedDoorTrigger.z) {
@@ -3562,7 +3589,7 @@
                                 if (fd && fd.openDuration) timedDoorOpenUntil = Date.now() + fd.openDuration * 1000;
                             }
                         } else {
-                            // Wall or closed gate: Stop velocity & Trigger Juice
+                            // Wall or closed gate or tree: Stop velocity & Trigger Juice
                             if (Math.abs(velX) > 5 || Math.abs(velZ) > 5) triggerHitEffect();
                             velX = 0; velZ = 0;
                         }
