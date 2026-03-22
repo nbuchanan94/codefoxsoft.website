@@ -2071,14 +2071,14 @@
                         
                         if (bestTypeAssets.pine1 && Math.random() > 0.4) {
                             const t = bestTypeAssets.pine1.clone();
-                            t.position.set(px + pushX + (Math.random()-0.5)*cellSize, 0, pz + pushZ + (Math.random()-0.5)*cellSize);
+                            t.position.set(px + (x < 0 ? -2000 : (x >= mapData.grid[0].length ? 2000 : 0)) + (Math.random()-0.5)*cellSize, 0, pz + (z < 0 ? -2000 : (z >= mapData.grid.length ? 2000 : 0)) + (Math.random()-0.5)*cellSize);
                             t.scale.set(800, 800, 800); 
                             t.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(t);
                         }
                         if (bestTypeAssets.pine3 && Math.random() > 0.7) {
                             const t = bestTypeAssets.pine3.clone();
-                            t.position.set(px + pushX + (Math.random()-0.5)*cellSize, 0, pz + pushZ + (Math.random()-0.5)*cellSize);
+                            t.position.set(px + (x < 0 ? -2000 : (x >= mapData.grid[0].length ? 2000 : 0)) + (Math.random()-0.5)*cellSize, 0, pz + (z < 0 ? -2000 : (z >= mapData.grid.length ? 2000 : 0)) + (Math.random()-0.5)*cellSize);
                             t.scale.set(1000, 1000, 1000); 
                             levelGroup.add(t);
                         }
@@ -2096,9 +2096,8 @@
                         
                         if (bestTypeAssets[gKey]) {
                             const g = bestTypeAssets[gKey].clone();
-                            // WALL PUSHBACK: Force to outer edges/corners of the cell
-                            const ox = (750 + Math.random()*100) * (Math.sign(Math.random()-0.5) || 1);
-                            const oz = (750 + Math.random()*100) * (Math.sign(Math.random()-0.5) || 1);
+                            const ox = (Math.random() - 0.5) * 400;
+                            const oz = (Math.random() - 0.5) * 400;
 
                             g.position.set(px + ox, -28, pz + oz); 
                             
@@ -2120,14 +2119,14 @@
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
-                                // OFFSET: Absolute Center Clustering (-300 to 300)
-                                const ox = (Math.random() - 0.5) * 600;
-                                const oz = (Math.random() - 0.5) * 600;
-                                t.position.set(px + ox, -10, pz + oz);
-                                // SCALE: Shrink-to-fit (800-1200) to guarantee path clearance
-                                let s = 800 + Math.random()*400;
-                                if (tKey.startsWith('rock')) s = 500 + Math.random()*400; // Rocks a bit smaller
-                                t.scale.set(s, s, s);
+                                 // OFFSET: Centralized Core Clustering (-200 to 200)
+                                 const ox = (Math.random() - 0.5) * 400;
+                                 const oz = (Math.random() - 0.5) * 400;
+                                 t.position.set(px + ox, -10, pz + oz);
+                                 // SCALE: Safe sizing (700-1000) to ensure zero path clipping
+                                 let s = 700 + Math.random()*300;
+                                 if (tKey.startsWith('rock')) s = 400 + Math.random()*400; 
+                                 t.scale.set(s, s, s);
                                 t.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(t);
                                 walls.push(t);
@@ -2139,11 +2138,11 @@
                             const bKey = Math.random() > 0.3 ? 'bush' : 'bush_flowers';
                             if (bestTypeAssets[bKey]) {
                                 const b = bestTypeAssets[bKey].clone();
-                                const ox = (Math.random() - 0.5) * 600;
-                                const oz = (Math.random() - 0.5) * 600;
-                                b.position.set(px + ox, 0, pz + oz);
-                                const s = 200 + Math.random()*150; 
-                                b.scale.set(s, s, s);
+                                 const ox = (Math.random() - 0.5) * 400;
+                                 const oz = (Math.random() - 0.5) * 400;
+                                 b.position.set(px + ox, 0, pz + oz);
+                                 const s = 150 + Math.random()*150; 
+                                 b.scale.set(s, s, s);
                                 b.rotation.y = Math.random() * Math.PI;
                                 levelGroup.add(b);
                             }
