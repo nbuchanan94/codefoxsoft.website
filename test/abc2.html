@@ -1802,27 +1802,23 @@
 
             isReady = true;
             // DEBUG ONLY: Instant Skip to Best Nature
-            if (inStartMenu) {
                 log("INSTANT EXECUTING...", "warning");
                 inStartMenu = false;
                 gameActive = true;
                 
-                // Hide Start Menu & Show UI
+                // Nuclear UI Reset: Hide menu, load screen, and intro
                 document.getElementById('start-menu').classList.add('hidden');
+                document.getElementById('load-screen').style.display = 'none';
+                document.getElementById('intro-overlay').style.display = 'none';
                 document.getElementById('ui').style.display = '';
                 document.getElementById('score-display').style.display = '';
                 document.getElementById('minimap-container').style.display = '';
-                document.getElementById('intro-overlay').style.display = '';
-                document.getElementById('intro-overlay').classList.remove('hidden');
-                document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
-                document.getElementById('click-prompt').style.display = "block";
 
                 resetNiko(); // Spawn character correctly
 
                 // Load Best Nature Mode immediately
                 if (typeof switchToBestType === 'function') switchToBestType();
-            }
-
+            
             // Enable start menu (remove loading state)
             if (inStartMenu) {
                 document.getElementById('start-menu').classList.remove('menu-loading');
@@ -2079,106 +2075,74 @@
             groundPlane.position.set(0, -30, 0); 
             scene.add(groundPlane); 
 
-            const expSize = 4; // Larger boundary for "Best"
+            const expSize = 5; 
             for (let z = -expSize; z < mapData.grid.length + expSize; z++) {
                 for (let x = -expSize; x < mapData.grid[0].length + expSize; x++) {
                     const px = x * cellSize - mapOffset, pz = z * cellSize - mapOffset;
                     const isOutside = x < 0 || x >= mapData.grid[0].length || z < 0 || z >= mapData.grid.length;
                     
                     if (isOutside) {
-                        // STRICT PERIMETER: Push trees 3500+ units away from the maze boundary
-                        const pushX = (x < 0 ? -3500 : (x >= mapData.grid[0].length ? 3500 : 0));
-                        const pushZ = (z < 0 ? -3500 : (z >= mapData.grid.length ? 3500 : 0));
+                        // DISTANT FOREST: Push backdrop trees 6000+ units away
+                        const pushX = (x < 0 ? -6000 : (x >= mapData.grid[0].length ? 6000 : 0));
+                        const pushZ = (z < 0 ? -6000 : (z >= mapData.grid.length ? 6000 : 0));
                         
-                        if (bestTypeAssets.pine1 && Math.random() > 0.4) {
+                        if (bestTypeAssets.pine1 && Math.random() > 0.3) {
                             const t = bestTypeAssets.pine1.clone();
-                            t.position.set(px + pushX + (Math.random()-0.5)*cellSize, 0, pz + pushZ + (Math.random()-0.5)*cellSize);
+                            t.position.set(px + pushX + (Math.random()-0.5)*cellSize*2, 0, pz + pushZ + (Math.random()-0.5)*cellSize*2);
                             t.scale.set(600, 600, 600); 
                             t.rotation.y = Math.random() * Math.PI;
-                            levelGroup.add(t);
-                        }
-                        if (bestTypeAssets.pine3 && Math.random() > 0.7) {
-                            const t = bestTypeAssets.pine3.clone();
-                            t.position.set(px + pushX + (Math.random()-0.5)*cellSize, 0, pz + pushZ + (Math.random()-0.5)*cellSize);
-                            t.scale.set(800, 800, 800); 
                             levelGroup.add(t);
                         }
                         continue;
                     }
 
                     const cell = mapData.grid[z][x];
-                             // --- COUNTRY ROAD SCATTERING ---
-                    // Paths: Tiny bits of life. Walls: Dense forest floor.
-                    const scatterCount = isOutside ? 3 : (cell === 0 ? 3 : 45); 
-                    for (let i = 0; i < scatterCount; i++) {
-                        let gPool = ['grass_short', 'grass_tall', 'grass_wispy', 'clover', 'flower_group', 'mushroom', 'fern'];
-                        if (cell === 0) gPool = ['grass_short', 'clover']; // Path: Only tiny stuff
-                        
-                        const gKey = gPool[Math.floor(Math.random() * gPool.length)];
-                        
-                        if (bestTypeAssets[gKey]) {
-                            const g = bestTypeAssets[gKey].clone();
-                            
-                            let ox, oz, s;
-                            if (cell === 0) {
-                                // PATH: Tiny grass/clover at character's feet
-                                ox = (Math.random() - 0.5) * 1200; // More centered
-                                oz = (Math.random() - 0.5) * 1200;
-                                s = 3 + Math.random() * 4; // Smaller
-                            } else {
-                                // WALL: Dense floor, slightly away from the absolute edge
-                                ox = (Math.random() - 0.5) * 600; 
-                                oz = (Math.random() - 0.5) * 600; 
-                                s = 20 + Math.random() * 30;
-                                if (gKey === 'grass_tall' || gKey === 'grass_wispy') s *= 1.5;
-                            }
- 
-                            g.position.set(px + ox, -28, pz + oz); 
-                            g.scale.set(s, s, s);
-                            g.rotation.y = Math.random() * Math.PI;
+
+                    if (cell === 0) {
+                        // PATH CELL: 100% CLEAR
+                        // Only add tiny ground cover if it's very small
+                        if (Math.random() > 0.8 && bestTypeAssets.clover) {
+                            const g = bestTypeAssets.clover.clone();
+                            g.position.set(px + (Math.random()-0.5)*600, -28, pz + (Math.random()-0.5)*600);
+                            g.scale.set(2, 2, 2);
                             levelGroup.add(g);
                         }
                     }
 
-
                     if (cell === 1) {
                         obstacleCells.add(`${x},${z}`);
-                        // Wall Cells: High-Density Roadside Boundaries (Hedge look)
-                        for (let i = 0; i < 12; i++) {
-                            // REMOVED ROCKS TO ENSURE ZERO PATH BLOCKING
-                            const tPool = ['tree1', 'tree2', 'tree3', 'tree4', 'pine1', 'pine2', 'pine3', 'twisted1', 'twisted2', 'dead'];
-                            const tKey = tPool[Math.floor(Math.random() * tPool.length)];
-                            if (bestTypeAssets[tKey]) {
-                                const t = bestTypeAssets[tKey].clone();
-                                 // ROADSIDE ALIGNMENT: Pushed far back to create a clear country road corridor
-                                 const radius = 550; 
-                                 const margin = 900 - radius - 400; // AGGRESSIVE MARGIN (400 units)
-                                 const ox = (Math.random() - 0.5) * (margin * 2);
-                                 const oz = (Math.random() - 0.5) * (margin * 2);
-                                 t.position.set(px + ox, -10, pz + oz);
-                                 
-                                 let s = 600 + Math.random()*200; // Standardized scale
+                        // WALL CELL: STRATEGIC ASSET PLACEMENT
+                        // Place 4 trees at the corners to ensure the corridor center is clear
+                        const corners = [ {ox: -700, oz: -700}, {ox: 700, oz: -700}, {ox: -700, oz: 700}, {ox: 700, oz: 700} ];
+                        const tPool = ['tree1', 'tree2', 'tree3', 'tree4', 'pine1', 'pine2', 'pine3', 'twisted1', 'twisted2', 'dead'];
+                        
+                        corners.forEach(c => {
+                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
+                             if (bestTypeAssets[tKey]) {
+                                 const t = bestTypeAssets[tKey].clone();
+                                 t.position.set(px + c.ox + (Math.random()-0.5)*200, -10, pz + c.oz + (Math.random()-0.5)*200);
+                                 const s = 250 + Math.random()*150; // Human-proportioned trees
                                  t.scale.set(s, s, s);
                                  t.rotation.y = Math.random() * Math.PI;
                                  levelGroup.add(t);
+                                 // Add to collision
                                  walls.push(t);
-                            }
-                        }
-                        
-                        // FLOWER EDGE: Flowers along the roadside (cell boundaries)
-                        for (let i = 0; i < 6; i++) {
-                            if (bestTypeAssets.flower_group) {
-                                const f = bestTypeAssets.flower_group.clone();
-                                // Push toward edges but keep on the grass
-                                const ox = (700 + Math.random()*150) * (Math.sign(Math.random()-0.5) || 1);
-                                const oz = (700 + Math.random()*150) * (Math.sign(Math.random()-0.5) || 1);
-                                f.position.set(px + ox, -20, pz + oz);
-                                f.scale.set(30, 30, 30);
-                                levelGroup.add(f);
-                            }
-                        }
+                             }
+                        });
 
-                        // No extra monolithic rock, handled by tPool now
+                        // 4 Floor details (Bushes/Grass) slightly inward from trees
+                        const floorPos = [ {ox: -500, oz: 0}, {ox: 500, oz: 0}, {ox: 0, oz: -500}, {ox: 0, oz: 500} ];
+                        const fPool = ['bush', 'fern', 'mushroom', 'grass_short'];
+                        floorPos.forEach(f => {
+                            const fKey = fPool[Math.floor(Math.random() * fPool.length)];
+                            if (bestTypeAssets[fKey]) {
+                                const g = bestTypeAssets[fKey].clone();
+                                g.position.set(px + f.ox + (Math.random()-0.5)*200, -25, pz + f.oz + (Math.random()-0.5)*200);
+                                const s = fKey === 'bush' ? 10 : 30;
+                                g.scale.set(s, s, s);
+                                levelGroup.add(g);
+                            }
+                        });
                     }
 
                     // Collectibles
