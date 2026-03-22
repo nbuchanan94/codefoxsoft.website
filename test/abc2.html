@@ -1801,15 +1801,26 @@
             }
 
             isReady = true;
-            // DEBUG ONLY: Auto-skip start menu to Best Nature
+            // DEBUG ONLY: Instant Skip to Best Nature
             if (inStartMenu) {
-                setTimeout(() => {
-                    log("AUTO-EXECUTING...", "warning");
-                    if (typeof menuAction === 'function') menuAction('play'); 
-                    setTimeout(() => {
-                        if (typeof switchToBestType === 'function') switchToBestType();
-                    }, 2500); // Wait for the full 1.5s dance + 0.8s transition
-                }, 1000);
+                log("INSTANT EXECUTING...", "warning");
+                inStartMenu = false;
+                gameActive = true;
+                
+                // Hide Start Menu & Show UI
+                document.getElementById('start-menu').classList.add('hidden');
+                document.getElementById('ui').style.display = '';
+                document.getElementById('score-display').style.display = '';
+                document.getElementById('minimap-container').style.display = '';
+                document.getElementById('intro-overlay').style.display = '';
+                document.getElementById('intro-overlay').classList.remove('hidden');
+                document.getElementById('status-text').innerText = "SYSTEMS ONLINE";
+                document.getElementById('click-prompt').style.display = "block";
+
+                resetNiko(); // Spawn character correctly
+
+                // Load Best Nature Mode immediately
+                if (typeof switchToBestType === 'function') switchToBestType();
             }
 
             // Enable start menu (remove loading state)
@@ -2075,21 +2086,21 @@
                     const isOutside = x < 0 || x >= mapData.grid[0].length || z < 0 || z >= mapData.grid.length;
                     
                     if (isOutside) {
-                        // STRICT PERIMETER: Push trees 1500+ units away from the maze boundary
-                        const pushX = (x < 0 ? -1500 : (x >= mapData.grid[0].length ? 1500 : 0));
-                        const pushZ = (z < 0 ? -1500 : (z >= mapData.grid.length ? 1500 : 0));
+                        // STRICT PERIMETER: Push trees 3500+ units away from the maze boundary
+                        const pushX = (x < 0 ? -3500 : (x >= mapData.grid[0].length ? 3500 : 0));
+                        const pushZ = (z < 0 ? -3500 : (z >= mapData.grid.length ? 3500 : 0));
                         
                         if (bestTypeAssets.pine1 && Math.random() > 0.4) {
                             const t = bestTypeAssets.pine1.clone();
-                            t.position.set(px + (x < 0 ? -2000 : (x >= mapData.grid[0].length ? 2000 : 0)) + (Math.random()-0.5)*cellSize, 0, pz + (z < 0 ? -2000 : (z >= mapData.grid.length ? 2000 : 0)) + (Math.random()-0.5)*cellSize);
-                            t.scale.set(800, 800, 800); 
+                            t.position.set(px + pushX + (Math.random()-0.5)*cellSize, 0, pz + pushZ + (Math.random()-0.5)*cellSize);
+                            t.scale.set(600, 600, 600); 
                             t.rotation.y = Math.random() * Math.PI;
                             levelGroup.add(t);
                         }
                         if (bestTypeAssets.pine3 && Math.random() > 0.7) {
                             const t = bestTypeAssets.pine3.clone();
-                            t.position.set(px + (x < 0 ? -2000 : (x >= mapData.grid[0].length ? 2000 : 0)) + (Math.random()-0.5)*cellSize, 0, pz + (z < 0 ? -2000 : (z >= mapData.grid.length ? 2000 : 0)) + (Math.random()-0.5)*cellSize);
-                            t.scale.set(1000, 1000, 1000); 
+                            t.position.set(px + pushX + (Math.random()-0.5)*cellSize, 0, pz + pushZ + (Math.random()-0.5)*cellSize);
+                            t.scale.set(800, 800, 800); 
                             levelGroup.add(t);
                         }
                         continue;
@@ -2134,19 +2145,19 @@
                         obstacleCells.add(`${x},${z}`);
                         // Wall Cells: High-Density Roadside Boundaries (Hedge look)
                         for (let i = 0; i < 12; i++) {
-                            const tPool = ['tree1', 'tree2', 'tree3', 'tree4', 'pine1', 'pine2', 'pine3', 'twisted1', 'twisted2', 'dead', 'rock1', 'rock2', 'rock3'];
+                            // REMOVED ROCKS TO ENSURE ZERO PATH BLOCKING
+                            const tPool = ['tree1', 'tree2', 'tree3', 'tree4', 'pine1', 'pine2', 'pine3', 'twisted1', 'twisted2', 'dead'];
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
-                                 // ROADSIDE ALIGNMENT: Scattered throughout the 1800 cell, clamped to avoid Path
-                                 const radius = tKey.startsWith('rock') ? 400 : 550;
-                                 const margin = 900 - radius - 150; // Increased safety margin (from 50 -> 150)
+                                 // ROADSIDE ALIGNMENT: Pushed far back to create a clear country road corridor
+                                 const radius = 550; 
+                                 const margin = 900 - radius - 400; // AGGRESSIVE MARGIN (400 units)
                                  const ox = (Math.random() - 0.5) * (margin * 2);
                                  const oz = (Math.random() - 0.5) * (margin * 2);
                                  t.position.set(px + ox, -10, pz + oz);
                                  
-                                 let s = 700 + Math.random()*300;
-                                 if (tKey.startsWith('rock')) s = 400 + Math.random()*400; 
+                                 let s = 600 + Math.random()*200; // Standardized scale
                                  t.scale.set(s, s, s);
                                  t.rotation.y = Math.random() * Math.PI;
                                  levelGroup.add(t);
