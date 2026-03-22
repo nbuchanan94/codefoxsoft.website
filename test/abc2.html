@@ -2120,9 +2120,9 @@
                             const tKey = tPool[Math.floor(Math.random() * tPool.length)];
                             if (bestTypeAssets[tKey]) {
                                 const t = bestTypeAssets[tKey].clone();
-                                // OFFSET: Absolute Corner Lock (880 units)
-                                const ox = 880 * (Math.sign(Math.random() - 0.5) || 1);
-                                const oz = 880 * (Math.sign(Math.random() - 0.5) || 1);
+                                // OFFSET: Absolute Center Clustering (-300 to 300)
+                                const ox = (Math.random() - 0.5) * 600;
+                                const oz = (Math.random() - 0.5) * 600;
                                 t.position.set(px + ox, -10, pz + oz);
                                 // SCALE: Shrink-to-fit (800-1200) to guarantee path clearance
                                 let s = 800 + Math.random()*400;
@@ -2139,8 +2139,8 @@
                             const bKey = Math.random() > 0.3 ? 'bush' : 'bush_flowers';
                             if (bestTypeAssets[bKey]) {
                                 const b = bestTypeAssets[bKey].clone();
-                                const ox = 880 * (Math.sign(Math.random() - 0.5) || 1);
-                                const oz = 880 * (Math.sign(Math.random() - 0.5) || 1);
+                                const ox = (Math.random() - 0.5) * 600;
+                                const oz = (Math.random() - 0.5) * 600;
                                 b.position.set(px + ox, 0, pz + oz);
                                 const s = 200 + Math.random()*150; 
                                 b.scale.set(s, s, s);
