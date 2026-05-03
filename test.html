@@ -89,20 +89,19 @@
         /* Hero Section Container for the Three.js canvas */
         #hero-background {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100dvh;
+            top: -10vh;
+            left: -10vw;
+            width: 120vw;
+            height: 120vh;
+            height: 120lvh;
             z-index: -1;
-            pointer-events: none; /* Prevents background from stealing scroll/touch events */
+            pointer-events: none;
+            transform: translateZ(0); /* Hardware acceleration locks sub-pixels */
         }
 
         /* The three.js canvas inside the container */
         #hero-background canvas {
-            width: 100% !important;
-            height: 100% !important;
             display: block;
-            /* Remove default spacing below the canvas */
         }
 
         /* Basic fade-in animation for sections */
