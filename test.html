@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <!-- SEO Meta Tags -->
     <meta name="description"
@@ -1022,96 +1022,36 @@
         /**
          * Main animation loop. Updates the scene and renders it.
          */
-        // Frame rate limiting for mobile (target 30fps instead of 60fps)
-        let lastFrameTime = performance.now();
-        const targetFPS = isMobile ? 30 : 60;
-        const frameInterval = 1000 / targetFPS;
-
-        function animate(currentTime) {
+        function animate() {
             requestAnimationFrame(animate);
 
-            // Initialize animation start time on first frame
-            if (animationStartTime === 0) {
-                animationStartTime = currentTime;
-                lastPerformanceCheck = currentTime;
-            }
-
-            // Performance testing during first 2 seconds
-            const elapsedTime = currentTime - animationStartTime;
-            if (!performanceTestComplete && elapsedTime < PERFORMANCE_TEST_DURATION) {
-                frameCount++;
-                if (currentTime - lastPerformanceCheck >= 1000) { // Check every second
-                    const fps = frameCount;
-                    // If FPS is below 25 on mobile, consider it low performance
-                    if (isMobile && fps < 25) {
-                        isLowPerformance = true;
-                    }
-                    frameCount = 0;
-                    lastPerformanceCheck = currentTime;
-                }
-            } else if (!performanceTestComplete) {
-                performanceTestComplete = true;
-                // Final check: if average FPS was low, mark as low performance
-                const avgFPS = (frameCount / (elapsedTime / 1000));
-                if (isMobile && avgFPS < 25) {
-                    isLowPerformance = true;
-                }
-            }
-
-            // Frame rate limiting - only for low performance devices
-            if (isMobile && isLowPerformance) {
-                const elapsed = currentTime - lastFrameTime;
-                if (elapsed < frameInterval) {
-                    return; // Skip this frame to maintain target FPS
-                }
-                lastFrameTime = currentTime - (elapsed % frameInterval);
-            } else if (isMobile) {
-                lastFrameTime = currentTime; // Track time but don't skip frames
-            }
-
             // Update rotation targets based on mouse position
-            // Use full speed on capable devices, reduced on low performance
-            const mouseInfluence = (isMobile && isLowPerformance) ? 0.0003 : 0.001;
+            const mouseInfluence = isMobile ? 0.0005 : 0.001;
             targetX = mouseX * mouseInfluence;
             targetY = mouseY * mouseInfluence;
 
             // Apply mouse influence and continuous rotation to the galaxy group
-            // Full speed on capable devices, reduced only on low performance mobile
-            const rotationSpeed = (isMobile && isLowPerformance) ? 0.0003 : 0.0005;
-            const baseRotation = (isMobile && isLowPerformance) ? 0.0001 : 0.0002;
+            const rotationSpeed = 0.0005;
+            const baseRotation = 0.0002;
             galaxyGroup.rotation.y += rotationSpeed * (targetX - galaxyGroup.rotation.y) + baseRotation;
-            galaxyGroup.rotation.x += rotationSpeed * (targetY - galaxyGroup.rotation.x) - ((isMobile && isLowPerformance) ? 0.00003 : 0.00005);
-            galaxyGroup.rotation.z += (isMobile && isLowPerformance) ? 0.00005 : 0.0001;
+            galaxyGroup.rotation.x += rotationSpeed * (targetY - galaxyGroup.rotation.x) - 0.00005;
+            galaxyGroup.rotation.z += 0.0001;
 
-            // Pulsing scale effect - always on desktop, also on capable mobile devices
-            if (!isMobile) {
-                // Desktop always gets pulsing
-                const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
-                galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
-            } else if (!isLowPerformance) {
-                // Capable mobile devices get pulsing - slightly faster to match desktop feel
-                const scaleFactor = 1 + Math.sin(Date.now() * 0.00065) * 0.02;
-                galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
-            }
+            // Pulsing scale effect
+            const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
+            galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
-            // Camera movement - full on capable devices
-            if (isMobile && isLowPerformance) {
-                // Less camera movement on low performance mobile
-                camera.position.x += (targetX * 0.3 - camera.position.x) * 0.03;
-                camera.position.y += (-targetY * 0.3 - camera.position.y) * 0.03;
-            } else {
-                camera.position.x += (targetX * 0.5 - camera.position.x) * 0.05;
-                camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.05;
-            }
+            // Camera movement
+            camera.position.x += (targetX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.05;
             camera.lookAt(scene.position);
 
             // Background galaxies rotation
-            const bgRotationSpeed = (isMobile && isLowPerformance) ? 0.000005 : 0.00001;
-            backgroundGalaxyGroup.rotation.x += bgRotationSpeed;
-            backgroundGalaxyGroup.rotation.y += bgRotationSpeed;
+            backgroundGalaxyGroup.rotation.x += 0.00001;
+            backgroundGalaxyGroup.rotation.y += 0.00001;
 
-            // Star field rotation - slower on mobile to reduce flashing
-            starField.rotation.y += (isMobile && isLowPerformance) ? 0.00001 : (isMobile ? 0.000015 : 0.00005);
+            // Star field rotation
+            starField.rotation.y += isMobile ? 0.000015 : 0.00005;
 
             renderer.render(scene, camera);
         }
@@ -1138,8 +1078,8 @@
                 });
             }
 
-            // Start the animation loop - pass timestamp for frame rate limiting
-            animate(performance.now());
+            // Start the animation loop
+            animate();
 
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
