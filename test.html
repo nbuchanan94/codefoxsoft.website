@@ -380,18 +380,18 @@
     </div>
 
         <!-- Hero Section -->
-        <section class="relative min-h-[100dvh] pt-20 sm:pt-0 flex flex-col items-center justify-start sm:justify-center pb-12 sm:pb-32 text-center overflow-hidden">
+        <section class="relative min-h-0 sm:min-h-[100dvh] pt-20 sm:pt-0 flex flex-col items-center justify-start sm:justify-center pb-12 sm:pb-32 text-center overflow-hidden">
             <!-- Hero Video Background -->
-            <div class="absolute top-20 sm:top-0 left-0 w-full aspect-[4/3] sm:aspect-auto sm:h-full z-0 overflow-hidden sm:border-none border-b border-[#10b981]/50 shadow-[0_15px_40px_rgba(16,185,129,0.15)] sm:shadow-none">
+            <div class="relative sm:absolute top-0 left-0 w-full aspect-[4/3] sm:aspect-auto sm:h-full z-0 overflow-hidden">
                 <video id="heroVideo1" class="absolute top-0 left-0 w-full h-full object-cover object-[5%_center] sm:object-center" muted playsinline preload="auto"></video>
                 <video id="heroVideo2" class="absolute top-0 left-0 w-full h-full object-cover object-[5%_center] sm:object-center opacity-0" muted playsinline preload="auto"></video>
                 <div class="absolute inset-0 bg-gray-900 bg-opacity-20 sm:bg-opacity-30"></div>
-                <div class="absolute bottom-0 left-0 w-full h-24 sm:h-48 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
+                <div class="absolute bottom-0 left-0 w-full h-32 sm:h-48 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
             </div>
             <div
-                class="hero-glass-panel relative z-10 p-6 sm:p-8 rounded-xl max-w-4xl w-[calc(100%-2rem)] sm:w-full mx-auto transform transition-all duration-500 ease-in-out hover:scale-105 text-center mt-[65vw] sm:mt-0">
-                <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
-                    <span class="text-green-500 hero-title-brand">CodeFoxSoft™</span><br />
+                class="hero-glass-panel relative z-10 p-6 sm:p-8 rounded-xl max-w-4xl w-[calc(100%-2rem)] sm:w-full mx-auto transform transition-all duration-500 ease-in-out hover:scale-105 text-center -mt-16 sm:mt-0">
+                <h1 class="text-3xl sm:text-6xl font-extrabold text-white mb-4 sm:mb-6 leading-tight">
+                    <span class="text-green-500 hero-title-brand hidden sm:inline">CodeFoxSoft™</span><br class="hidden sm:block" />
                     <span class="hero-tagline">One Fox, an Entire Universe.</span>
                 </h1>
 
