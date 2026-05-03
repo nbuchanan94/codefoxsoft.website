@@ -229,25 +229,10 @@
             }
         }
 
-        .hero-glass-panel {
-            background-color: rgba(31, 41, 55, 0.15); /* 50% more transparent than glass-panel */
-            backdrop-filter: blur(4px); /* less blur to see the characters better */
-            -webkit-backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
-        @media (max-width: 768px) {
-            .hero-glass-panel {
-                background-color: rgba(31, 41, 55, 0.05) !important;
-                backdrop-filter: none !important;
-                -webkit-backdrop-filter: none !important;
-                border: none;
-            }
-            .hero-glass-panel h1,
-            .hero-glass-panel p,
-            .hero-glass-panel h3,
-            .hero-glass-panel span {
-                text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.7);
+        @media (min-width: 640px) {
+            .hero-section {
+                min-height: 100vh;
+                min-height: 100dvh;
             }
         }
 
@@ -400,7 +385,7 @@
     </div>
 
         <!-- Hero Section -->
-        <section class="relative min-h-screen flex items-end justify-center pb-12 sm:pb-32 text-center overflow-hidden" style="min-height: 100dvh;">
+        <section class="relative hero-section flex items-end justify-center pt-32 pb-8 sm:pt-0 sm:pb-32 text-center overflow-hidden">
             <!-- Hero Video Background -->
             <div class="absolute inset-0 z-0">
                 <video id="heroVideo1" class="absolute top-0 left-0 w-full h-full object-fill" muted playsinline preload="auto"></video>
