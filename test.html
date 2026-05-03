@@ -53,10 +53,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
     <style>
         /* Global smooth scrolling */
-        html, body {
+        html {
             scroll-behavior: smooth;
-            overflow-x: hidden;
-            width: 100%;
         }
 
         /* General body styles and font */
@@ -217,7 +215,7 @@
         }
         @media (max-width: 768px) {
             .hero-glass-panel {
-                background-color: rgba(31, 41, 55, 0.05) !important;
+                background-color: rgba(31, 41, 55, 0.25) !important;
                 backdrop-filter: none !important;
                 -webkit-backdrop-filter: none !important;
                 border: 2px solid rgba(16, 185, 129, 0.3) !important;
@@ -391,7 +389,7 @@
                 <div class="absolute bottom-0 left-0 w-full h-32 sm:h-48 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
             </div>
             <div
-                class="hero-glass-panel relative z-10 p-5 sm:p-8 rounded-xl max-w-4xl sm:max-w-2xl w-[calc(100%-2rem)] sm:w-auto mx-auto sm:mx-0 transform transition-all duration-500 ease-in-out hover:scale-105 text-center sm:text-right mt-6 sm:mt-0">
+                class="hero-glass-panel relative z-10 p-5 sm:p-8 rounded-xl max-w-4xl sm:max-w-2xl w-[calc(100%-2rem)] sm:w-auto mx-auto sm:mx-0 transform transition-all duration-500 ease-in-out hover:scale-105 text-center sm:text-left mt-6 sm:mt-0">
                 <h1 class="font-extrabold text-white mb-4 sm:mb-6 leading-tight">
                     <span class="text-green-500 hero-title-brand hidden sm:inline text-4xl sm:text-6xl">CodeFoxSoft™</span><br class="hidden sm:block" />
                     <span class="hero-tagline text-2xl sm:text-6xl block">One Fox, an Entire Universe.</span>
@@ -437,28 +435,28 @@
                 <div
                     class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto js-about-cards">
                     <div
-                        class="glass-panel p-8 rounded-xl shadow-lg slide-left" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-left">
                         <i class="fas fa-code text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Nearly 2 Decades Exp.</h3>
                         <p class="text-gray-300">Extensive programming across diverse industries and technologies since
                             2006.</p>
                     </div>
                     <div
-                        class="glass-panel p-8 rounded-xl shadow-lg slide-right" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-right">
                         <i class="fas fa-brain text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">AI Innovation</h3>
                         <p class="text-gray-300">Pioneering research and application of Artificial Intelligence in
                             real-world scenarios.</p>
                     </div>
                     <div
-                        class="glass-panel p-8 rounded-xl shadow-lg slide-left" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-left">
                         <i class="fas fa-gamepad text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Game Development</h3>
                         <p class="text-gray-300">Creating immersive and engaging interactive entertainment experiences.
                         </p>
                     </div>
                     <div
-                        class="glass-panel p-8 rounded-xl shadow-lg slide-right" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-right">
                         <i class="fas fa-desktop text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Websites and Applications</h3>
                         <p class="text-gray-300">Commission me for robust and intuitive applications and websites for
@@ -493,7 +491,7 @@
                         </div>
                     </div>
                     <!-- Project Card 2 -->
-                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right">
                         <!-- Using a placeholder image for the project -->
                         <img src="resImg/pages/spacepongdownload/pongplay.png" alt="Space Pong - Classic arcade action in space" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -510,7 +508,7 @@
                         </div>
                     </div>
                     <!-- Project Card 3 -->
-                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-left">
                         <img src="resImg/pages/furryravedownload/furryrave1.png" alt="Furry Rave - High-energy music action screensaver preview"
                             class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -528,7 +526,7 @@
                         </div>
                     </div>
                     <!-- Project Card 4 -->
-                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right">
                         <!-- More Projects image -->
                         <img src="resImg/pages/synkrfox/synkrfox2.png" alt="SynkrFox - Live filesystem backup application interface" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -545,7 +543,7 @@
                     </div>
 
                     <!-- Project Card 5: Shadowlark -->
-                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-left">
                         <img src="resImg/pages/shadowlarkoracle/shadowlarkoracle0.png" alt="Shadowlark Oracle"
                             class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -562,7 +560,7 @@
                     </div>
 
                     <!-- Project Card 6 -->
-                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right">
                         <!-- More Projects image -->
                         <img src="resImg/pages/index/moreprojects.jpg" alt="More CodeFoxSoft Projects - In development" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -588,7 +586,7 @@
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10 js-blog-title">Latest from Our Blog</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 js-blog-cards">
                     <!-- Blog Post 1: Java Portfolio -->
-                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-left">
                         <img src="resImg/pages/blog/javaprojects.jpg" alt="Java Portfolio - A journey through legacy Java applications" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">Java Portfolio</h3>
@@ -603,7 +601,7 @@
                         </div>
                     </div>
                     <!-- Blog Post 2: Launch -->
-                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-right">
                         <img src="resImg/pages/launch/launchr.png" alt="CodeFoxSoft Official Project Launch" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">Project Launch!</h3>
@@ -618,7 +616,7 @@
                         </div>
                     </div>
                     <!-- Blog Post 3: More Blogs -->
-                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-left">
                         <img src="resImg/pages/index/moreblogs.png" alt="More Blogs from CodeFoxSoft" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">More Blogs</h3>
