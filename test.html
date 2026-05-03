@@ -799,18 +799,18 @@
                 positions[i * 3 + 1] = y;
                 positions[i * 3 + 2] = z;
 
-                // Enhanced color logic for brighter, more vibrant rainbow colors
-                // Full rainbow spectrum for more colorful galaxy
-                const hue = (distance / maxRadius) * 1.0; // Full spectrum (0 to 1.0)
-                const saturation = 0.95 + Math.random() * 0.05; // More saturated
-                const value = 0.95 + Math.random() * 0.05; // Brighter
+                // "Juicy" Cosmic Palette: Bright core fading to Cyan, Blue, and Deep Purple
+                const hue = 0.55 + (distance / maxRadius) * 0.35; // Cyan (0.5) to Magenta (0.9)
+                const saturation = 0.8 + Math.random() * 0.2; 
+                const value = 0.9 + Math.random() * 0.1;
                 let rgb = hsvToRgb(hue, saturation, value);
 
-                // Keep the center dark
-                if (distance < 1.0) {
-                    rgb.r = 0;
-                    rgb.g = 0;
-                    rgb.b = 0;
+                // Super-bright glowing core
+                if (distance < 4.0) {
+                    const coreGlow = 1.0 - (distance / 4.0);
+                    rgb.r = Math.min(1.0, rgb.r + coreGlow * 0.5);
+                    rgb.g = Math.min(1.0, rgb.g + coreGlow * 0.5);
+                    rgb.b = Math.min(1.0, rgb.b + coreGlow * 0.2);
                 }
 
                 colors[i * 3] = rgb.r;
@@ -867,8 +867,8 @@
                 colors[i * 3 + 1] = 1.0;
                 colors[i * 3 + 2] = 1.0;
 
-                // Randomize star size - larger on mobile for visibility
-                sizes[i] = isMobile ? (Math.random() * 0.3 + 0.25) : (Math.random() * 0.1 + 0.05);
+                // Make stars juicier and varied in size
+                sizes[i] = isMobile ? (Math.random() * 0.8 + 0.3) : (Math.random() * 0.5 + 0.1);
             }
 
             const geometry = new THREE.BufferGeometry();
@@ -876,15 +876,17 @@
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
             geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-            // Make star field material much larger on mobile for visibility
-            const starMaterialSize = isMobile ? 0.6 : 0.1;
+            // Apply soft particle texture to make them glow like actual stars
+            const starMaterialSize = isMobile ? 1.5 : 0.8;
             const material = new THREE.PointsMaterial({
                 size: starMaterialSize,
+                map: softParticleTexture, // Beautiful soft glow
                 vertexColors: true,
                 transparent: true,
-                opacity: 1.0, // Full opacity for visibility
-                blending: THREE.AdditiveBlending, // Use AdditiveBlending for visibility on dark background
-                sizeAttenuation: true
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true,
+                alphaTest: 0.001
             });
 
             return new THREE.Points(geometry, material);
@@ -966,8 +968,8 @@
                 const opacity = isMobile ? 1.0 : (0.4 + Math.random() * 0.6);
                 const bgGalaxy = createGalaxy(bgGalaxyStarCount, 20, 2, opacity);
 
-                // Randomly position the background galaxies - very close on mobile for visibility
-                const bgDistance = isMobile ? (300 + Math.random() * 300) : (5000 + Math.random() * 2000);
+                // Push background galaxies deep into the starfield
+                const bgDistance = isMobile ? (1500 + Math.random() * 1500) : (5000 + Math.random() * 2000);
                 const bgAngle = Math.random() * Math.PI * 2;
                 bgGalaxy.position.x = Math.cos(bgAngle) * bgDistance;
                 bgGalaxy.position.y = (Math.random() - 0.5) * bgDistance;
@@ -978,8 +980,8 @@
                 bgGalaxy.rotation.y = Math.random() * Math.PI * 2;
                 bgGalaxy.rotation.z = Math.random() * Math.PI * 2;
 
-                // Randomize scale - very large on mobile for maximum visibility
-                const scale = isMobile ? (1.8 + Math.random() * 0.4) : (0.5 + Math.random() * 0.5);
+                // Randomize scale - giant sweeping structures in the distance
+                const scale = isMobile ? (3.0 + Math.random() * 2.0) : (1.5 + Math.random() * 2.0);
                 bgGalaxy.scale.set(scale, scale, scale);
 
                 backgroundGalaxyGroup.add(bgGalaxy);
