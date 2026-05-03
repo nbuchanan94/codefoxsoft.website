@@ -708,31 +708,22 @@
             }
         });
 
-        // --- Global Variables for Three.js (from the galaxy code) ---
-        let scene, camera, renderer, galaxyGroup, backgroundGalaxyGroup, starField;
-        let mouseX = 0;
-        let mouseY = 0;
-        let targetX = 0;
-        let targetY = 0;
+        // --- Global Variables for Three.js ---
+        let scene, camera, renderer, galaxyGroup, backgroundGalaxyGroup, starField, starFieldBack, nebulaWisps;
+        let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
         let windowHalfX = window.innerWidth / 2;
         let windowHalfY = window.innerHeight / 2;
 
-        // Mobile detection for performance optimization
         const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        // Performance detection variables
-        let isLowPerformance = false;
-        let performanceTestComplete = false;
-        let frameCount = 0;
-        let lastPerformanceCheck = 0;
-        let animationStartTime = 0;
-        const PERFORMANCE_TEST_DURATION = 2000; // Test for 2 seconds
+        // Per-star polar coordinate arrays for TRUE differential rotation
+        let galaxyAngles = null;
+        let galaxyDistances = null;
+        let galaxyPositionsAttr = null; // ref to the BufferAttribute for live updates
 
-        // Adjust particle counts based on device type - further reduced for mobile performance
-        let starCount = isMobile ? 9000 : 75000; // Increased desktop count for denser galaxy
-        let backgroundGalaxyCount = isMobile ? 5 : 10; // Increased from 2 to 5 for better visibility
-        let starFieldCount = isMobile ? 1000 : 5000;
-        const spiralSpeed = 0.0005;
+        const starCount            = isMobile ? 22000 : 160000; // 2-3x denser
+        const backgroundGalaxyCount = isMobile ? 4 : 8;
+        const starFieldCount        = isMobile ? 5000 : 18000;
 
         let softParticleTexture = null;
 
@@ -772,74 +763,198 @@
          * @param {number} [opacity=1.0] The opacity of the galaxy.
          * @returns {THREE.Points} The particle system object.
          */
-        function createGalaxy(starCount, maxRadius, armCount, opacity = 1.0) {
-            const positions = new Float32Array(starCount * 3);
-            const colors = new Float32Array(starCount * 3);
-            const sizes = new Float32Array(starCount);
-            const armOffset = 1.0;
+        // Creates the MAIN galaxy and stores per-star polar coords for differential rotation.
+        // isMain=true stores per-star polar coords for differential rotation
+        function createGalaxy(numStars, maxRadius, armCount, opacity = 1.0, isMain = false) {
+            const positions  = new Float32Array(numStars * 3);
+            const colors     = new Float32Array(numStars * 3);
+            const sizes      = new Float32Array(numStars);
+            const anglesArr  = isMain ? new Float32Array(numStars) : null;
+            const distsArr   = isMain ? new Float32Array(numStars) : null;
 
-            for (let i = 0; i < starCount; i++) {
-                const armIndex = i % armCount;
-                const angle = (i / starCount) * Math.PI * 40 + (armIndex * Math.PI * armOffset);
+            // =============================================================
+            // REALISTIC GALAXY: Logarithmic spiral + density wave theory
+            // Arms are subtle density enhancements in a THICK diffuse disc.
+            //
+            // Population ratios:
+            //   Pop A (10%): tight spiral arm ridge
+            //   Pop B (22%): arm-associated scatter
+            //   Pop C (50%): diffuse disc — bulk of the galaxy
+            //   Pop D (5%):  Hα HII accent clumps
+            //   Pop E (13%): GALACTIC BULGE — dense 3D sphere at center
+            // =============================================================
+            const spiralTurns = 2.8;
 
-                const distance = Math.pow(Math.random(), 3.0) * maxRadius;
+            function spiralAngle(r, armIdx) {
+                return spiralTurns * Math.PI * 2 * Math.pow(r / maxRadius, 0.7)
+                     + (armIdx * Math.PI * 2 / armCount);
+            }
 
-                const crazyFactor = (1 - distance / maxRadius) * 2.0;
-                const randomX = (Math.random() - 0.5) * crazyFactor;
-                // Vertical spread now increases with distance from the center
-                const verticalPuffiness = 0.5 + (distance / maxRadius) * 0.5;
-                const randomY = (Math.random() - 0.5) * crazyFactor * verticalPuffiness;
-                const randomZ = (Math.random() - 0.5) * crazyFactor;
+            for (let i = 0; i < numStars; i++) {
+                const rng = Math.random();
+                const arm = i % armCount;
+                let dist, angle, x, y, z;
 
-                const x = Math.cos(angle) * distance + randomX;
-                const y = randomY;
-                const z = Math.sin(angle) * distance + randomZ;
+                if (rng < 0.13) {
+                    // --- Pop E: Galactic Bulge (dense 3D sphere at center) ---
+                    // Spherical distribution (not flat disc!) concentrated in inner 12%
+                    const bulgeRadius = maxRadius * 0.12;
+                    const r = Math.pow(Math.random(), 2.5) * bulgeRadius; // cubic = very center-heavy
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi   = Math.acos(2 * Math.random() - 1); // uniform sphere
+                    x = r * Math.sin(phi) * Math.cos(theta);
+                    y = r * Math.cos(phi) * 0.6; // slightly flattened (oblate spheroid)
+                    z = r * Math.sin(phi) * Math.sin(theta);
+                    dist = r;
+                    angle = theta;
 
-                positions[i * 3] = x;
+                } else if (rng < 0.23) {
+                    // --- Pop A: Tight arm spine ---
+                    // UNIFORM radial distribution so outer arm wraps are populated, not just center
+                    dist  = (0.10 + Math.random() * 0.90) * maxRadius;
+                    angle = spiralAngle(dist, arm)
+                          + (Math.random() - 0.5) * 0.35;
+                    const sp = 0.4 + (dist / maxRadius) * 1.5;
+                    x = Math.cos(angle) * dist + (Math.random() - 0.5) * sp;
+                    y = (Math.random() - 0.5) * sp * 0.2;
+                    z = Math.sin(angle) * dist + (Math.random() - 0.5) * sp;
+
+                } else if (rng < 0.45) {
+                    // --- Pop B: Arm-associated scatter ---
+                    // Also uniform radial so scatter follows arms all the way out
+                    dist  = (0.05 + Math.random() * 0.95) * maxRadius;
+                    angle = spiralAngle(dist, arm)
+                          + (Math.random() - 0.5) * 1.8;
+                    const sp = 2.0 + (dist / maxRadius) * 6.0;
+                    x = Math.cos(angle) * dist + (Math.random() - 0.5) * sp;
+                    y = (Math.random() - 0.5) * sp * 0.3;
+                    z = Math.sin(angle) * dist + (Math.random() - 0.5) * sp;
+
+                } else if (rng < 0.95) {
+                    // --- Pop C: Diffuse disc (the BULK) ---
+                    dist  = Math.sqrt(Math.random()) * maxRadius;
+                    angle = Math.random() * Math.PI * 2;
+                    const sp = 1.5 + (dist / maxRadius) * 3.5;
+                    x = Math.cos(angle) * dist + (Math.random() - 0.5) * sp;
+                    y = (Math.random() - 0.5) * sp * 0.4;
+                    z = Math.sin(angle) * dist + (Math.random() - 0.5) * sp;
+
+                } else {
+                    // --- Pop D: Hα HII accent clumps ---
+                    dist  = (0.15 + Math.random() * 0.65) * maxRadius;
+                    angle = spiralAngle(dist, arm)
+                          + (Math.random() - 0.5) * 0.6;
+                    const sp = 0.8 + Math.random() * 2.0;
+                    x = Math.cos(angle) * dist + (Math.random() - 0.5) * sp;
+                    y = (Math.random() - 0.5) * sp * 0.35;
+                    z = Math.sin(angle) * dist + (Math.random() - 0.5) * sp;
+                }
+
+                positions[i * 3]     = x;
                 positions[i * 3 + 1] = y;
                 positions[i * 3 + 2] = z;
 
-                // "Juicy" Cosmic Palette: Bright core fading to Cyan, Blue, and Deep Purple
-                const hue = 0.55 + (distance / maxRadius) * 0.35; // Cyan (0.5) to Magenta (0.9)
-                const saturation = 0.8 + Math.random() * 0.2; 
-                const value = 0.9 + Math.random() * 0.1;
-                let rgb = hsvToRgb(hue, saturation, value);
+                if (isMain) { anglesArr[i] = Math.atan2(z, x); distsArr[i] = dist; }
 
-                // Super-bright glowing core
-                if (distance < 4.0) {
-                    const coreGlow = 1.0 - (distance / 4.0);
-                    rgb.r = Math.min(1.0, rgb.r + coreGlow * 0.5);
-                    rgb.g = Math.min(1.0, rgb.g + coreGlow * 0.5);
-                    rgb.b = Math.min(1.0, rgb.b + coreGlow * 0.2);
+                // ====================================================
+                // HST-INSPIRED NEBULA PALETTE
+                // Science: OIII=teal/blue, Hα=pink/magenta, dust=violet
+                // Core bulge is TINY cream; everything else is deeply
+                // saturated cool tones — NO wide white spreading!
+                // ====================================================
+                const t = Math.min(dist / maxRadius, 1.0);
+                let r, g, b;
+
+                if (rng >= 0.95) {
+                    // Pop D — Hα HII regions: hot pink/magenta (ionized hydrogen)
+                    r = 0.85 + Math.random() * 0.15;
+                    g = 0.05 + Math.random() * 0.10;
+                    b = 0.55 + Math.random() * 0.30;
+
+                } else if (t < 0.04) {
+                    // Galactic nucleus: tiny bright cream-white (old Population II)
+                    // Strictly confined to innermost 4% of radius
+                    r = 1.0; g = 0.96; b = 0.88;
+
+                } else if (t < 0.12) {
+                    // Inner bulge edge: smooth cream → blue-white transition
+                    const tt = (t - 0.04) / 0.08;
+                    r = 1.0  - tt * 0.72;  // 1.0 → 0.28
+                    g = 0.96 - tt * 0.56;  // 0.96 → 0.40
+                    b = 0.88 + tt * 0.12;  // 0.88 → 1.0
+
+                } else if (t < 0.30) {
+                    // OIII inner arms: electric teal-blue (dominant oxygen emission)
+                    const tt = (t - 0.12) / 0.18;
+                    r = 0.28 - tt * 0.20;  // 0.28 → 0.08
+                    g = 0.40 + tt * 0.30;  // 0.40 → 0.70
+                    b = 1.0;
+
+                } else if (t < 0.52) {
+                    // Blue arm midpoint: OIII teal fading deeper blue
+                    const tt = (t - 0.30) / 0.22;
+                    r = 0.08 + tt * 0.04;  // barely any red
+                    g = 0.70 - tt * 0.50;  // 0.70 → 0.20
+                    b = 1.0;
+
+                } else if (t < 0.72) {
+                    // Blue → rich violet-purple (reflection nebula dust scatter)
+                    const tt = (t - 0.52) / 0.20;
+                    r = 0.12 + tt * 0.38;  // 0.12 → 0.50
+                    g = 0.20 - tt * 0.14;  // 0.20 → 0.06
+                    b = 1.0  - tt * 0.15;  // 1.0 → 0.85
+
+                } else if (t < 0.88) {
+                    // Deep violet outer arms (like Eagle Nebula outer shells)
+                    const tt = (t - 0.72) / 0.16;
+                    r = 0.50 + tt * 0.15;  // 0.50 → 0.65
+                    g = 0.06;
+                    b = 0.85 - tt * 0.20;  // 0.85 → 0.65
+
+                } else {
+                    // Outermost halo wisps: faint indigo-purple
+                    r = 0.30; g = 0.04; b = 0.55;
                 }
 
-                colors[i * 3] = rgb.r;
-                colors[i * 3 + 1] = rgb.g;
-                colors[i * 3 + 2] = rgb.b;
+                // Random per-star brightness variation (twinkling)
+                const bright = 0.55 + Math.random() * 0.45;
+                colors[i * 3]     = Math.min(1, r * bright);
+                colors[i * 3 + 1] = Math.min(1, g * bright);
+                colors[i * 3 + 2] = Math.min(1, b * bright);
 
-                // Increase size calculation for better visibility
-                sizes[i] = isMobile
-                    ? (1 - distance / maxRadius) * 0.3 + 0.02  // Much larger for mobile
-                    : (1 - distance / maxRadius) * 0.12 + 0.01; // Larger on desktop for denser look
+                // Sizes: large nucleus, tapers but stays reasonably large for density feel
+                const baseSize = isMobile
+                    ? (0.28 - t * 0.18 + Math.random() * 0.12)
+                    : (0.12 - t * 0.08 + Math.random() * 0.04);
+                sizes[i] = Math.max(baseSize, isMobile ? 0.04 : 0.01);
             }
 
             const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            const posAttr  = new THREE.BufferAttribute(positions, 3);
+            geometry.setAttribute('position', posAttr);
+            geometry.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size',     new THREE.BufferAttribute(sizes,  1));
 
             const material = new THREE.PointsMaterial({
-                size: isMobile ? 0.15 : 0.025,  // Larger on desktop for denser, more visible galaxy
-                map: softParticleTexture,  // Use soft texture for galaxy-like blur effect
-                vertexColors: true,
-                transparent: true,
-                opacity: opacity * 0.95,  // Slightly more opaque for better visibility
-                blending: THREE.AdditiveBlending,
+                size:            isMobile ? 0.32 : 0.045,
+                map:             softParticleTexture,
+                vertexColors:    true,
+                transparent:     true,
+                opacity:         opacity * 0.92,
+                blending:        THREE.AdditiveBlending,
+                depthWrite:      false,
                 sizeAttenuation: true,
-                alphaTest: 0.001  // Helps with transparency rendering
+                alphaTest:       0.001
             });
 
-            return new THREE.Points(geometry, material);
+            const pts = new THREE.Points(geometry, material);
+            if (isMain) {
+                pts.userData.angles    = anglesArr;
+                pts.userData.distances = distsArr;
+                pts.userData.posAttr   = posAttr;
+                pts.userData.starCount = numStars;
+            }
+            return pts;
         }
 
         /**
@@ -848,45 +963,47 @@
          * @param {number} maxDistance The maximum distance from the center.
          * @returns {THREE.Points} The particle system object.
          */
-        function createStarField(starCount, maxDistance) {
-            const positions = new Float32Array(starCount * 3);
-            const colors = new Float32Array(starCount * 3);
-            const sizes = new Float32Array(starCount);
+        // Creates a star field with realistic stellar color temperatures
+        function createStarField(numStars, maxDistance, zOffset = 0) {
+            const positions = new Float32Array(numStars * 3);
+            const colors    = new Float32Array(numStars * 3);
+            const sizes     = new Float32Array(numStars);
 
-            for (let i = 0; i < starCount; i++) {
-                const x = (Math.random() - 0.5) * maxDistance * 2;
-                const y = (Math.random() - 0.5) * maxDistance * 2;
-                const z = (Math.random() - 0.5) * maxDistance * 2;
+            for (let i = 0; i < numStars; i++) {
+                positions[i*3]   = (Math.random() - 0.5) * maxDistance * 2;
+                positions[i*3+1] = (Math.random() - 0.5) * maxDistance * 2;
+                positions[i*3+2] = (Math.random() - 0.5) * maxDistance * 2 + zOffset;
 
-                positions[i * 3] = x;
-                positions[i * 3 + 1] = y;
-                positions[i * 3 + 2] = z;
+                // Stellar color temperature variation: blue-white, white, warm yellow, rare orange
+                const rng = Math.random();
+                if (rng < 0.55) {       // Common: blue-white
+                    colors[i*3]=0.85; colors[i*3+1]=0.92; colors[i*3+2]=1.0;
+                } else if (rng < 0.80) { // White
+                    colors[i*3]=1.0;  colors[i*3+1]=1.0;  colors[i*3+2]=1.0;
+                } else if (rng < 0.95) { // Warm yellow (older stars)
+                    colors[i*3]=1.0;  colors[i*3+1]=0.92; colors[i*3+2]=0.72;
+                } else {                // Rare reddish-orange giant
+                    colors[i*3]=1.0;  colors[i*3+1]=0.65; colors[i*3+2]=0.35;
+                }
 
-                // Set color to white
-                colors[i * 3] = 1.0;
-                colors[i * 3 + 1] = 1.0;
-                colors[i * 3 + 2] = 1.0;
-
-                // Make stars juicier and varied in size
-                sizes[i] = isMobile ? (Math.random() * 0.8 + 0.3) : (Math.random() * 0.5 + 0.1);
+                sizes[i] = isMobile ? (Math.random() * 1.0 + 0.2) : (Math.random() * 0.6 + 0.1);
             }
 
             const geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            geometry.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size',     new THREE.BufferAttribute(sizes, 1));
 
-            // Apply soft particle texture to make them glow like actual stars
-            const starMaterialSize = isMobile ? 1.5 : 0.8;
             const material = new THREE.PointsMaterial({
-                size: starMaterialSize,
-                map: softParticleTexture, // Beautiful soft glow
+                size:         isMobile ? 3.5 : 1.8,
+                map:          softParticleTexture,
                 vertexColors: true,
-                transparent: true,
-                opacity: 0.9,
-                blending: THREE.AdditiveBlending,
+                transparent:  true,
+                opacity:      0.88,
+                blending:     THREE.AdditiveBlending,
+                depthWrite:   false,
                 sizeAttenuation: true,
-                alphaTest: 0.001
+                alphaTest:    0.001
             });
 
             return new THREE.Points(geometry, material);
@@ -904,9 +1021,10 @@
                 const context = canvas.getContext('2d');
 
                 const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+                // "Star" profile: intense core, sharp dropoff, faint halo
                 gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-                gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.9)');
-                gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.5)');
+                gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.8)');
+                gradient.addColorStop(0.25, 'rgba(255, 255, 255, 0.2)');
                 gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
                 context.fillStyle = gradient;
@@ -953,44 +1071,60 @@
                 camera.position.x = 0;
             }
 
-            // --- Main Galaxy ---
+            // --- Main Galaxy (isMain=true stores per-star polar data) ---
             galaxyGroup = new THREE.Group();
-            const mainGalaxy = createGalaxy(starCount, 55, 2, 1.0);
+            const mainGalaxy = createGalaxy(starCount, 55, 2, 1.0, true);
             galaxyGroup.add(mainGalaxy);
-            galaxyGroup.rotation.x = 0.5; // Changed to a positive value for "right-side up" view
+            galaxyGroup.rotation.x = 0.45;
             scene.add(galaxyGroup);
 
-            // --- Background Galaxies ---
+            // --- Background Galaxies (distant, smaller, various rotations) ---
             backgroundGalaxyGroup = new THREE.Group();
-            const bgGalaxyStarCount = isMobile ? 5000 : 5000; // Increased to 5000 for maximum visibility
+            const bgStarCount = isMobile ? 3000 : 5000;
             for (let i = 0; i < backgroundGalaxyCount; i++) {
-                // Randomize opacity for each background galaxy - full opacity on mobile for visibility
-                const opacity = isMobile ? 1.0 : (0.4 + Math.random() * 0.6);
-                const bgGalaxy = createGalaxy(bgGalaxyStarCount, 20, 2, opacity);
-
-                // Push background galaxies deep into the starfield
-                const bgDistance = isMobile ? (1500 + Math.random() * 1500) : (5000 + Math.random() * 2000);
-                const bgAngle = Math.random() * Math.PI * 2;
-                bgGalaxy.position.x = Math.cos(bgAngle) * bgDistance;
-                bgGalaxy.position.y = (Math.random() - 0.5) * bgDistance;
-                bgGalaxy.position.z = Math.sin(bgAngle) * bgDistance;
-
-                // Randomize rotation
-                bgGalaxy.rotation.x = Math.random() * Math.PI * 2;
-                bgGalaxy.rotation.y = Math.random() * Math.PI * 2;
-                bgGalaxy.rotation.z = Math.random() * Math.PI * 2;
-
-                // Randomize scale - giant sweeping structures in the distance
-                const scale = isMobile ? (3.0 + Math.random() * 2.0) : (1.5 + Math.random() * 2.0);
-                bgGalaxy.scale.set(scale, scale, scale);
-
+                const opacity    = 0.3 + Math.random() * 0.5;
+                const bgGalaxy   = createGalaxy(bgStarCount, 18, 2, opacity);
+                const bgDistance = isMobile ? (2000 + Math.random() * 2000) : (5000 + Math.random() * 2000);
+                const bgAngle    = Math.random() * Math.PI * 2;
+                bgGalaxy.position.set(
+                    Math.cos(bgAngle) * bgDistance,
+                    (Math.random() - 0.5) * bgDistance,
+                    Math.sin(bgAngle) * bgDistance
+                );
+                bgGalaxy.rotation.set(
+                    Math.random() * Math.PI * 2,
+                    Math.random() * Math.PI * 2,
+                    Math.random() * Math.PI * 2
+                );
+                const scale = isMobile ? (3.5 + Math.random() * 2.5) : (2.0 + Math.random() * 2.0);
+                bgGalaxy.scale.setScalar(scale);
                 backgroundGalaxyGroup.add(bgGalaxy);
             }
             scene.add(backgroundGalaxyGroup);
 
-            // --- Distant Star Field ---
-            starField = createStarField(starFieldCount, 1000);
+            // --- Star field FRONT ---
+            starField = createStarField(starFieldCount, 1200, 0);
             scene.add(starField);
+
+            // --- Star field BACK ---
+            starFieldBack = createStarField(Math.floor(starFieldCount * 0.7), 1200, -600);
+            scene.add(starFieldBack);
+
+            // --- Central Nucleus Glow (single bright warm sprite) ---
+            const nucleusGeo = new THREE.BufferGeometry();
+            nucleusGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0]), 3));
+            const nucleusMat = new THREE.PointsMaterial({
+                size:        isMobile ? 4.0 : 2.5,
+                map:         softParticleTexture,
+                color:       new THREE.Color(1.0, 0.95, 0.85), // warm cream
+                transparent: true,
+                opacity:     0.7,
+                blending:    THREE.AdditiveBlending,
+                depthWrite:  false,
+                sizeAttenuation: true
+            });
+            const nucleusGlow = new THREE.Points(nucleusGeo, nucleusMat);
+            galaxyGroup.add(nucleusGlow);
         }
 
         // --- Mouse and Resize Listeners (from the galaxy code) ---
@@ -1026,33 +1160,57 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // Update rotation targets based on mouse position
+            const now = Date.now();
+
+            // --- Differential rotation on main galaxy ---
+            // Each star advances its angle by omega = baseSpeed / sqrt(dist), like a real galaxy
+            const mainPts = galaxyGroup.children[0];
+            if (mainPts && mainPts.userData.posAttr) {
+                const angles  = mainPts.userData.angles;
+                const dists   = mainPts.userData.distances;
+                const posAttr = mainPts.userData.posAttr;
+                const n       = mainPts.userData.starCount;
+                const baseOmega = 0.00018; // tuned for visible but not dizzying drift
+                for (let i = 0; i < n; i++) {
+                    const d = Math.max(dists[i], 0.5); // avoid div-by-zero at core
+                    angles[i] += baseOmega / Math.sqrt(d);
+                    posAttr.array[i*3]   = Math.cos(angles[i]) * dists[i];
+                    posAttr.array[i*3+2] = Math.sin(angles[i]) * dists[i];
+                    // y stays unchanged (flat disc)
+                }
+                posAttr.needsUpdate = true;
+            }
+
+            // Mouse influence
             const mouseInfluence = isMobile ? 0.0005 : 0.001;
             targetX = mouseX * mouseInfluence;
             targetY = mouseY * mouseInfluence;
 
-            // Apply mouse influence and continuous rotation to the galaxy group
-            const rotationSpeed = 0.0005;
-            const baseRotation = 0.0002;
-            galaxyGroup.rotation.y += rotationSpeed * (targetX - galaxyGroup.rotation.y) + baseRotation;
-            galaxyGroup.rotation.x += rotationSpeed * (targetY - galaxyGroup.rotation.x) - 0.00005;
-            galaxyGroup.rotation.z += 0.0001;
+            // Slow group rotation (the whole galaxy tilts gently)
+            galaxyGroup.rotation.y += 0.00015 + (targetX - galaxyGroup.rotation.y) * 0.0008;
+            galaxyGroup.rotation.x += (0.45 + targetY * 0.1 - galaxyGroup.rotation.x) * 0.002;
 
-            // Pulsing scale effect
-            const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
-            galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+            // Pulsing breathe effect on main galaxy
+            const breathe = 1 + Math.sin(now * 0.0004) * 0.012;
+            galaxyGroup.scale.setScalar(breathe);
 
-            // Camera movement
-            camera.position.x += (targetX * 0.5 - camera.position.x) * 0.05;
-            camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.05;
+            // Camera drift
+            camera.position.x += (targetX * 0.5 - camera.position.x) * 0.04;
+            camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.04;
             camera.lookAt(scene.position);
 
-            // Background galaxies rotation
-            backgroundGalaxyGroup.rotation.x += 0.00001;
-            backgroundGalaxyGroup.rotation.y += 0.00001;
+            // Background galaxies slow counter-rotation for parallax depth
+            backgroundGalaxyGroup.rotation.y += 0.000008;
+            backgroundGalaxyGroup.rotation.x += 0.000005;
 
-            // Star field rotation
-            starField.rotation.y += isMobile ? 0.000015 : 0.00005;
+            // Star fields drift very slowly
+            starField.rotation.y += 0.000012;
+            if (starFieldBack) starFieldBack.rotation.y -= 0.000008;
+
+            // --- Subtle star twinkling (opacity shimmer) ---
+            const twinkle = 0.82 + Math.sin(now * 0.0015) * 0.08;
+            starField.material.opacity = twinkle;
+            if (starFieldBack) starFieldBack.material.opacity = twinkle * 0.9;
 
             renderer.render(scene, camera);
         }
