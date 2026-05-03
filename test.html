@@ -87,12 +87,12 @@
 
         /* Hero Section Container for the Three.js canvas */
         #hero-background {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 0;
+            z-index: -1;
             pointer-events: none; /* Prevents background from stealing scroll/touch events */
         }
 
@@ -301,7 +301,10 @@
 
 </head>
 
-<body class="bg-gray-900 text-gray-100">
+<body class="text-gray-100" style="background-color: #0c0d11;">
+
+    <!-- The container for the Three.js animated background -->
+    <div id="hero-background"></div>
 
     <!-- Header -->
     <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
@@ -369,8 +372,11 @@
     <div class="overflow-x-hidden w-full relative">
         <!-- Hero Section -->
         <section class="relative min-h-screen flex items-center justify-center text-center overflow-hidden" style="min-height: 100dvh;">
-            <!-- This div is the container for the Three.js animation -->
-            <div id="hero-background"></div>
+            <!-- Hero Video Background -->
+            <div class="absolute inset-0 z-0">
+                <video id="heroVideo" class="w-full h-full object-cover" muted playsinline autoplay></video>
+                <div class="absolute inset-0 bg-gray-900 bg-opacity-40"></div>
+            </div>
             <div
                 class="hero-content-box hero-anim-in relative z-10 p-8 rounded-xl shadow-lg max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
                 <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
@@ -392,7 +398,7 @@
         </section>
 
         <!-- About Section -->
-        <section id="about" class="py-20 bg-gray-800 fade-in section-angled-top">
+        <section id="about" class="py-20 bg-gray-800 bg-opacity-70 backdrop-blur-sm fade-in section-angled-top">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">About CodeFoxSoft</h2>
                 <div class="max-w-3xl mx-auto text-base sm:text-lg leading-relaxed">
@@ -450,7 +456,7 @@
         </section>
 
         <!-- Projects Section -->
-        <section id="projects" class="py-20 bg-gray-900 section-angled-top">
+        <section id="projects" class="py-20 bg-gray-900 bg-opacity-70 backdrop-blur-sm section-angled-top">
 
 
             <div class="container mx-auto px-6 text-center">
@@ -563,7 +569,7 @@
 
 
         <!-- Blog Section -->
-        <section id="blog" class="py-20 bg-gray-800 section-angled-bottom">
+        <section id="blog" class="py-20 bg-gray-800 bg-opacity-70 backdrop-blur-sm section-angled-bottom">
 
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10 js-blog-title">Latest from Our Blog</h2>
@@ -617,7 +623,7 @@
         </section>
 
         <!-- Contact Section -->
-        <section id="contact" class="py-20 bg-gray-900 fade-in section-angled-bottom">
+        <section id="contact" class="py-20 bg-gray-900 bg-opacity-70 backdrop-blur-sm fade-in section-angled-bottom">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">Get in Touch</h2>
                 <p class="text-base sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -659,7 +665,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 py-10 text-center text-gray-400 text-sm js-footer-reveal">
+    <footer class="bg-gray-900 bg-opacity-70 backdrop-blur-sm py-10 text-center text-gray-400 text-sm js-footer-reveal">
         <div class="container mx-auto px-6">
             <p>&copy; <span id="year"></span> CodeFoxSoft™. All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nick Larkin.</p>
@@ -1261,6 +1267,37 @@
     </script>
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+    <script>
+        // Hero Video Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const videoElement = document.getElementById('heroVideo');
+            if (videoElement) {
+                const videos = ['fly1.mp4', 'fly2.mp4'];
+                let playCount = 0;
+                
+                function playNextVideo() {
+                    let nextVideo;
+                    // Play fly1 twice, then fly2
+                    if (playCount < 2) {
+                        nextVideo = Math.random() < 0.8 ? videos[0] : videos[1];
+                    } else {
+                        nextVideo = videos[1];
+                        playCount = -1; 
+                    }
+                    if (nextVideo === videos[0]) {
+                        playCount++;
+                    } else {
+                        playCount = 0; 
+                    }
+                    videoElement.src = nextVideo;
+                    videoElement.play().catch(e => console.log('Video play failed', e));
+                }
+                
+                videoElement.addEventListener('ended', playNextVideo);
+                playNextVideo(); // Start playback
+            }
+        });
     </script>
 </body>
 
