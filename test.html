@@ -92,7 +92,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100dvh;
             z-index: -1;
             pointer-events: none; /* Prevents background from stealing scroll/touch events */
         }
@@ -215,7 +215,7 @@
         }
         @media (max-width: 768px) {
             .hero-glass-panel {
-                background-color: rgba(31, 41, 55, 0.25) !important;
+                background-color: rgba(31, 41, 55, 0.45) !important;
                 backdrop-filter: none !important;
                 -webkit-backdrop-filter: none !important;
                 border: 2px solid rgba(16, 185, 129, 0.3) !important;
@@ -467,7 +467,7 @@
         </section>
 
         <!-- Projects Section -->
-        <section id="projects" class="py-20">
+        <section id="projects" class="py-20 overflow-hidden">
 
 
             <div class="container mx-auto px-6 text-center">
@@ -580,7 +580,7 @@
 
 
         <!-- Blog Section -->
-        <section id="blog" class="py-20">
+        <section id="blog" class="py-20 overflow-hidden">
 
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10 js-blog-title">Latest from Our Blog</h2>
@@ -634,7 +634,7 @@
         </section>
 
         <!-- Contact Section -->
-        <section id="contact" class="py-20 fade-in">
+        <section id="contact" class="py-20 overflow-hidden fade-in">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">Get in Touch</h2>
                 <p class="text-base sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -675,7 +675,7 @@
         </section>
 
     <!-- Footer -->
-    <footer class="glass-panel py-10 text-center text-gray-400 text-sm js-footer-reveal">
+    <footer class="glass-panel py-10 text-center text-gray-400 text-sm fade-in">
         <div class="container mx-auto px-6">
             <p>&copy; <span id="year"></span> CodeFoxSoft™. All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nick Larkin.</p>
@@ -994,9 +994,12 @@
 
         // --- Mouse and Resize Listeners (from the galaxy code) ---
         /**
-         * Handles window resizing, updating the camera aspect and renderer size.
+         * Handles window resize events. Updates camera aspect ratio and renderer size.
          */
+        let lastWindowWidth = window.innerWidth;
         function onWindowResize() {
+            if (isMobile && Math.abs(window.innerWidth - lastWindowWidth) < 10) return; // Prevent stutter from mobile address bar
+            lastWindowWidth = window.innerWidth;
             const canvasContainer = document.getElementById('hero-background');
             if (canvasContainer) {
                 windowHalfX = canvasContainer.clientWidth / 2;
