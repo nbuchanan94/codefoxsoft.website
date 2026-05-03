@@ -189,6 +189,28 @@
             }
         }
 
+        .hero-glass-panel {
+            background-color: rgba(31, 41, 55, 0.15); /* 50% more transparent than glass-panel */
+            backdrop-filter: blur(4px); /* less blur to see the characters better */
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        @media (max-width: 768px) {
+            .hero-glass-panel {
+                background-color: rgba(31, 41, 55, 0.05) !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                border: none;
+            }
+            .hero-glass-panel h1,
+            .hero-glass-panel p,
+            .hero-glass-panel h3,
+            .hero-glass-panel span {
+                text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.7);
+            }
+        }
+
 
 
         /* Mobile Menu Animation */
@@ -338,15 +360,15 @@
     </div>
 
         <!-- Hero Section -->
-        <section class="relative min-h-screen flex items-center justify-center text-center overflow-hidden" style="min-height: 100dvh;">
+        <section class="relative min-h-screen flex items-end justify-center pb-12 sm:pb-32 text-center overflow-hidden" style="min-height: 100dvh;">
             <!-- Hero Video Background -->
             <div class="absolute inset-0 z-0">
                 <video id="heroVideo" class="w-full h-full object-cover" muted playsinline autoplay></video>
-                <div class="absolute inset-0 bg-gray-900 bg-opacity-40"></div>
+                <div class="absolute inset-0 bg-gray-900 bg-opacity-30"></div>
                 <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
             </div>
             <div
-                class="glass-panel hero-anim-in relative z-10 p-8 rounded-xl shadow-lg max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
+                class="hero-glass-panel hero-anim-in relative z-10 p-8 rounded-xl max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105 w-full">
                 <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
                     <span class="text-green-500 hero-title-brand">CodeFoxSoft™</span><br />
                     <span class="hero-tagline">One Fox, an Entire Universe.</span>
