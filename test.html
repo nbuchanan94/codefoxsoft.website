@@ -229,12 +229,7 @@
             }
         }
 
-        @media (min-width: 640px) {
-            .hero-section {
-                min-height: 100vh;
-                min-height: 100dvh;
-            }
-        }
+
 
 
 
@@ -385,20 +380,23 @@
     </div>
 
         <!-- Hero Section -->
-        <section class="relative hero-section flex items-end justify-center pt-32 pb-8 sm:pt-0 sm:pb-32 text-center overflow-hidden">
+        <section class="relative min-h-[100dvh] flex items-end justify-center pb-12 sm:pb-32 text-right sm:text-center overflow-hidden">
             <!-- Hero Video Background -->
             <div class="absolute inset-0 z-0">
-                <video id="heroVideo1" class="absolute top-0 left-0 w-full h-full object-fill" muted playsinline preload="auto"></video>
-                <video id="heroVideo2" class="absolute top-0 left-0 w-full h-full object-fill opacity-0" muted playsinline preload="auto"></video>
+                <video id="heroVideo1" class="absolute top-0 left-0 w-full h-full object-cover object-[20%_center] sm:object-center" muted playsinline preload="auto"></video>
+                <video id="heroVideo2" class="absolute top-0 left-0 w-full h-full object-cover object-[20%_center] sm:object-center opacity-0" muted playsinline preload="auto"></video>
                 <div class="absolute inset-0 bg-gray-900 bg-opacity-30"></div>
                 <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
             </div>
             <div
-                class="hero-glass-panel hero-anim-in relative z-10 p-8 rounded-xl max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105 w-full">
+                class="hero-glass-panel hero-anim-in relative z-10 p-6 sm:p-8 rounded-xl max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105 w-full text-right sm:text-center">
                 <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
                     <span class="text-green-500 hero-title-brand">CodeFoxSoft™</span><br />
                     <span class="hero-tagline">One Fox, an Entire Universe.</span>
                 </h1>
+                
+                <!-- Extra space on mobile to move text off the character -->
+                <div class="h-6 w-full block sm:hidden"></div>
 
                 <p class="text-base sm:text-xl text-gray-300 mb-8 hero-desc">
                     Explore our den of Cross Platform Programs and Android games, crafted with paws, claws, and pure
