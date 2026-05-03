@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <!-- SEO Meta Tags -->
     <meta name="description"
@@ -62,6 +62,7 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
         }
 
         /* Custom scrollbar for a cleaner look */
@@ -87,21 +88,20 @@
 
         /* Hero Section Container for the Three.js canvas */
         #hero-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none; /* Prevents background from stealing scroll/touch events */
+            position: fixed;
+            top: -10vh;
+            left: -10vw;
+            width: 120vw;
+            height: 120vh;
+            height: 120lvh;
+            z-index: -1;
+            pointer-events: none;
+            transform: translateZ(0); /* Hardware acceleration locks sub-pixels */
         }
 
         /* The three.js canvas inside the container */
         #hero-background canvas {
-            width: 100% !important;
-            height: 100% !important;
             display: block;
-            /* Remove default spacing below the canvas */
         }
 
         /* Basic fade-in animation for sections */
@@ -146,48 +146,21 @@
         @media (max-width: 768px) {
             .fade-in {
                 transform: translateY(15px);
-                transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+                
             }
 
             .slide-left {
                 transform: translateX(-50px);
-                transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+                
             }
 
             .slide-right {
                 transform: translateX(50px);
-                transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+                
             }
         }
 
-        /* Unique section shapes using clip-path - adjusted for better overlap removing gaps */
-        .section-angled-top {
-            clip-path: polygon(0 4vw, 100% 0, 100% 100%, 0 100%);
-            margin-top: -4vw;
-            padding-top: calc(5rem + 4vw);
-        }
 
-        @media (max-width: 640px) {
-            .section-angled-top {
-                clip-path: polygon(0 6vw, 100% 0, 100% 100%, 0 100%);
-                margin-top: -6vw;
-                padding-top: calc(5rem + 6vw);
-            }
-        }
-
-        .section-angled-bottom {
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4vw), 0 100%);
-            margin-bottom: -4vw;
-            padding-bottom: calc(5rem + 4vw);
-        }
-
-        @media (max-width: 640px) {
-            .section-angled-bottom {
-                clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6vw), 0 100%);
-                margin-bottom: -6vw;
-                padding-bottom: calc(5rem + 6vw);
-            }
-        }
 
         /* More dynamic project card hover */
         .project-image {
@@ -198,29 +171,66 @@
             transform: scale(1.05);
         }
 
-        /* Hero Content Box - Base styles for desktop */
-        .hero-content-box {
-            background-color: rgba(31, 41, 55, 0.7);
-            /* Matches bg-gray-800 bg-opacity-70 */
+                        .glass-panel {
+            background-color: rgba(31, 41, 55, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 2px solid rgba(16, 185, 129, 0.6);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+            animation: pulse-border 4s infinite alternate;
+            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
         }
-
-        /* Hero Box Mobile Optimization - More transparent with backdrop blur */
+        .glass-panel:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+        }
+        @keyframes pulse-border {
+            0% { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 10px rgba(16, 185, 129, 0.1); }
+            50% { border-color: rgba(59, 130, 246, 0.6); box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            100% { border-color: rgba(139, 92, 246, 0.6); box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+        }
         @media (max-width: 768px) {
-            .hero-content-box {
-                /* Remove backdrop-filter on mobile for better compatibility */
-                background-color: rgba(31, 41, 55, 0.7) !important;
-                /* Even more transparent - 10% opacity */
+            .glass-panel {
+                background-color: rgba(31, 41, 55, 0.1) !important;
                 backdrop-filter: none !important;
-                /* Disable backdrop-filter on mobile */
                 -webkit-backdrop-filter: none !important;
+                border: 2px solid rgba(16, 185, 129, 0.4) !important;
+                animation: pulse-border 4s infinite alternate;
             }
-
-            .hero-content-box h1,
-            .hero-content-box p {
-                /* Reduce text-shadow intensity for better transparency visibility */
-                text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.3);
+            .glass-panel h1,
+            .glass-panel p,
+            .glass-panel h3 {
+                text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
             }
         }
+
+        .hero-glass-panel {
+            background-color: rgba(31, 41, 55, 0.15); 
+            backdrop-filter: blur(4px); 
+            -webkit-backdrop-filter: blur(4px);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+            animation: pulse-border 4s infinite alternate;
+        }
+        @media (max-width: 768px) {
+            .hero-glass-panel {
+                background-color: rgba(31, 41, 55, 0.45) !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                border: 2px solid rgba(16, 185, 129, 0.3) !important;
+                animation: pulse-border 4s infinite alternate;
+            }
+            .hero-glass-panel h1,
+            .hero-glass-panel p,
+            .hero-glass-panel h3,
+            .hero-glass-panel span {
+                text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.7);
+            }
+        }
+
+
+
+
 
         /* Mobile Menu Animation */
         #mobile-menu {
@@ -301,7 +311,10 @@
 
 </head>
 
-<body class="bg-gray-900 text-gray-100">
+<body class="text-gray-100" style="background-color: #0c0d11;">
+
+    <!-- The container for the Three.js animated background -->
+    <div id="hero-background"></div>
 
     <!-- Header -->
     <header class="bg-gray-800 bg-opacity-80 backdrop-blur-sm shadow-lg fixed w-full z-50 py-4">
@@ -365,34 +378,37 @@
         </ul>
     </div>
 
-    <!-- All sections are now within a main container -->
-    <div class="overflow-x-hidden w-full relative">
         <!-- Hero Section -->
-        <section class="relative min-h-screen flex items-center justify-center text-center overflow-hidden" style="min-height: 100dvh;">
-            <!-- This div is the container for the Three.js animation -->
-            <div id="hero-background"></div>
+        <section class="relative min-h-0 sm:min-h-[100dvh] pt-20 sm:pt-0 flex flex-col items-center sm:items-end justify-start sm:justify-end pb-12 sm:pb-24 text-center sm:text-right overflow-hidden sm:pr-8 md:pr-16 lg:pr-24">
+            <!-- Hero Video Background -->
+            <div class="relative sm:absolute top-0 left-0 w-full aspect-[4/3] sm:aspect-auto sm:h-full z-0 overflow-hidden">
+                <video id="heroVideo1" class="absolute top-0 left-0 w-full h-full object-cover object-[5%_center] sm:object-center" muted playsinline preload="auto"></video>
+                <video id="heroVideo2" class="absolute top-0 left-0 w-full h-full object-cover object-[5%_center] sm:object-center opacity-0" muted playsinline preload="auto"></video>
+                <div class="absolute inset-0 bg-gray-900 bg-opacity-20 sm:bg-opacity-30"></div>
+                <div class="absolute bottom-0 left-0 w-full h-32 sm:h-48 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
+            </div>
             <div
-                class="hero-content-box hero-anim-in relative z-10 p-8 rounded-xl shadow-lg max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
-                <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
-                    <span class="text-green-500 hero-title-brand">CodeFoxSoft™</span><br />
-                    <span class="hero-tagline">One Fox, an Entire Universe.</span>
+                class="hero-glass-panel relative z-10 p-5 sm:p-8 rounded-xl max-w-4xl sm:max-w-2xl w-[calc(100%-2rem)] sm:w-auto mx-auto sm:mx-0 transform transition-all duration-500 ease-in-out hover:scale-105 text-center sm:text-left mt-6 sm:mt-0">
+                <h1 class="font-extrabold text-white mb-4 sm:mb-6 leading-tight">
+                    <span class="text-green-500 hero-title-brand hidden sm:inline text-4xl sm:text-6xl">CodeFoxSoft™</span><br class="hidden sm:block" />
+                    <span class="hero-tagline text-2xl sm:text-6xl block">One Fox, an Entire Universe.</span>
                 </h1>
 
-                <p class="text-base sm:text-xl text-gray-300 mb-8 hero-desc">
+                <p class="text-sm sm:text-xl text-gray-300 mb-6 sm:mb-8 hero-desc">
                     Explore our den of Cross Platform Programs and Android games, crafted with paws, claws, and pure
                     underground spirit. Then swing by the Java Apps archive to witness the AP Computer Science library
                     forged between 2009 and 2012 — the old‑school code tomes that started this whole dark carnival of
                     creation. </p>
 
                 <a href="#about"
-                    class="hero-cta js-cta-pop inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 sm:py-4 sm:px-10 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
+                    class="hero-cta js-cta-pop inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 sm:py-4 sm:px-10 text-sm sm:text-base rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
                     Who we are? <i class="fas fa-arrow-right ml-2"></i>
                 </a>
             </div>
         </section>
 
         <!-- About Section -->
-        <section id="about" class="py-20 bg-gray-800 fade-in section-angled-top">
+        <section id="about" class="py-20 fade-in">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">About CodeFoxSoft</h2>
                 <div class="max-w-3xl mx-auto text-base sm:text-lg leading-relaxed">
@@ -418,28 +434,28 @@
                 <div
                     class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto js-about-cards">
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-left" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-left">
                         <i class="fas fa-code text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Nearly 2 Decades Exp.</h3>
                         <p class="text-gray-300">Extensive programming across diverse industries and technologies since
                             2006.</p>
                     </div>
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-right" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-right">
                         <i class="fas fa-brain text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">AI Innovation</h3>
                         <p class="text-gray-300">Pioneering research and application of Artificial Intelligence in
                             real-world scenarios.</p>
                     </div>
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-left" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-left">
                         <i class="fas fa-gamepad text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Game Development</h3>
                         <p class="text-gray-300">Creating immersive and engaging interactive entertainment experiences.
                         </p>
                     </div>
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-right" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-right">
                         <i class="fas fa-desktop text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Websites and Applications</h3>
                         <p class="text-gray-300">Commission me for robust and intuitive applications and websites for
@@ -450,14 +466,14 @@
         </section>
 
         <!-- Projects Section -->
-        <section id="projects" class="py-20 bg-gray-900 section-angled-top">
+        <section id="projects" class="py-20 overflow-hidden">
 
 
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10 js-project-title">Our Projects</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 js-project-cards">
                     <!-- Project Card 1 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card group reveal slide-left">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card group reveal slide-left">
                         <img src="resImg/pages/foxrundownloadpage/foxrun_preview_1.png"
                              alt="Fox Run - High-energy endless runner game for Android"
                              class="w-full h-48 object-cover project-image group-hover:scale-110 transition-transform duration-500">
@@ -474,7 +490,7 @@
                         </div>
                     </div>
                     <!-- Project Card 2 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right">
                         <!-- Using a placeholder image for the project -->
                         <img src="resImg/pages/spacepongdownload/pongplay.png" alt="Space Pong - Classic arcade action in space" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -491,7 +507,7 @@
                         </div>
                     </div>
                     <!-- Project Card 3 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-left">
                         <img src="resImg/pages/furryravedownload/furryrave1.png" alt="Furry Rave - High-energy music action screensaver preview"
                             class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -509,7 +525,7 @@
                         </div>
                     </div>
                     <!-- Project Card 4 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right">
                         <!-- More Projects image -->
                         <img src="resImg/pages/synkrfox/synkrfox2.png" alt="SynkrFox - Live filesystem backup application interface" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -526,7 +542,7 @@
                     </div>
 
                     <!-- Project Card 5: Shadowlark -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-left">
                         <img src="resImg/pages/shadowlarkoracle/shadowlarkoracle0.png" alt="Shadowlark Oracle"
                             class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -543,7 +559,7 @@
                     </div>
 
                     <!-- Project Card 6 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right">
                         <!-- More Projects image -->
                         <img src="resImg/pages/index/moreprojects.jpg" alt="More CodeFoxSoft Projects - In development" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -563,13 +579,13 @@
 
 
         <!-- Blog Section -->
-        <section id="blog" class="py-20 bg-gray-800 section-angled-bottom">
+        <section id="blog" class="py-20 overflow-hidden">
 
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10 js-blog-title">Latest from Our Blog</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 js-blog-cards">
                     <!-- Blog Post 1: Java Portfolio -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-left">
                         <img src="resImg/pages/blog/javaprojects.jpg" alt="Java Portfolio - A journey through legacy Java applications" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">Java Portfolio</h3>
@@ -584,7 +600,7 @@
                         </div>
                     </div>
                     <!-- Blog Post 2: Launch -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-right">
                         <img src="resImg/pages/launch/launchr.png" alt="CodeFoxSoft Official Project Launch" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">Project Launch!</h3>
@@ -599,7 +615,7 @@
                         </div>
                     </div>
                     <!-- Blog Post 3: More Blogs -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-left">
                         <img src="resImg/pages/index/moreblogs.png" alt="More Blogs from CodeFoxSoft" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">More Blogs</h3>
@@ -617,7 +633,7 @@
         </section>
 
         <!-- Contact Section -->
-        <section id="contact" class="py-20 bg-gray-900 fade-in section-angled-bottom">
+        <section id="contact" class="py-20 overflow-hidden fade-in">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">Get in Touch</h2>
                 <p class="text-base sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -629,7 +645,7 @@
                     application, or explore custom game and AI solutions, CodeFoxSoft is here to help. Fill out the form
                     below and let's turn your vision into reality.
                 </p>
-                <div class="max-w-xl mx-auto bg-gray-700 p-8 sm:p-10 rounded-xl shadow-lg slide-right">
+                <div class="max-w-xl mx-auto glass-panel p-8 sm:p-10 rounded-xl shadow-lg slide-right">
                     <form action="https://formsubmit.co/psychowolf94@gmail.com" method="POST" class="space-y-6">
                         <!-- Hidden settings -->
                         <input type="hidden" name="_captcha" value="false">
@@ -637,15 +653,15 @@
 
                         <div>
                             <input type="text" name="name" placeholder="Your Name/Project Name" required
-                                class="js-contact-input w-full p-4 rounded-lg bg-gray-600 border border-gray-500 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                class="js-contact-input w-full p-4 rounded-lg bg-gray-800 bg-opacity-50 border border-gray-600 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
                         </div>
                         <div>
                             <input type="email" name="email" placeholder="Your Email" required
-                                class="js-contact-input w-full p-4 rounded-lg bg-gray-600 border border-gray-500 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                class="js-contact-input w-full p-4 rounded-lg bg-gray-800 bg-opacity-50 border border-gray-600 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
                         </div>
                         <div>
                             <textarea name="message" placeholder="Your Message" rows="6" required
-                                class="js-contact-input w-full p-4 rounded-lg bg-gray-600 border border-gray-500 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                                class="js-contact-input w-full p-4 rounded-lg bg-gray-800 bg-opacity-50 border border-gray-600 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
                         </div>
                         <button type="submit"
                             class="js-cta-pop w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
@@ -656,10 +672,9 @@
 
             </div>
         </section>
-    </div>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 py-10 text-center text-gray-400 text-sm js-footer-reveal">
+    <footer class="glass-panel py-10 text-center text-gray-400 text-sm fade-in">
         <div class="container mx-auto px-6">
             <p>&copy; <span id="year"></span> CodeFoxSoft™. All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nick Larkin.</p>
@@ -693,31 +708,22 @@
             }
         });
 
-        // --- Global Variables for Three.js (from the galaxy code) ---
-        let scene, camera, renderer, galaxyGroup, backgroundGalaxyGroup, starField;
-        let mouseX = 0;
-        let mouseY = 0;
-        let targetX = 0;
-        let targetY = 0;
+        // --- Global Variables for Three.js ---
+        let scene, camera, renderer, galaxyGroup, backgroundGalaxyGroup, starField, starFieldBack, nebulaWisps;
+        let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
         let windowHalfX = window.innerWidth / 2;
         let windowHalfY = window.innerHeight / 2;
 
-        // Mobile detection for performance optimization
         const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        // Performance detection variables
-        let isLowPerformance = false;
-        let performanceTestComplete = false;
-        let frameCount = 0;
-        let lastPerformanceCheck = 0;
-        let animationStartTime = 0;
-        const PERFORMANCE_TEST_DURATION = 2000; // Test for 2 seconds
+        // Per-star polar coordinate arrays for TRUE differential rotation
+        let galaxyAngles = null;
+        let galaxyDistances = null;
+        let galaxyPositionsAttr = null; // ref to the BufferAttribute for live updates
 
-        // Adjust particle counts based on device type - further reduced for mobile performance
-        let starCount = isMobile ? 9000 : 75000; // Increased desktop count for denser galaxy
-        let backgroundGalaxyCount = isMobile ? 5 : 10; // Increased from 2 to 5 for better visibility
-        let starFieldCount = isMobile ? 1000 : 5000;
-        const spiralSpeed = 0.0005;
+        const starCount            = isMobile ? 22000 : 160000; // 2-3x denser
+        const backgroundGalaxyCount = isMobile ? 4 : 8;
+        const starFieldCount        = isMobile ? 5000 : 18000;
 
         let softParticleTexture = null;
 
@@ -757,74 +763,198 @@
          * @param {number} [opacity=1.0] The opacity of the galaxy.
          * @returns {THREE.Points} The particle system object.
          */
-        function createGalaxy(starCount, maxRadius, armCount, opacity = 1.0) {
-            const positions = new Float32Array(starCount * 3);
-            const colors = new Float32Array(starCount * 3);
-            const sizes = new Float32Array(starCount);
-            const armOffset = 1.0;
+        // Creates the MAIN galaxy and stores per-star polar coords for differential rotation.
+        // isMain=true stores per-star polar coords for differential rotation
+        function createGalaxy(numStars, maxRadius, armCount, opacity = 1.0, isMain = false) {
+            const positions  = new Float32Array(numStars * 3);
+            const colors     = new Float32Array(numStars * 3);
+            const sizes      = new Float32Array(numStars);
+            const anglesArr  = isMain ? new Float32Array(numStars) : null;
+            const distsArr   = isMain ? new Float32Array(numStars) : null;
 
-            for (let i = 0; i < starCount; i++) {
-                const armIndex = i % armCount;
-                const angle = (i / starCount) * Math.PI * 40 + (armIndex * Math.PI * armOffset);
+            // =============================================================
+            // REALISTIC GALAXY: Logarithmic spiral + density wave theory
+            // Arms are subtle density enhancements in a THICK diffuse disc.
+            //
+            // Population ratios:
+            //   Pop A (10%): tight spiral arm ridge
+            //   Pop B (22%): arm-associated scatter
+            //   Pop C (50%): diffuse disc — bulk of the galaxy
+            //   Pop D (5%):  Hα HII accent clumps
+            //   Pop E (13%): GALACTIC BULGE — dense 3D sphere at center
+            // =============================================================
+            const spiralTurns = 2.8;
 
-                const distance = Math.pow(Math.random(), 3.0) * maxRadius;
+            function spiralAngle(r, armIdx) {
+                return spiralTurns * Math.PI * 2 * Math.pow(r / maxRadius, 0.7)
+                     + (armIdx * Math.PI * 2 / armCount);
+            }
 
-                const crazyFactor = (1 - distance / maxRadius) * 2.0;
-                const randomX = (Math.random() - 0.5) * crazyFactor;
-                // Vertical spread now increases with distance from the center
-                const verticalPuffiness = 0.5 + (distance / maxRadius) * 0.5;
-                const randomY = (Math.random() - 0.5) * crazyFactor * verticalPuffiness;
-                const randomZ = (Math.random() - 0.5) * crazyFactor;
+            for (let i = 0; i < numStars; i++) {
+                const rng = Math.random();
+                const arm = i % armCount;
+                let dist, angle, x, y, z;
 
-                const x = Math.cos(angle) * distance + randomX;
-                const y = randomY;
-                const z = Math.sin(angle) * distance + randomZ;
+                if (rng < 0.13) {
+                    // --- Pop E: Galactic Bulge (dense 3D sphere at center) ---
+                    // Spherical distribution (not flat disc!) concentrated in inner 12%
+                    const bulgeRadius = maxRadius * 0.12;
+                    const r = Math.pow(Math.random(), 2.5) * bulgeRadius; // cubic = very center-heavy
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi   = Math.acos(2 * Math.random() - 1); // uniform sphere
+                    x = r * Math.sin(phi) * Math.cos(theta);
+                    y = r * Math.cos(phi) * 0.6; // slightly flattened (oblate spheroid)
+                    z = r * Math.sin(phi) * Math.sin(theta);
+                    dist = r;
+                    angle = theta;
 
-                positions[i * 3] = x;
+                } else if (rng < 0.23) {
+                    // --- Pop A: Tight arm spine ---
+                    // UNIFORM radial distribution so outer arm wraps are populated, not just center
+                    dist  = (0.10 + Math.random() * 0.90) * maxRadius;
+                    angle = spiralAngle(dist, arm)
+                          + (Math.random() - 0.5) * 0.35;
+                    const sp = 0.4 + (dist / maxRadius) * 1.5;
+                    x = Math.cos(angle) * dist + (Math.random() - 0.5) * sp;
+                    y = (Math.random() - 0.5) * sp * 0.2;
+                    z = Math.sin(angle) * dist + (Math.random() - 0.5) * sp;
+
+                } else if (rng < 0.45) {
+                    // --- Pop B: Arm-associated scatter ---
+                    // Also uniform radial so scatter follows arms all the way out
+                    dist  = (0.05 + Math.random() * 0.95) * maxRadius;
+                    angle = spiralAngle(dist, arm)
+                          + (Math.random() - 0.5) * 1.8;
+                    const sp = 2.0 + (dist / maxRadius) * 6.0;
+                    x = Math.cos(angle) * dist + (Math.random() - 0.5) * sp;
+                    y = (Math.random() - 0.5) * sp * 0.3;
+                    z = Math.sin(angle) * dist + (Math.random() - 0.5) * sp;
+
+                } else if (rng < 0.95) {
+                    // --- Pop C: Diffuse disc (the BULK) ---
+                    dist  = Math.sqrt(Math.random()) * maxRadius;
+                    angle = Math.random() * Math.PI * 2;
+                    const sp = 1.5 + (dist / maxRadius) * 3.5;
+                    x = Math.cos(angle) * dist + (Math.random() - 0.5) * sp;
+                    y = (Math.random() - 0.5) * sp * 0.4;
+                    z = Math.sin(angle) * dist + (Math.random() - 0.5) * sp;
+
+                } else {
+                    // --- Pop D: Hα HII accent clumps ---
+                    dist  = (0.15 + Math.random() * 0.65) * maxRadius;
+                    angle = spiralAngle(dist, arm)
+                          + (Math.random() - 0.5) * 0.6;
+                    const sp = 0.8 + Math.random() * 2.0;
+                    x = Math.cos(angle) * dist + (Math.random() - 0.5) * sp;
+                    y = (Math.random() - 0.5) * sp * 0.35;
+                    z = Math.sin(angle) * dist + (Math.random() - 0.5) * sp;
+                }
+
+                positions[i * 3]     = x;
                 positions[i * 3 + 1] = y;
                 positions[i * 3 + 2] = z;
 
-                // Enhanced color logic for brighter, more vibrant rainbow colors
-                // Full rainbow spectrum for more colorful galaxy
-                const hue = (distance / maxRadius) * 1.0; // Full spectrum (0 to 1.0)
-                const saturation = 0.95 + Math.random() * 0.05; // More saturated
-                const value = 0.95 + Math.random() * 0.05; // Brighter
-                let rgb = hsvToRgb(hue, saturation, value);
+                if (isMain) { anglesArr[i] = Math.atan2(z, x); distsArr[i] = dist; }
 
-                // Keep the center dark
-                if (distance < 1.0) {
-                    rgb.r = 0;
-                    rgb.g = 0;
-                    rgb.b = 0;
+                // ====================================================
+                // HST-INSPIRED NEBULA PALETTE
+                // Science: OIII=teal/blue, Hα=pink/magenta, dust=violet
+                // Core bulge is TINY cream; everything else is deeply
+                // saturated cool tones — NO wide white spreading!
+                // ====================================================
+                const t = Math.min(dist / maxRadius, 1.0);
+                let r, g, b;
+
+                if (rng >= 0.95) {
+                    // Pop D — Hα HII regions: hot pink/magenta (ionized hydrogen)
+                    r = 0.85 + Math.random() * 0.15;
+                    g = 0.05 + Math.random() * 0.10;
+                    b = 0.55 + Math.random() * 0.30;
+                } else if (t < 0.04) {
+                    // Galactic nucleus: tiny bright LIGHT-BLUE core (adds a hint of blue)
+                    // Blend cyan with white for subtle glow
+                    r = 0.6; // red component low
+                    g = 0.8; // green
+                    b = 1.0; // full blue
+                } else if (t < 0.12) {
+                    // Inner bulge edge: smooth cream → blue-white transition
+                    const tt = (t - 0.04) / 0.08;
+                    r = 1.0  - tt * 0.72;  // 1.0 → 0.28
+                    g = 0.96 - tt * 0.56;  // 0.96 → 0.40
+                    b = 0.88 + tt * 0.12;  // 0.88 → 1.0
+
+                } else if (t < 0.30) {
+                    // OIII inner arms: electric teal-blue (dominant oxygen emission)
+                    const tt = (t - 0.12) / 0.18;
+                    r = 0.28 - tt * 0.20;  // 0.28 → 0.08
+                    g = 0.40 + tt * 0.30;  // 0.40 → 0.70
+                    b = 1.0;
+
+                } else if (t < 0.52) {
+                    // Blue arm midpoint: OIII teal fading deeper blue
+                    const tt = (t - 0.30) / 0.22;
+                    r = 0.08 + tt * 0.04;  // barely any red
+                    g = 0.70 - tt * 0.50;  // 0.70 → 0.20
+                    b = 1.0;
+
+                } else if (t < 0.72) {
+                    // Blue → rich violet-purple (reflection nebula dust scatter)
+                    const tt = (t - 0.52) / 0.20;
+                    r = 0.12 + tt * 0.38;  // 0.12 → 0.50
+                    g = 0.20 - tt * 0.14;  // 0.20 → 0.06
+                    b = 1.0  - tt * 0.15;  // 1.0 → 0.85
+
+                } else if (t < 0.88) {
+                    // Deep violet outer arms (like Eagle Nebula outer shells)
+                    const tt = (t - 0.72) / 0.16;
+                    r = 0.50 + tt * 0.15;  // 0.50 → 0.65
+                    g = 0.06;
+                    b = 0.85 - tt * 0.20;  // 0.85 → 0.65
+
+                } else {
+                    // Outermost halo wisps: faint indigo-purple
+                    r = 0.30; g = 0.04; b = 0.55;
                 }
 
-                colors[i * 3] = rgb.r;
-                colors[i * 3 + 1] = rgb.g;
-                colors[i * 3 + 2] = rgb.b;
+                // Random per-star brightness variation (twinkling)
+                const bright = 0.55 + Math.random() * 0.45;
+                colors[i * 3]     = Math.min(1, r * bright);
+                colors[i * 3 + 1] = Math.min(1, g * bright);
+                colors[i * 3 + 2] = Math.min(1, b * bright);
 
-                // Increase size calculation for better visibility
-                sizes[i] = isMobile
-                    ? (1 - distance / maxRadius) * 0.3 + 0.02  // Much larger for mobile
-                    : (1 - distance / maxRadius) * 0.12 + 0.01; // Larger on desktop for denser look
+                // Sizes: large nucleus, tapers but stays reasonably large for density feel
+                const baseSize = isMobile
+                    ? (0.28 - t * 0.18 + Math.random() * 0.12)
+                    : (0.12 - t * 0.08 + Math.random() * 0.04);
+                sizes[i] = Math.max(baseSize, isMobile ? 0.04 : 0.01);
             }
 
             const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            const posAttr  = new THREE.BufferAttribute(positions, 3);
+            geometry.setAttribute('position', posAttr);
+            geometry.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size',     new THREE.BufferAttribute(sizes,  1));
 
             const material = new THREE.PointsMaterial({
-                size: isMobile ? 0.15 : 0.025,  // Larger on desktop for denser, more visible galaxy
-                map: softParticleTexture,  // Use soft texture for galaxy-like blur effect
-                vertexColors: true,
-                transparent: true,
-                opacity: opacity * 0.95,  // Slightly more opaque for better visibility
-                blending: THREE.AdditiveBlending,
+                size:            isMobile ? 0.32 : 0.045,
+                map:             softParticleTexture,
+                vertexColors:    true,
+                transparent:     true,
+                opacity:         opacity * 0.92,
+                blending:        THREE.AdditiveBlending,
+                depthWrite:      false,
                 sizeAttenuation: true,
-                alphaTest: 0.001  // Helps with transparency rendering
+                alphaTest:       0.001
             });
 
-            return new THREE.Points(geometry, material);
+            const pts = new THREE.Points(geometry, material);
+            if (isMain) {
+                pts.userData.angles    = anglesArr;
+                pts.userData.distances = distsArr;
+                pts.userData.posAttr   = posAttr;
+                pts.userData.starCount = numStars;
+            }
+            return pts;
         }
 
         /**
@@ -833,43 +963,47 @@
          * @param {number} maxDistance The maximum distance from the center.
          * @returns {THREE.Points} The particle system object.
          */
-        function createStarField(starCount, maxDistance) {
-            const positions = new Float32Array(starCount * 3);
-            const colors = new Float32Array(starCount * 3);
-            const sizes = new Float32Array(starCount);
+        // Creates a star field with realistic stellar color temperatures
+        function createStarField(numStars, maxDistance, zOffset = 0) {
+            const positions = new Float32Array(numStars * 3);
+            const colors    = new Float32Array(numStars * 3);
+            const sizes     = new Float32Array(numStars);
 
-            for (let i = 0; i < starCount; i++) {
-                const x = (Math.random() - 0.5) * maxDistance * 2;
-                const y = (Math.random() - 0.5) * maxDistance * 2;
-                const z = (Math.random() - 0.5) * maxDistance * 2;
+            for (let i = 0; i < numStars; i++) {
+                positions[i*3]   = (Math.random() - 0.5) * maxDistance * 2;
+                positions[i*3+1] = (Math.random() - 0.5) * maxDistance * 2;
+                positions[i*3+2] = (Math.random() - 0.5) * maxDistance * 2 + zOffset;
 
-                positions[i * 3] = x;
-                positions[i * 3 + 1] = y;
-                positions[i * 3 + 2] = z;
+                // Stellar color temperature variation: blue-white, white, warm yellow, rare orange
+                const rng = Math.random();
+                if (rng < 0.55) {       // Common: blue-white
+                    colors[i*3]=0.85; colors[i*3+1]=0.92; colors[i*3+2]=1.0;
+                } else if (rng < 0.80) { // White
+                    colors[i*3]=1.0;  colors[i*3+1]=1.0;  colors[i*3+2]=1.0;
+                } else if (rng < 0.95) { // Warm yellow (older stars)
+                    colors[i*3]=1.0;  colors[i*3+1]=0.92; colors[i*3+2]=0.72;
+                } else {                // Rare reddish-orange giant
+                    colors[i*3]=1.0;  colors[i*3+1]=0.65; colors[i*3+2]=0.35;
+                }
 
-                // Set color to white
-                colors[i * 3] = 1.0;
-                colors[i * 3 + 1] = 1.0;
-                colors[i * 3 + 2] = 1.0;
-
-                // Randomize star size - larger on mobile for visibility
-                sizes[i] = isMobile ? (Math.random() * 0.3 + 0.25) : (Math.random() * 0.1 + 0.05);
+                sizes[i] = isMobile ? (Math.random() * 1.0 + 0.2) : (Math.random() * 0.6 + 0.1);
             }
 
             const geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            geometry.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size',     new THREE.BufferAttribute(sizes, 1));
 
-            // Make star field material much larger on mobile for visibility
-            const starMaterialSize = isMobile ? 0.6 : 0.1;
             const material = new THREE.PointsMaterial({
-                size: starMaterialSize,
+                size:         isMobile ? 3.5 : 1.8,
+                map:          softParticleTexture,
                 vertexColors: true,
-                transparent: true,
-                opacity: 1.0, // Full opacity for visibility
-                blending: THREE.AdditiveBlending, // Use AdditiveBlending for visibility on dark background
-                sizeAttenuation: true
+                transparent:  true,
+                opacity:      0.88,
+                blending:     THREE.AdditiveBlending,
+                depthWrite:   false,
+                sizeAttenuation: true,
+                alphaTest:    0.001
             });
 
             return new THREE.Points(geometry, material);
@@ -887,9 +1021,10 @@
                 const context = canvas.getContext('2d');
 
                 const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+                // "Star" profile: intense core, sharp dropoff, faint halo
                 gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-                gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.9)');
-                gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.5)');
+                gradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.8)');
+                gradient.addColorStop(0.25, 'rgba(255, 255, 255, 0.2)');
                 gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
                 context.fillStyle = gradient;
@@ -936,51 +1071,112 @@
                 camera.position.x = 0;
             }
 
-            // --- Main Galaxy ---
+            // --- Main Galaxy (isMain=true stores per-star polar data) ---
             galaxyGroup = new THREE.Group();
-            const mainGalaxy = createGalaxy(starCount, 55, 2, 1.0);
+            const mainGalaxy = createGalaxy(starCount, 55, 2, 1.0, true);
             galaxyGroup.add(mainGalaxy);
-            galaxyGroup.rotation.x = 0.5; // Changed to a positive value for "right-side up" view
+            galaxyGroup.rotation.x = 0.45;
             scene.add(galaxyGroup);
 
-            // --- Background Galaxies ---
+            // --- Purple Nebula Cloud (faint, volumetric) ---
+            const nebulaCount = isMobile ? 3000 : 6000;
+            const nebulaPositions = new Float32Array(nebulaCount * 3);
+            const nebulaColors = new Float32Array(nebulaCount * 3);
+            const nebulaSizes = new Float32Array(nebulaCount);
+            const nebulaRadius = 55 * 0.9; // Using 55 as the main galaxy radius
+            for (let i = 0; i < nebulaCount; i++) {
+                const r = Math.cbrt(Math.random()) * nebulaRadius; 
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const x = r * Math.sin(phi) * Math.cos(theta);
+                const y = r * Math.cos(phi) * 0.5; 
+                const z = r * Math.sin(phi) * Math.sin(theta);
+                nebulaPositions[i * 3] = x;
+                nebulaPositions[i * 3 + 1] = y;
+                nebulaPositions[i * 3 + 2] = z;
+                
+                // purple hue: high Red and Blue, low Green
+                nebulaColors[i * 3]     = 0.4 + Math.random() * 0.3; // R
+                nebulaColors[i * 3 + 1] = 0.05 + Math.random() * 0.1; // G
+                nebulaColors[i * 3 + 2] = 0.6 + Math.random() * 0.4; // B
+                
+                nebulaSizes[i] = isMobile ? 0.6 : 0.35;
+            }
+            const nebulaGeom = new THREE.BufferGeometry();
+            nebulaGeom.setAttribute('position', new THREE.BufferAttribute(nebulaPositions, 3));
+            nebulaGeom.setAttribute('color', new THREE.BufferAttribute(nebulaColors, 3));
+            nebulaGeom.setAttribute('size', new THREE.BufferAttribute(nebulaSizes, 1));
+            const nebulaMat = new THREE.PointsMaterial({
+                size: isMobile ? 0.45 : 0.06,
+                map: softParticleTexture,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.15,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                sizeAttenuation: true,
+                alphaTest: 0.001
+            });
+            const nebulaCloud = new THREE.Points(nebulaGeom, nebulaMat);
+            galaxyGroup.add(nebulaCloud);
+
+            // --- Background Galaxies (distant, smaller, various rotations) ---
             backgroundGalaxyGroup = new THREE.Group();
-            const bgGalaxyStarCount = isMobile ? 5000 : 5000; // Increased to 5000 for maximum visibility
+            const bgStarCount = isMobile ? 3000 : 5000;
             for (let i = 0; i < backgroundGalaxyCount; i++) {
-                // Randomize opacity for each background galaxy - full opacity on mobile for visibility
-                const opacity = isMobile ? 1.0 : (0.4 + Math.random() * 0.6);
-                const bgGalaxy = createGalaxy(bgGalaxyStarCount, 20, 2, opacity);
-
-                // Randomly position the background galaxies - very close on mobile for visibility
-                const bgDistance = isMobile ? (300 + Math.random() * 300) : (5000 + Math.random() * 2000);
-                const bgAngle = Math.random() * Math.PI * 2;
-                bgGalaxy.position.x = Math.cos(bgAngle) * bgDistance;
-                bgGalaxy.position.y = (Math.random() - 0.5) * bgDistance;
-                bgGalaxy.position.z = Math.sin(bgAngle) * bgDistance;
-
-                // Randomize rotation
-                bgGalaxy.rotation.x = Math.random() * Math.PI * 2;
-                bgGalaxy.rotation.y = Math.random() * Math.PI * 2;
-                bgGalaxy.rotation.z = Math.random() * Math.PI * 2;
-
-                // Randomize scale - very large on mobile for maximum visibility
-                const scale = isMobile ? (1.8 + Math.random() * 0.4) : (0.5 + Math.random() * 0.5);
-                bgGalaxy.scale.set(scale, scale, scale);
-
+                const opacity    = 0.3 + Math.random() * 0.5;
+                const bgGalaxy   = createGalaxy(bgStarCount, 18, 2, opacity);
+                const bgDistance = isMobile ? (2000 + Math.random() * 2000) : (5000 + Math.random() * 2000);
+                const bgAngle    = Math.random() * Math.PI * 2;
+                bgGalaxy.position.set(
+                    Math.cos(bgAngle) * bgDistance,
+                    (Math.random() - 0.5) * bgDistance,
+                    Math.sin(bgAngle) * bgDistance
+                );
+                bgGalaxy.rotation.set(
+                    Math.random() * Math.PI * 2,
+                    Math.random() * Math.PI * 2,
+                    Math.random() * Math.PI * 2
+                );
+                const scale = isMobile ? (3.5 + Math.random() * 2.5) : (2.0 + Math.random() * 2.0);
+                bgGalaxy.scale.setScalar(scale);
                 backgroundGalaxyGroup.add(bgGalaxy);
             }
             scene.add(backgroundGalaxyGroup);
 
-            // --- Distant Star Field ---
-            starField = createStarField(starFieldCount, 1000);
+            // --- Star field FRONT ---
+            starField = createStarField(starFieldCount, 1200, 0);
             scene.add(starField);
+
+            // --- Star field BACK ---
+            starFieldBack = createStarField(Math.floor(starFieldCount * 0.7), 1200, -600);
+            scene.add(starFieldBack);
+
+            // --- Central Nucleus Glow (single bright warm sprite) ---
+            const nucleusGeo = new THREE.BufferGeometry();
+            nucleusGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0]), 3));
+            const nucleusMat = new THREE.PointsMaterial({
+                size:        isMobile ? 4.0 : 2.5,
+                map:         softParticleTexture,
+                color:       new THREE.Color(1.0, 0.95, 0.85), // warm cream
+                transparent: true,
+                opacity:     0.7,
+                blending:    THREE.AdditiveBlending,
+                depthWrite:  false,
+                sizeAttenuation: true
+            });
+            const nucleusGlow = new THREE.Points(nucleusGeo, nucleusMat);
+            galaxyGroup.add(nucleusGlow);
         }
 
         // --- Mouse and Resize Listeners (from the galaxy code) ---
         /**
-         * Handles window resizing, updating the camera aspect and renderer size.
+         * Handles window resize events. Updates camera aspect ratio and renderer size.
          */
+        let lastWindowWidth = window.innerWidth;
         function onWindowResize() {
+            if (isMobile && Math.abs(window.innerWidth - lastWindowWidth) < 10) return; // Prevent stutter from mobile address bar
+            lastWindowWidth = window.innerWidth;
             const canvasContainer = document.getElementById('hero-background');
             if (canvasContainer) {
                 windowHalfX = canvasContainer.clientWidth / 2;
@@ -1003,96 +1199,60 @@
         /**
          * Main animation loop. Updates the scene and renders it.
          */
-        // Frame rate limiting for mobile (target 30fps instead of 60fps)
-        let lastFrameTime = performance.now();
-        const targetFPS = isMobile ? 30 : 60;
-        const frameInterval = 1000 / targetFPS;
-
-        function animate(currentTime) {
+        function animate() {
             requestAnimationFrame(animate);
 
-            // Initialize animation start time on first frame
-            if (animationStartTime === 0) {
-                animationStartTime = currentTime;
-                lastPerformanceCheck = currentTime;
+            const now = Date.now();
+
+            // --- Differential rotation on main galaxy ---
+            // Each star advances its angle by omega = baseSpeed / sqrt(dist), like a real galaxy
+            const mainPts = galaxyGroup.children[0];
+            if (mainPts && mainPts.userData.posAttr) {
+                const angles  = mainPts.userData.angles;
+                const dists   = mainPts.userData.distances;
+                const posAttr = mainPts.userData.posAttr;
+                const n       = mainPts.userData.starCount;
+                const baseOmega = 0.00018; // tuned for visible but not dizzying drift
+                for (let i = 0; i < n; i++) {
+                    const d = Math.max(dists[i], 0.5); // avoid div-by-zero at core
+                    angles[i] += baseOmega / Math.sqrt(d);
+                    posAttr.array[i*3]   = Math.cos(angles[i]) * dists[i];
+                    posAttr.array[i*3+2] = Math.sin(angles[i]) * dists[i];
+                    // y stays unchanged (flat disc)
+                }
+                posAttr.needsUpdate = true;
             }
 
-            // Performance testing during first 2 seconds
-            const elapsedTime = currentTime - animationStartTime;
-            if (!performanceTestComplete && elapsedTime < PERFORMANCE_TEST_DURATION) {
-                frameCount++;
-                if (currentTime - lastPerformanceCheck >= 1000) { // Check every second
-                    const fps = frameCount;
-                    // If FPS is below 25 on mobile, consider it low performance
-                    if (isMobile && fps < 25) {
-                        isLowPerformance = true;
-                    }
-                    frameCount = 0;
-                    lastPerformanceCheck = currentTime;
-                }
-            } else if (!performanceTestComplete) {
-                performanceTestComplete = true;
-                // Final check: if average FPS was low, mark as low performance
-                const avgFPS = (frameCount / (elapsedTime / 1000));
-                if (isMobile && avgFPS < 25) {
-                    isLowPerformance = true;
-                }
-            }
-
-            // Frame rate limiting - only for low performance devices
-            if (isMobile && isLowPerformance) {
-                const elapsed = currentTime - lastFrameTime;
-                if (elapsed < frameInterval) {
-                    return; // Skip this frame to maintain target FPS
-                }
-                lastFrameTime = currentTime - (elapsed % frameInterval);
-            } else if (isMobile) {
-                lastFrameTime = currentTime; // Track time but don't skip frames
-            }
-
-            // Update rotation targets based on mouse position
-            // Use full speed on capable devices, reduced on low performance
-            const mouseInfluence = (isMobile && isLowPerformance) ? 0.0003 : 0.001;
+            // Mouse influence
+            const mouseInfluence = isMobile ? 0.0005 : 0.001;
             targetX = mouseX * mouseInfluence;
             targetY = mouseY * mouseInfluence;
 
-            // Apply mouse influence and continuous rotation to the galaxy group
-            // Full speed on capable devices, reduced only on low performance mobile
-            const rotationSpeed = (isMobile && isLowPerformance) ? 0.0003 : 0.0005;
-            const baseRotation = (isMobile && isLowPerformance) ? 0.0001 : 0.0002;
-            galaxyGroup.rotation.y += rotationSpeed * (targetX - galaxyGroup.rotation.y) + baseRotation;
-            galaxyGroup.rotation.x += rotationSpeed * (targetY - galaxyGroup.rotation.x) - ((isMobile && isLowPerformance) ? 0.00003 : 0.00005);
-            galaxyGroup.rotation.z += (isMobile && isLowPerformance) ? 0.00005 : 0.0001;
+            // Slow group rotation (the whole galaxy tilts gently)
+            galaxyGroup.rotation.y += 0.00015 + (targetX - galaxyGroup.rotation.y) * 0.0008;
+            galaxyGroup.rotation.x += (0.45 + targetY * 0.1 - galaxyGroup.rotation.x) * 0.002;
 
-            // Pulsing scale effect - always on desktop, also on capable mobile devices
-            if (!isMobile) {
-                // Desktop always gets pulsing
-                const scaleFactor = 1 + Math.sin(Date.now() * 0.0005) * 0.02;
-                galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
-            } else if (!isLowPerformance) {
-                // Capable mobile devices get pulsing - slightly faster to match desktop feel
-                const scaleFactor = 1 + Math.sin(Date.now() * 0.00065) * 0.02;
-                galaxyGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
-            }
+            // Pulsing breathe effect on main galaxy
+            const breathe = 1 + Math.sin(now * 0.0004) * 0.012;
+            galaxyGroup.scale.setScalar(breathe);
 
-            // Camera movement - full on capable devices
-            if (isMobile && isLowPerformance) {
-                // Less camera movement on low performance mobile
-                camera.position.x += (targetX * 0.3 - camera.position.x) * 0.03;
-                camera.position.y += (-targetY * 0.3 - camera.position.y) * 0.03;
-            } else {
-                camera.position.x += (targetX * 0.5 - camera.position.x) * 0.05;
-                camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.05;
-            }
+            // Camera drift
+            camera.position.x += (targetX * 0.5 - camera.position.x) * 0.04;
+            camera.position.y += (-targetY * 0.5 - camera.position.y) * 0.04;
             camera.lookAt(scene.position);
 
-            // Background galaxies rotation
-            const bgRotationSpeed = (isMobile && isLowPerformance) ? 0.000005 : 0.00001;
-            backgroundGalaxyGroup.rotation.x += bgRotationSpeed;
-            backgroundGalaxyGroup.rotation.y += bgRotationSpeed;
+            // Background galaxies slow counter-rotation for parallax depth
+            backgroundGalaxyGroup.rotation.y += 0.000008;
+            backgroundGalaxyGroup.rotation.x += 0.000005;
 
-            // Star field rotation - slower on mobile to reduce flashing
-            starField.rotation.y += (isMobile && isLowPerformance) ? 0.00001 : (isMobile ? 0.000015 : 0.00005);
+            // Star fields drift very slowly
+            starField.rotation.y += 0.000012;
+            if (starFieldBack) starFieldBack.rotation.y -= 0.000008;
+
+            // --- Subtle star twinkling (opacity shimmer) ---
+            const twinkle = 0.82 + Math.sin(now * 0.0015) * 0.08;
+            starField.material.opacity = twinkle;
+            if (starFieldBack) starFieldBack.material.opacity = twinkle * 0.9;
 
             renderer.render(scene, camera);
         }
@@ -1119,8 +1279,8 @@
                 });
             }
 
-            // Start the animation loop - pass timestamp for frame rate limiting
-            animate(performance.now());
+            // Start the animation loop
+            animate();
 
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1137,123 +1297,19 @@
                 }
             }
 
-            // --- Unified Scroll Reveal Strategy ---
-            if (typeof anime !== 'undefined' && !prefersReducedMotion) {
-                // Select all elements that should participate in the bouncy reveal
-                const revealElements = document.querySelectorAll('.fade-in, .slide-left, .slide-right, .project-card, .blog-card, .js-dl-card, .js-footer-reveal');
- 
-                const isMobileDevice = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                const appearOptions = {
-                    threshold: 0,
-                    rootMargin: "0px 0px -50px 0px"
-                };
-
-                const appearOnScroll = new IntersectionObserver(function (entries) {
-                    entries.forEach(entry => {
-                        const el = entry.target;
-                        if (entry.isIntersecting) {
-                            // Determine directional offset for "rolling" effect from classes
-                            let offsetValue = isMobileDevice ? 40 : 100; // Smaller offset for mobile
-                            let fromX = 0;
-                            if (el.classList.contains('slide-left')) fromX = -offsetValue;
-                            else if (el.classList.contains('slide-right')) fromX = offsetValue;
-
-                            // Professional "Bounce & Roll" in (using Back easing for cleaner overshoot)
-                            anime({
-                                targets: el,
-                                opacity: [0, 1],
-                                translateX: [fromX, 0],
-                                translateY: [30, 0],
-                                rotateZ: [fromX / 30, 0],
-                                scale: [0.95, 1],
-                                duration: 800,
-                                easing: 'easeOutBack(1.7)'
-                            });
-                            el.classList.add('visible');
-                        } else {
-                            // Roll "Out" smoothly
-                            el.classList.remove('visible');
-                            const isLeft = el.classList.contains('slide-left');
-                            const isRight = el.classList.contains('slide-right');
-                            let exitOffset = isMobileDevice ? 30 : 80; // Smaller exit offset for mobile
-                            const toX = isLeft ? -exitOffset : (isRight ? exitOffset : 0);
-                            
-                            anime({
-                                targets: el,
-                                opacity: 0,
-                                translateX: toX,
-                                translateY: 20,
-                                rotateZ: toX / 30,
-                                scale: 0.95,
-                                duration: 400,
-                                easing: 'easeOutQuint'
-                            });
-                        }
-                    });
-                }, appearOptions);
-
-                revealElements.forEach(el => appearOnScroll.observe(el));
-
-                // --- Special: CTA button hover pop ---
-                document.querySelectorAll('.js-cta-pop').forEach(btn => {
-                    btn.addEventListener('mouseenter', function () {
-                        anime({ targets: this, scale: 1.08, duration: 400, easing: 'easeOutBack(1.7)' });
-                    });
-                    btn.addEventListener('mouseleave', function () {
-                        anime({ targets: this, scale: 1, duration: 400, easing: 'easeOutQuint' });
-                    });
+            // --- Unified Scroll Reveal Strategy (Clean CSS) ---
+            const faders = document.querySelectorAll('.fade-in, .slide-left, .slide-right, .project-card, .blog-card, .js-footer-reveal');
+            const appearOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
+            const appearOnScroll = new IntersectionObserver(function (entries, observer) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
                 });
-
-                // --- Special: Card Hover Effects (Projects & Blog) ---
-                const cards = document.querySelectorAll('.project-card, .blog-card');
-                cards.forEach(card => {
-                    card.addEventListener('mouseenter', function () {
-                        const img = card.querySelector('img');
-                        if (img) anime({ targets: img, scale: 1.12, duration: 600, easing: 'easeOutBack(1.7)' });
-                        
-                        anime({
-                            targets: card,
-                            translateY: -12,
-                            scale: 1.03,
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
-                            duration: 600,
-                            easing: 'easeOutBack(1.7)'
-                        });
-                    });
-                    card.addEventListener('mouseleave', function () {
-                        const img = card.querySelector('img');
-                        if (img) anime({ targets: img, scale: 1, duration: 400, easing: 'easeOutQuad' });
-                        
-                        anime({
-                            targets: card,
-                            translateY: 0,
-                            scale: 1,
-                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                            duration: 400,
-                            easing: 'easeOutQuad'
-                        });
-                    });
-                });
-
-                // --- Nav link hover lift ---
-                document.querySelectorAll('header nav ul a').forEach(link => {
-                    link.addEventListener('mouseenter', () => anime({ targets: link, translateY: -3, color: '#4ade80', duration: 250, easing: 'easeOutQuad' }));
-                    link.addEventListener('mouseleave', () => anime({ targets: link, translateY: 0, color: '#f3f4f6', duration: 250, easing: 'easeOutQuad' }));
-                });
-
-            } else {
-                // Fallback: CSS-only scroll (for reduced motion or no anime.js)
-                const faders = document.querySelectorAll('.fade-in, .slide-left, .slide-right, .project-card, .blog-card, .js-footer-reveal');
-                const appearOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
-                const appearOnScroll = new IntersectionObserver(function (entries) {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) entry.target.classList.add('visible');
-                        else entry.target.classList.remove('visible');
-                    });
-                }, appearOptions);
-                faders.forEach(fader => appearOnScroll.observe(fader));
-            }
-
+            }, appearOptions);
+            faders.forEach(fader => appearOnScroll.observe(fader));
+            
             // Event Listeners from the galaxy code
             window.addEventListener('resize', onWindowResize, false);
             document.addEventListener('mousemove', onDocumentMouseMove, false);
@@ -1261,6 +1317,66 @@
     </script>
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+    <script>
+        // Hero Video Logic - Seamless Dual Player
+        document.addEventListener('DOMContentLoaded', () => {
+            const v1 = document.getElementById('heroVideo1');
+            const v2 = document.getElementById('heroVideo2');
+            if (v1 && v2) {
+                const videos = ['fly1.mp4', 'fly2.mp4'];
+                let playCount = 0;
+                let activeVideo = 1;
+                
+                function getNextVideoSrc() {
+                    let nextVideo;
+                    // Play fly1 twice, then fly2
+                    if (playCount < 2) {
+                        nextVideo = Math.random() < 0.8 ? videos[0] : videos[1];
+                    } else {
+                        nextVideo = videos[1];
+                        playCount = -1; 
+                    }
+                    if (nextVideo === videos[0]) {
+                        playCount++;
+                    } else {
+                        playCount = 0; 
+                    }
+                    return nextVideo;
+                }
+
+                // Initialize both players
+                v1.src = getNextVideoSrc();
+                v1.load();
+                v2.src = getNextVideoSrc();
+                v2.load();
+                
+                v1.play().catch(e => console.log('Init play failed', e));
+
+                function handleEnded() {
+                    if (activeVideo === 1) {
+                        v2.style.opacity = 1;
+                        v1.style.opacity = 0;
+                        v2.play().catch(e => console.log('Play failed', e));
+                        activeVideo = 2;
+                        // Preload v1 for next turn
+                        v1.src = getNextVideoSrc();
+                        v1.load();
+                    } else {
+                        v1.style.opacity = 1;
+                        v2.style.opacity = 0;
+                        v1.play().catch(e => console.log('Play failed', e));
+                        activeVideo = 1;
+                        // Preload v2 for next turn
+                        v2.src = getNextVideoSrc();
+                        v2.load();
+                    }
+                }
+
+                v1.addEventListener('ended', handleEnded);
+                v2.addEventListener('ended', handleEnded);
+            }
+        });
     </script>
 </body>
 
