@@ -62,6 +62,7 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
         }
 
         /* Custom scrollbar for a cleaner look */
@@ -108,8 +109,7 @@
         .fade-in {
             opacity: 0;
             transform: translateY(20px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-            will-change: opacity, transform;
+            
         }
 
         .fade-in.visible {
@@ -121,8 +121,7 @@
         .slide-left {
             opacity: 0;
             transform: translateX(-100px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-            will-change: opacity, transform;
+            
         }
 
         .slide-left.visible {
@@ -133,8 +132,7 @@
         .slide-right {
             opacity: 0;
             transform: translateX(100px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-            will-change: opacity, transform;
+            
         }
 
         .slide-right.visible {
@@ -146,48 +144,21 @@
         @media (max-width: 768px) {
             .fade-in {
                 transform: translateY(15px);
-                transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+                
             }
 
             .slide-left {
                 transform: translateX(-50px);
-                transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+                
             }
 
             .slide-right {
                 transform: translateX(50px);
-                transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+                
             }
         }
 
-        /* Unique section shapes using clip-path - adjusted for better overlap removing gaps */
-        .section-angled-top {
-            clip-path: polygon(0 4vw, 100% 0, 100% 100%, 0 100%);
-            margin-top: -4vw;
-            padding-top: calc(5rem + 4vw);
-        }
 
-        @media (max-width: 640px) {
-            .section-angled-top {
-                clip-path: polygon(0 6vw, 100% 0, 100% 100%, 0 100%);
-                margin-top: -6vw;
-                padding-top: calc(5rem + 6vw);
-            }
-        }
-
-        .section-angled-bottom {
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4vw), 0 100%);
-            margin-bottom: -4vw;
-            padding-bottom: calc(5rem + 4vw);
-        }
-
-        @media (max-width: 640px) {
-            .section-angled-bottom {
-                clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6vw), 0 100%);
-                margin-bottom: -6vw;
-                padding-bottom: calc(5rem + 6vw);
-            }
-        }
 
         /* More dynamic project card hover */
         .project-image {
@@ -198,29 +169,27 @@
             transform: scale(1.05);
         }
 
-        /* Hero Content Box - Base styles for desktop */
-        .hero-content-box {
-            background-color: rgba(31, 41, 55, 0.7);
-            /* Matches bg-gray-800 bg-opacity-70 */
+                .glass-panel {
+            background-color: rgba(31, 41, 55, 0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-
-        /* Hero Box Mobile Optimization - More transparent with backdrop blur */
         @media (max-width: 768px) {
-            .hero-content-box {
-                /* Remove backdrop-filter on mobile for better compatibility */
-                background-color: rgba(31, 41, 55, 0.7) !important;
-                /* Even more transparent - 10% opacity */
+            .glass-panel {
+                background-color: rgba(31, 41, 55, 0.1) !important;
                 backdrop-filter: none !important;
-                /* Disable backdrop-filter on mobile */
                 -webkit-backdrop-filter: none !important;
+                border: none;
             }
-
-            .hero-content-box h1,
-            .hero-content-box p {
-                /* Reduce text-shadow intensity for better transparency visibility */
-                text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.3);
+            .glass-panel h1,
+            .glass-panel p,
+            .glass-panel h3 {
+                text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
             }
         }
+
+
 
         /* Mobile Menu Animation */
         #mobile-menu {
@@ -368,17 +337,16 @@
         </ul>
     </div>
 
-    <!-- All sections are now within a main container -->
-    <div class="overflow-x-hidden w-full relative">
         <!-- Hero Section -->
         <section class="relative min-h-screen flex items-center justify-center text-center overflow-hidden" style="min-height: 100dvh;">
             <!-- Hero Video Background -->
             <div class="absolute inset-0 z-0">
                 <video id="heroVideo" class="w-full h-full object-cover" muted playsinline autoplay></video>
                 <div class="absolute inset-0 bg-gray-900 bg-opacity-40"></div>
+                <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
             </div>
             <div
-                class="hero-content-box hero-anim-in relative z-10 p-8 rounded-xl shadow-lg max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
+                class="glass-panel hero-anim-in relative z-10 p-8 rounded-xl shadow-lg max-w-4xl mx-4 sm:mx-auto transform transition-all duration-500 ease-in-out hover:scale-105">
                 <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
                     <span class="text-green-500 hero-title-brand">CodeFoxSoft™</span><br />
                     <span class="hero-tagline">One Fox, an Entire Universe.</span>
@@ -398,7 +366,7 @@
         </section>
 
         <!-- About Section -->
-        <section id="about" class="py-20 bg-gray-800 bg-opacity-70 backdrop-blur-sm fade-in section-angled-top">
+        <section id="about" class="py-20 fade-in">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">About CodeFoxSoft</h2>
                 <div class="max-w-3xl mx-auto text-base sm:text-lg leading-relaxed">
@@ -424,28 +392,28 @@
                 <div
                     class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto js-about-cards">
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-left" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-left" style="opacity: 0;">
                         <i class="fas fa-code text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Nearly 2 Decades Exp.</h3>
                         <p class="text-gray-300">Extensive programming across diverse industries and technologies since
                             2006.</p>
                     </div>
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-right" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-right" style="opacity: 0;">
                         <i class="fas fa-brain text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">AI Innovation</h3>
                         <p class="text-gray-300">Pioneering research and application of Artificial Intelligence in
                             real-world scenarios.</p>
                     </div>
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-left" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-left" style="opacity: 0;">
                         <i class="fas fa-gamepad text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Game Development</h3>
                         <p class="text-gray-300">Creating immersive and engaging interactive entertainment experiences.
                         </p>
                     </div>
                     <div
-                        class="bg-gray-700 p-8 rounded-xl shadow-lg slide-right" style="opacity: 0;">
+                        class="glass-panel p-8 rounded-xl shadow-lg slide-right" style="opacity: 0;">
                         <i class="fas fa-desktop text-5xl text-green-500 mb-4"></i>
                         <h3 class="text-2xl font-semibold text-white mb-3">Websites and Applications</h3>
                         <p class="text-gray-300">Commission me for robust and intuitive applications and websites for
@@ -456,14 +424,14 @@
         </section>
 
         <!-- Projects Section -->
-        <section id="projects" class="py-20 bg-gray-900 bg-opacity-70 backdrop-blur-sm section-angled-top">
+        <section id="projects" class="py-20">
 
 
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10 js-project-title">Our Projects</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 js-project-cards">
                     <!-- Project Card 1 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card group reveal slide-left">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card group reveal slide-left">
                         <img src="resImg/pages/foxrundownloadpage/foxrun_preview_1.png"
                              alt="Fox Run - High-energy endless runner game for Android"
                              class="w-full h-48 object-cover project-image group-hover:scale-110 transition-transform duration-500">
@@ -480,7 +448,7 @@
                         </div>
                     </div>
                     <!-- Project Card 2 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
                         <!-- Using a placeholder image for the project -->
                         <img src="resImg/pages/spacepongdownload/pongplay.png" alt="Space Pong - Classic arcade action in space" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -497,7 +465,7 @@
                         </div>
                     </div>
                     <!-- Project Card 3 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
                         <img src="resImg/pages/furryravedownload/furryrave1.png" alt="Furry Rave - High-energy music action screensaver preview"
                             class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -515,7 +483,7 @@
                         </div>
                     </div>
                     <!-- Project Card 4 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
                         <!-- More Projects image -->
                         <img src="resImg/pages/synkrfox/synkrfox2.png" alt="SynkrFox - Live filesystem backup application interface" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -532,7 +500,7 @@
                     </div>
 
                     <!-- Project Card 5: Shadowlark -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-left" style="opacity: 0;">
                         <img src="resImg/pages/shadowlarkoracle/shadowlarkoracle0.png" alt="Shadowlark Oracle"
                             class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -549,7 +517,7 @@
                     </div>
 
                     <!-- Project Card 6 -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden project-card slide-right" style="opacity: 0;">
                         <!-- More Projects image -->
                         <img src="resImg/pages/index/moreprojects.jpg" alt="More CodeFoxSoft Projects - In development" class="w-full h-48 object-cover project-image">
                         <div class="p-8">
@@ -569,13 +537,13 @@
 
 
         <!-- Blog Section -->
-        <section id="blog" class="py-20 bg-gray-800 bg-opacity-70 backdrop-blur-sm section-angled-bottom">
+        <section id="blog" class="py-20">
 
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10 js-blog-title">Latest from Our Blog</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 js-blog-cards">
                     <!-- Blog Post 1: Java Portfolio -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-left" style="opacity: 0;">
                         <img src="resImg/pages/blog/javaprojects.jpg" alt="Java Portfolio - A journey through legacy Java applications" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">Java Portfolio</h3>
@@ -590,7 +558,7 @@
                         </div>
                     </div>
                     <!-- Blog Post 2: Launch -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card slide-right" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-right" style="opacity: 0;">
                         <img src="resImg/pages/launch/launchr.png" alt="CodeFoxSoft Official Project Launch" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">Project Launch!</h3>
@@ -605,7 +573,7 @@
                         </div>
                     </div>
                     <!-- Blog Post 3: More Blogs -->
-                    <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden blog-card slide-left" style="opacity: 0;">
+                    <div class="glass-panel rounded-xl shadow-lg overflow-hidden blog-card slide-left" style="opacity: 0;">
                         <img src="resImg/pages/index/moreblogs.png" alt="More Blogs from CodeFoxSoft" class="w-full h-48 object-cover">
                         <div class="p-8">
                             <h3 class="text-2xl font-semibold text-white mb-3">More Blogs</h3>
@@ -623,7 +591,7 @@
         </section>
 
         <!-- Contact Section -->
-        <section id="contact" class="py-20 bg-gray-900 bg-opacity-70 backdrop-blur-sm fade-in section-angled-bottom">
+        <section id="contact" class="py-20 fade-in">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">Get in Touch</h2>
                 <p class="text-base sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -635,7 +603,7 @@
                     application, or explore custom game and AI solutions, CodeFoxSoft is here to help. Fill out the form
                     below and let's turn your vision into reality.
                 </p>
-                <div class="max-w-xl mx-auto bg-gray-700 p-8 sm:p-10 rounded-xl shadow-lg slide-right">
+                <div class="max-w-xl mx-auto glass-panel p-8 sm:p-10 rounded-xl shadow-lg slide-right">
                     <form action="https://formsubmit.co/psychowolf94@gmail.com" method="POST" class="space-y-6">
                         <!-- Hidden settings -->
                         <input type="hidden" name="_captcha" value="false">
@@ -643,15 +611,15 @@
 
                         <div>
                             <input type="text" name="name" placeholder="Your Name/Project Name" required
-                                class="js-contact-input w-full p-4 rounded-lg bg-gray-600 border border-gray-500 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                class="js-contact-input w-full p-4 rounded-lg bg-gray-800 bg-opacity-50 border border-gray-600 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
                         </div>
                         <div>
                             <input type="email" name="email" placeholder="Your Email" required
-                                class="js-contact-input w-full p-4 rounded-lg bg-gray-600 border border-gray-500 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                class="js-contact-input w-full p-4 rounded-lg bg-gray-800 bg-opacity-50 border border-gray-600 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
                         </div>
                         <div>
                             <textarea name="message" placeholder="Your Message" rows="6" required
-                                class="js-contact-input w-full p-4 rounded-lg bg-gray-600 border border-gray-500 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                                class="js-contact-input w-full p-4 rounded-lg bg-gray-800 bg-opacity-50 border border-gray-600 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
                         </div>
                         <button type="submit"
                             class="js-cta-pop w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
@@ -662,10 +630,9 @@
 
             </div>
         </section>
-    </div>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 bg-opacity-70 backdrop-blur-sm py-10 text-center text-gray-400 text-sm js-footer-reveal">
+    <footer class="glass-panel py-10 text-center text-gray-400 text-sm js-footer-reveal">
         <div class="container mx-auto px-6">
             <p>&copy; <span id="year"></span> CodeFoxSoft™. All rights reserved.</p>
             <p class="mt-2">Designed and Developed by Nick Larkin.</p>
