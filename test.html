@@ -109,7 +109,8 @@
         .fade-in {
             opacity: 0;
             transform: translateY(20px);
-            
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            will-change: opacity, transform;
         }
 
         .fade-in.visible {
@@ -121,7 +122,8 @@
         .slide-left {
             opacity: 0;
             transform: translateX(-100px);
-            
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            will-change: opacity, transform;
         }
 
         .slide-left.visible {
@@ -132,7 +134,8 @@
         .slide-right {
             opacity: 0;
             transform: translateX(100px);
-            
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            will-change: opacity, transform;
         }
 
         .slide-right.visible {
@@ -169,23 +172,60 @@
             transform: scale(1.05);
         }
 
-                .glass-panel {
-            background-color: rgba(31, 41, 55, 0.3);
+                        .glass-panel {
+            background-color: rgba(31, 41, 55, 0.2);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(16, 185, 129, 0.6);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+            animation: pulse-border 4s infinite alternate;
+            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+        }
+        .glass-panel:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+        }
+        @keyframes pulse-border {
+            0% { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 10px rgba(16, 185, 129, 0.1); }
+            50% { border-color: rgba(59, 130, 246, 0.6); box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            100% { border-color: rgba(139, 92, 246, 0.6); box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
         }
         @media (max-width: 768px) {
             .glass-panel {
                 background-color: rgba(31, 41, 55, 0.1) !important;
                 backdrop-filter: none !important;
                 -webkit-backdrop-filter: none !important;
-                border: none;
+                border: 2px solid rgba(16, 185, 129, 0.4) !important;
+                animation: pulse-border 4s infinite alternate;
             }
             .glass-panel h1,
             .glass-panel p,
             .glass-panel h3 {
                 text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        .hero-glass-panel {
+            background-color: rgba(31, 41, 55, 0.15); 
+            backdrop-filter: blur(4px); 
+            -webkit-backdrop-filter: blur(4px);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+            animation: pulse-border 4s infinite alternate;
+        }
+        @media (max-width: 768px) {
+            .hero-glass-panel {
+                background-color: rgba(31, 41, 55, 0.05) !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                border: 2px solid rgba(16, 185, 129, 0.3) !important;
+                animation: pulse-border 4s infinite alternate;
+            }
+            .hero-glass-panel h1,
+            .hero-glass-panel p,
+            .hero-glass-panel h3,
+            .hero-glass-panel span {
+                text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.7);
             }
         }
 
@@ -363,7 +403,8 @@
         <section class="relative min-h-screen flex items-end justify-center pb-12 sm:pb-32 text-center overflow-hidden" style="min-height: 100dvh;">
             <!-- Hero Video Background -->
             <div class="absolute inset-0 z-0">
-                <video id="heroVideo" class="w-full h-full object-cover" muted playsinline autoplay></video>
+                <video id="heroVideo1" class="absolute top-0 left-0 w-full h-full object-fill" muted playsinline preload="auto"></video>
+                <video id="heroVideo2" class="absolute top-0 left-0 w-full h-full object-fill opacity-0" muted playsinline preload="auto"></video>
                 <div class="absolute inset-0 bg-gray-900 bg-opacity-30"></div>
                 <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
             </div>
@@ -1258,14 +1299,16 @@
         document.getElementById('year').textContent = new Date().getFullYear();
     </script>
     <script>
-        // Hero Video Logic
+        // Hero Video Logic - Seamless Dual Player
         document.addEventListener('DOMContentLoaded', () => {
-            const videoElement = document.getElementById('heroVideo');
-            if (videoElement) {
+            const v1 = document.getElementById('heroVideo1');
+            const v2 = document.getElementById('heroVideo2');
+            if (v1 && v2) {
                 const videos = ['fly1.mp4', 'fly2.mp4'];
                 let playCount = 0;
+                let activeVideo = 1;
                 
-                function playNextVideo() {
+                function getNextVideoSrc() {
                     let nextVideo;
                     // Play fly1 twice, then fly2
                     if (playCount < 2) {
@@ -1279,12 +1322,39 @@
                     } else {
                         playCount = 0; 
                     }
-                    videoElement.src = nextVideo;
-                    videoElement.play().catch(e => console.log('Video play failed', e));
+                    return nextVideo;
                 }
+
+                // Initialize both players
+                v1.src = getNextVideoSrc();
+                v1.load();
+                v2.src = getNextVideoSrc();
+                v2.load();
                 
-                videoElement.addEventListener('ended', playNextVideo);
-                playNextVideo(); // Start playback
+                v1.play().catch(e => console.log('Init play failed', e));
+
+                function handleEnded() {
+                    if (activeVideo === 1) {
+                        v2.style.opacity = 1;
+                        v1.style.opacity = 0;
+                        v2.play().catch(e => console.log('Play failed', e));
+                        activeVideo = 2;
+                        // Preload v1 for next turn
+                        v1.src = getNextVideoSrc();
+                        v1.load();
+                    } else {
+                        v1.style.opacity = 1;
+                        v2.style.opacity = 0;
+                        v1.play().catch(e => console.log('Play failed', e));
+                        activeVideo = 1;
+                        // Preload v2 for next turn
+                        v2.src = getNextVideoSrc();
+                        v2.load();
+                    }
+                }
+
+                v1.addEventListener('ended', handleEnded);
+                v2.addEventListener('ended', handleEnded);
             }
         });
     </script>
