@@ -53,8 +53,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
     <style>
         /* Global smooth scrolling */
-        html {
+        html, body {
             scroll-behavior: smooth;
+            overflow-x: hidden;
+            width: 100%;
         }
 
         /* General body styles and font */
@@ -380,7 +382,7 @@
     </div>
 
         <!-- Hero Section -->
-        <section class="relative min-h-0 sm:min-h-[100dvh] pt-20 sm:pt-0 flex flex-col items-center justify-start sm:justify-center pb-12 sm:pb-32 text-center overflow-hidden">
+        <section class="relative min-h-0 sm:min-h-[100dvh] pt-20 sm:pt-0 flex flex-col items-center sm:items-end justify-start sm:justify-end pb-12 sm:pb-24 text-center sm:text-right overflow-hidden sm:pr-8 md:pr-16 lg:pr-24">
             <!-- Hero Video Background -->
             <div class="relative sm:absolute top-0 left-0 w-full aspect-[4/3] sm:aspect-auto sm:h-full z-0 overflow-hidden">
                 <video id="heroVideo1" class="absolute top-0 left-0 w-full h-full object-cover object-[5%_center] sm:object-center" muted playsinline preload="auto"></video>
@@ -389,20 +391,20 @@
                 <div class="absolute bottom-0 left-0 w-full h-32 sm:h-48 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
             </div>
             <div
-                class="hero-glass-panel relative z-10 p-6 sm:p-8 rounded-xl max-w-4xl w-[calc(100%-2rem)] sm:w-full mx-auto transform transition-all duration-500 ease-in-out hover:scale-105 text-center -mt-16 sm:mt-0">
-                <h1 class="text-3xl sm:text-6xl font-extrabold text-white mb-4 sm:mb-6 leading-tight">
-                    <span class="text-green-500 hero-title-brand hidden sm:inline">CodeFoxSoft™</span><br class="hidden sm:block" />
-                    <span class="hero-tagline">One Fox, an Entire Universe.</span>
+                class="hero-glass-panel relative z-10 p-5 sm:p-8 rounded-xl max-w-4xl sm:max-w-2xl w-[calc(100%-2rem)] sm:w-auto mx-auto sm:mx-0 transform transition-all duration-500 ease-in-out hover:scale-105 text-center sm:text-right mt-6 sm:mt-0">
+                <h1 class="font-extrabold text-white mb-4 sm:mb-6 leading-tight">
+                    <span class="text-green-500 hero-title-brand hidden sm:inline text-4xl sm:text-6xl">CodeFoxSoft™</span><br class="hidden sm:block" />
+                    <span class="hero-tagline text-2xl sm:text-6xl block">One Fox, an Entire Universe.</span>
                 </h1>
 
-                <p class="text-base sm:text-xl text-gray-300 mb-8 hero-desc">
+                <p class="text-sm sm:text-xl text-gray-300 mb-6 sm:mb-8 hero-desc">
                     Explore our den of Cross Platform Programs and Android games, crafted with paws, claws, and pure
                     underground spirit. Then swing by the Java Apps archive to witness the AP Computer Science library
                     forged between 2009 and 2012 — the old‑school code tomes that started this whole dark carnival of
                     creation. </p>
 
                 <a href="#about"
-                    class="hero-cta js-cta-pop inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 sm:py-4 sm:px-10 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
+                    class="hero-cta js-cta-pop inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 sm:py-4 sm:px-10 text-sm sm:text-base rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out">
                     Who we are? <i class="fas fa-arrow-right ml-2"></i>
                 </a>
             </div>
