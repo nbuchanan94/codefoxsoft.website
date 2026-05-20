@@ -408,16 +408,25 @@
     </div>
 
         <!-- Hero Section -->
-        <section class="relative min-h-[100dvh] pt-20 sm:pt-0 flex flex-col items-center sm:items-end justify-end pb-12 sm:pb-24 text-center sm:text-left overflow-hidden sm:pr-8 md:pr-16 lg:pr-24">
-            <!-- Hero Video Background: always fills the full section on all screen sizes -->
-            <div class="absolute top-0 left-0 w-full h-full z-0 overflow-hidden">
-                <video id="heroVideo1" src="fly1.mp4" class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700" muted playsinline preload="auto" style="opacity: 0; object-position: center 20%;"></video>
-                <video id="heroVideo2" class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700" muted playsinline preload="auto" style="opacity: 0; object-position: center 20%;"></video>
-                <div class="absolute inset-0 bg-gray-900 bg-opacity-50 sm:bg-opacity-30"></div>
-                <div class="absolute bottom-0 left-0 w-full h-24 sm:h-48 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
+        <!-- Mobile: section flows naturally (video 16:9 + overlapping panel). Desktop: full viewport height. -->
+        <section class="relative flex flex-col items-center sm:items-end sm:justify-end sm:min-h-[100dvh] sm:pb-24 text-center sm:text-left sm:overflow-hidden sm:pr-8 md:pr-16 lg:pr-24">
+            <!-- Hero Video:
+                 MOBILE  → relative, aspect-video (16:9). Container matches video ratio = object-cover clips NOTHING.
+                 DESKTOP → absolute inset-0, full viewport height (standard cover behaviour).
+            -->
+            <div class="relative w-full aspect-video sm:aspect-auto sm:absolute sm:inset-0 sm:h-full z-0 overflow-hidden">
+                <video id="heroVideo1" src="fly1.mp4" class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700" muted playsinline preload="auto" style="opacity: 0; object-position: center center;"></video>
+                <video id="heroVideo2" class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700" muted playsinline preload="auto" style="opacity: 0; object-position: center center;"></video>
+                <div class="absolute inset-0 bg-gray-900 bg-opacity-40 sm:bg-opacity-30"></div>
+                <!-- Gradient at bottom fades video into page on desktop; on mobile fades into the glass panel -->
+                <div class="absolute bottom-0 left-0 w-full h-20 sm:h-48 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
             </div>
-            <div
-                class="hero-glass-panel hero-content-box hero-anim-in relative z-10 p-6 sm:p-8 rounded-xl max-w-xl sm:max-w-2xl w-[calc(100%-2rem)] sm:w-auto mx-auto sm:mx-0 hero-panel-hover text-center sm:text-left">
+
+            <!-- Glass panel:
+                 MOBILE  → pulled up 28 (112px) with negative margin to float over the bottom of the 16:9 video.
+                 DESKTOP → sits at bottom-right as before.
+            -->
+            <div class="hero-glass-panel hero-content-box hero-anim-in relative z-10 p-6 sm:p-8 rounded-xl max-w-xl sm:max-w-2xl w-[calc(100%-2rem)] sm:w-auto mx-auto sm:mx-0 hero-panel-hover text-center sm:text-left -mt-28 sm:mt-0 mb-10 sm:mb-0">
                 <h1 class="font-extrabold text-white mb-4 sm:mb-6 leading-tight">
                     <span class="text-green-500 text-xs sm:text-sm font-bold tracking-widest uppercase block mb-2 sm:mb-4 hero-title-brand">CodeFoxSoft™</span>
                     <span class="hero-tagline text-2xl sm:text-5xl block">One Fox, an Entire Universe.</span>
