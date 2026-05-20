@@ -217,14 +217,14 @@
         }
         @media (max-width: 639px) {
             .hero-glass-panel {
-                /* Gradient: fully transparent at top → opaque dark at bottom.
-                   The video bleeds through the top of the panel naturally. */
+                /* Pixel-based gradient stops: transition happens in first 130px,
+                   rest of the panel stays solid — works regardless of panel height */
                 background: linear-gradient(
                     to bottom,
-                    rgba(15, 23, 42, 0.00)  0%,
-                    rgba(15, 23, 42, 0.45) 28%,
-                    rgba(15, 23, 42, 0.82) 58%,
-                    rgba(15, 23, 42, 0.92) 100%
+                    rgba(15, 23, 42, 0.00)  0px,
+                    rgba(15, 23, 42, 0.50) 45px,
+                    rgba(15, 23, 42, 0.85) 95px,
+                    rgba(15, 23, 42, 0.93) 130px
                 ) !important;
                 backdrop-filter: blur(6px) !important;
                 -webkit-backdrop-filter: blur(6px) !important;
@@ -434,13 +434,14 @@
 
         <!-- Hero Section -->
         <!-- Mobile: section flows naturally (video 16:9 + overlapping panel). Desktop: full viewport height. -->
-        <!-- pt-20 on mobile = push video below the 80px fixed header so it isn't hidden behind the nav -->
-        <section class="relative flex flex-col items-center sm:items-end sm:justify-end sm:min-h-[100dvh] pt-20 sm:pt-0 sm:pb-24 text-center sm:text-left sm:overflow-hidden sm:pr-8 md:pr-16 lg:pr-24">
+        <!-- min-h-[100dvh] on ALL sizes: fills viewport so the Three.js canvas behind is fully covered -->
+        <!-- pt-20 on mobile = video starts below the 80px fixed header                               -->
+        <section class="relative flex flex-col items-center sm:items-end sm:justify-end min-h-[100dvh] pt-20 sm:pt-0 sm:pb-24 text-center sm:text-left sm:overflow-hidden sm:pr-8 md:pr-16 lg:pr-24">
             <!-- Hero Video:
                  MOBILE  → relative, aspect-video (16:9). Container matches video ratio = object-cover clips NOTHING.
                  DESKTOP → absolute inset-0, full viewport height (standard cover behaviour).
             -->
-            <div class="relative w-full aspect-video sm:aspect-auto sm:absolute sm:inset-0 sm:h-full z-0 overflow-hidden">
+            <div class="relative w-full sm:aspect-auto sm:absolute sm:inset-0 sm:h-full z-0 overflow-hidden" style="aspect-ratio: 16 / 9.45;">
                 <video id="heroVideo1" src="fly1.mp4" class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700" muted playsinline preload="auto" style="opacity: 0; object-position: center center;"></video>
                 <video id="heroVideo2" class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700" muted playsinline preload="auto" style="opacity: 0; object-position: center center;"></video>
                 <div class="absolute inset-0 bg-gray-900 bg-opacity-40 sm:bg-opacity-30"></div>
@@ -452,8 +453,11 @@
                  MOBILE  → pulled up 28 (112px) with negative margin to float over the bottom of the 16:9 video.
                  DESKTOP → sits at bottom-right as before.
             -->
-            <!-- -mt-14 on mobile: panel floats up ~56px over the bottom of the video (gradient top blends in) -->
-            <div class="hero-glass-panel hero-content-box hero-anim-in relative z-10 p-6 sm:p-8 rounded-xl max-w-xl sm:max-w-2xl w-[calc(100%-2rem)] sm:w-auto mx-auto sm:mx-0 hero-panel-hover text-center sm:text-left -mt-14 sm:mt-0 mb-10 sm:mb-0">
+            <!-- flex-1: panel grows to fill ALL remaining viewport below the video (no dead space / no star gap)
+                 sm:flex-none: normal auto-height on desktop
+                 -mt-8: slight overlap so the gradient top blends into the video frame
+                 rounded-t-xl + rounded-b-none: panel connects flush to section bottom on mobile -->
+            <div class="hero-glass-panel hero-content-box hero-anim-in relative z-10 p-6 sm:p-8 rounded-t-xl rounded-b-none sm:rounded-xl max-w-xl sm:max-w-2xl w-[calc(100%-2rem)] sm:w-auto mx-auto sm:mx-0 hero-panel-hover text-center sm:text-left flex-1 sm:flex-none -mt-8 sm:mt-0 sm:mb-0">
                 <h1 class="font-extrabold text-white mb-4 sm:mb-6 leading-tight">
                     <span class="text-green-500 text-xs sm:text-sm font-bold tracking-widest uppercase block mb-2 sm:mb-4 hero-title-brand">CodeFoxSoft™</span>
                     <span class="hero-tagline text-2xl sm:text-5xl block">One Fox, an Entire Universe.</span>
