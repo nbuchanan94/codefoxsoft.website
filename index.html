@@ -411,8 +411,8 @@
         <section class="relative min-h-[100dvh] pt-20 sm:pt-0 flex flex-col items-center sm:items-end justify-end pb-12 sm:pb-24 text-center sm:text-left overflow-hidden sm:pr-8 md:pr-16 lg:pr-24">
             <!-- Hero Video Background: always fills the full section on all screen sizes -->
             <div class="absolute top-0 left-0 w-full h-full z-0 overflow-hidden">
-                <video id="heroVideo1" src="fly1.mp4" class="absolute top-0 left-0 w-full h-full object-cover object-[5%_center] sm:object-center transition-opacity duration-1000" muted playsinline preload="auto" style="opacity: 0;"></video>
-                <video id="heroVideo2" class="absolute top-0 left-0 w-full h-full object-cover object-[5%_center] sm:object-center transition-opacity duration-1000" muted playsinline preload="auto" style="opacity: 0;"></video>
+                <video id="heroVideo1" src="fly1.mp4" class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700" muted playsinline preload="auto" style="opacity: 0; object-position: center 20%;"></video>
+                <video id="heroVideo2" class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700" muted playsinline preload="auto" style="opacity: 0; object-position: center 20%;"></video>
                 <div class="absolute inset-0 bg-gray-900 bg-opacity-50 sm:bg-opacity-30"></div>
                 <div class="absolute bottom-0 left-0 w-full h-24 sm:h-48 bg-gradient-to-b from-transparent to-[#0c0d11]"></div>
             </div>
@@ -1387,133 +1387,119 @@
         document.getElementById('year').textContent = new Date().getFullYear();
     </script>
     <script>
-        // Hero Video Logic - Seamless Dual Player with Mobile Autoplay Fallbacks
+        // Hero Video Logic - Seamless Crossfade Dual Player
+        // CROSSFADE RULE: incoming video fades IN first while outgoing stays fully visible,
+        // THEN outgoing fades OUT — so the background (galaxy) is NEVER visible between clips.
         document.addEventListener('DOMContentLoaded', () => {
             const v1 = document.getElementById('heroVideo1');
             const v2 = document.getElementById('heroVideo2');
-            if (v1 && v2) {
-                const videos = ['fly1.mp4', 'fly2.mp4'];
-                let playCount = 1; // Started with fly1.mp4 in HTML
-                let activeVideo = 1;
-                
-                function getNextVideoSrc() {
-                    let nextVideo;
-                    if (playCount < 2) {
-                        nextVideo = Math.random() < 0.8 ? videos[0] : videos[1];
-                    } else {
-                        nextVideo = videos[1];
-                        playCount = -1; 
-                    }
-                    if (nextVideo === videos[0]) {
-                        playCount++;
-                    } else {
-                        playCount = 0; 
-                    }
-                    return nextVideo;
-                }
+            if (!v1 || !v2) return;
 
-                // Force programmatically muted states (strict mobile browser autoplay rule)
-                const ensureMuted = (videoEl) => {
-                    videoEl.muted = true;
-                    videoEl.setAttribute('muted', '');
-                    videoEl.setAttribute('playsinline', '');
-                };
+            const videos = ['fly1.mp4', 'fly2.mp4'];
+            let activeVideo = 1; // v1 is currently playing
+
+            // True random pick — 50/50 each time
+            function getNextSrc() {
+                return videos[Math.floor(Math.random() * videos.length)];
+            }
+
+            // Always force muted + playsinline for mobile autoplay policy
+            function ensureMuted(el) {
+                el.muted = true;
+                el.setAttribute('muted', '');
+                el.setAttribute('playsinline', '');
+            }
+            ensureMuted(v1);
+            ensureMuted(v2);
+
+            // Crossfade: fade INCOMING to 1, wait for CSS transition, then fade OUTGOING to 0
+            // This guarantees at least one video is always fully opaque — no galaxy peek-through.
+            const FADE_MS = 700; // matches transition-opacity duration-700
+            function crossfadeTo(incoming, outgoing, onComplete) {
+                // Step 1: bring incoming to full opacity (outgoing stays at 1)
+                incoming.style.opacity = '1';
+                // Step 2: after the fade-in completes, drop the outgoing
+                setTimeout(() => {
+                    outgoing.style.opacity = '0';
+                    if (onComplete) onComplete();
+                }, FADE_MS);
+            }
+
+            // Preload v2 while v1 is playing
+            v2.src = getNextSrc();
+            v2.load();
+
+            // Initial play
+            function tryPlayInitial() {
                 ensureMuted(v1);
-                ensureMuted(v2);
+                v1.play()
+                    .then(() => { v1.style.opacity = '1'; })
+                    .catch(() => { setupInteractionFallback(); });
+            }
 
-                // v1 starts with fly1.mp4 statically, load v2 in the background
-                v2.src = getNextVideoSrc();
-                v2.load();
-
-                // Fade in player only when it actually starts playing to prevent flash of black
-                const fadeIn = (el) => {
-                    el.style.opacity = '1';
-                };
-                
-                v1.addEventListener('playing', () => fadeIn(v1));
-                v2.addEventListener('playing', () => fadeIn(v2));
-
-                // Primary play attempt
-                const tryPlayInitial = () => {
+            // Mobile fallback: play on first touch/scroll/click
+            function setupInteractionFallback() {
+                let triggered = false;
+                function onGesture() {
+                    if (triggered) return;
+                    triggered = true;
                     ensureMuted(v1);
                     v1.play()
-                        .then(() => fadeIn(v1))
-                        .catch(e => {
-                            console.log('Autoplay blocked. Registering interaction trigger.', e);
-                            setupInteractionTrigger();
-                        });
-                };
-
-                // Fallback: Trigger play on user swipe/scroll/click (crucial for mobile energy saver mode)
-                let hasInteracted = false;
-                const setupInteractionTrigger = () => {
-                    const playOnGesture = () => {
-                        if (hasInteracted) return;
-                        hasInteracted = true;
-                        ensureMuted(v1);
-                        v1.play()
-                            .then(() => {
-                                fadeIn(v1);
-                                cleanup();
-                            })
-                            .catch(err => {
-                                console.log('Gesture play failed', err);
-                                hasInteracted = false; // allow retry
-                            });
-                    };
-                    const cleanup = () => {
-                        document.removeEventListener('touchstart', playOnGesture);
-                        document.removeEventListener('click', playOnGesture);
-                        document.removeEventListener('scroll', playOnGesture);
-                    };
-                    document.addEventListener('touchstart', playOnGesture, { passive: true });
-                    document.addEventListener('click', playOnGesture, { passive: true });
-                    document.addEventListener('scroll', playOnGesture, { passive: true });
-                };
-
-                // Start initial play
-                tryPlayInitial();
-
-                function handleEnded() {
-                    if (activeVideo === 1) {
-                        ensureMuted(v2);
-                        v2.play()
-                            .then(() => {
-                                fadeIn(v2);
-                                v1.style.opacity = '0';
-                                activeVideo = 2;
-                                v1.src = getNextVideoSrc();
-                                v1.load();
-                            })
-                            .catch(e => {
-                                console.log('Play v2 failed, retrying...', e);
-                                // Soft fail: switch visibility anyway to prevent visual freeze
-                                fadeIn(v2);
-                                v1.style.opacity = '0';
-                                activeVideo = 2;
-                            });
-                    } else {
-                        ensureMuted(v1);
-                        v1.play()
-                            .then(() => {
-                                fadeIn(v1);
-                                v2.style.opacity = '0';
-                                activeVideo = 1;
-                                v2.src = getNextVideoSrc();
-                                v2.load();
-                            })
-                            .catch(e => {
-                                console.log('Play v1 failed, retrying...', e);
-                                fadeIn(v1);
-                                v2.style.opacity = '0';
-                                activeVideo = 1;
-                            });
-                    }
+                        .then(() => { v1.style.opacity = '1'; })
+                        .catch(() => { triggered = false; });
+                    document.removeEventListener('touchstart', onGesture);
+                    document.removeEventListener('click', onGesture);
+                    document.removeEventListener('scroll', onGesture);
                 }
-
-                v1.addEventListener('ended', handleEnded);
-                v2.addEventListener('ended', handleEnded);
+                document.addEventListener('touchstart', onGesture, { passive: true });
+                document.addEventListener('click', onGesture, { passive: true });
+                document.addEventListener('scroll', onGesture, { passive: true });
             }
+
+            tryPlayInitial();
+
+            // When a video ends, crossfade to the other one
+            function handleEnded() {
+                if (activeVideo === 1) {
+                    // Switch: v2 becomes active
+                    ensureMuted(v2);
+                    v2.play()
+                        .then(() => {
+                            activeVideo = 2;
+                            crossfadeTo(v2, v1, () => {
+                                // Preload a new clip into v1 for next switch
+                                v1.src = getNextSrc();
+                                v1.load();
+                            });
+                        })
+                        .catch(() => {
+                            // Fallback: instant switch if play fails
+                            v2.style.opacity = '1';
+                            v1.style.opacity = '0';
+                            activeVideo = 2;
+                        });
+                } else {
+                    // Switch: v1 becomes active
+                    ensureMuted(v1);
+                    v1.play()
+                        .then(() => {
+                            activeVideo = 1;
+                            crossfadeTo(v1, v2, () => {
+                                // Preload a new clip into v2 for next switch
+                                v2.src = getNextSrc();
+                                v2.load();
+                            });
+                        })
+                        .catch(() => {
+                            v1.style.opacity = '1';
+                            v2.style.opacity = '0';
+                            activeVideo = 1;
+                        });
+                }
+            }
+
+            v1.addEventListener('ended', handleEnded);
+            v2.addEventListener('ended', handleEnded);
         });
     </script>
 </body>
