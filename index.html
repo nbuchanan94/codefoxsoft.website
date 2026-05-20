@@ -215,7 +215,32 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             animation: pulse-border-green 4s infinite alternate;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 639px) {
+            .hero-glass-panel {
+                /* Gradient: fully transparent at top → opaque dark at bottom.
+                   The video bleeds through the top of the panel naturally. */
+                background: linear-gradient(
+                    to bottom,
+                    rgba(15, 23, 42, 0.00)  0%,
+                    rgba(15, 23, 42, 0.45) 28%,
+                    rgba(15, 23, 42, 0.82) 58%,
+                    rgba(15, 23, 42, 0.92) 100%
+                ) !important;
+                backdrop-filter: blur(6px) !important;
+                -webkit-backdrop-filter: blur(6px) !important;
+                border: none !important;
+                border-bottom: 1px solid rgba(16, 185, 129, 0.15) !important;
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4) !important;
+                animation: none !important;
+            }
+            .hero-glass-panel h1,
+            .hero-glass-panel p,
+            .hero-glass-panel h3,
+            .hero-glass-panel span {
+                text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+            }
+        }
+        @media (min-width: 640px) and (max-width: 768px) {
             .hero-glass-panel {
                 background-color: rgba(15, 23, 42, 0.65) !important;
                 backdrop-filter: blur(16px) !important;
@@ -409,7 +434,8 @@
 
         <!-- Hero Section -->
         <!-- Mobile: section flows naturally (video 16:9 + overlapping panel). Desktop: full viewport height. -->
-        <section class="relative flex flex-col items-center sm:items-end sm:justify-end sm:min-h-[100dvh] sm:pb-24 text-center sm:text-left sm:overflow-hidden sm:pr-8 md:pr-16 lg:pr-24">
+        <!-- pt-20 on mobile = push video below the 80px fixed header so it isn't hidden behind the nav -->
+        <section class="relative flex flex-col items-center sm:items-end sm:justify-end sm:min-h-[100dvh] pt-20 sm:pt-0 sm:pb-24 text-center sm:text-left sm:overflow-hidden sm:pr-8 md:pr-16 lg:pr-24">
             <!-- Hero Video:
                  MOBILE  → relative, aspect-video (16:9). Container matches video ratio = object-cover clips NOTHING.
                  DESKTOP → absolute inset-0, full viewport height (standard cover behaviour).
@@ -426,7 +452,8 @@
                  MOBILE  → pulled up 28 (112px) with negative margin to float over the bottom of the 16:9 video.
                  DESKTOP → sits at bottom-right as before.
             -->
-            <div class="hero-glass-panel hero-content-box hero-anim-in relative z-10 p-6 sm:p-8 rounded-xl max-w-xl sm:max-w-2xl w-[calc(100%-2rem)] sm:w-auto mx-auto sm:mx-0 hero-panel-hover text-center sm:text-left -mt-28 sm:mt-0 mb-10 sm:mb-0">
+            <!-- -mt-14 on mobile: panel floats up ~56px over the bottom of the video (gradient top blends in) -->
+            <div class="hero-glass-panel hero-content-box hero-anim-in relative z-10 p-6 sm:p-8 rounded-xl max-w-xl sm:max-w-2xl w-[calc(100%-2rem)] sm:w-auto mx-auto sm:mx-0 hero-panel-hover text-center sm:text-left -mt-14 sm:mt-0 mb-10 sm:mb-0">
                 <h1 class="font-extrabold text-white mb-4 sm:mb-6 leading-tight">
                     <span class="text-green-500 text-xs sm:text-sm font-bold tracking-widest uppercase block mb-2 sm:mb-4 hero-title-brand">CodeFoxSoft™</span>
                     <span class="hero-tagline text-2xl sm:text-5xl block">One Fox, an Entire Universe.</span>
