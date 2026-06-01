@@ -100,7 +100,29 @@
             transform: translateY(0);
             pointer-events: auto;
         }
-    </style>
+    
+        /* Fix for mobile landscape: make layout tighter and scrollable if height is constrained */
+        @media (max-height: 600px) and (max-width: 950px) {
+            #mobile-menu {
+                max-height: calc(100vh - 5rem);
+                max-height: calc(100dvh - 5rem);
+                overflow-y: auto;
+            }
+            #mobile-menu ul {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 0.5rem !important;
+                padding-top: 0.75rem !important;
+                padding-bottom: 0.75rem !important;
+                padding-left: 1.5rem !important;
+                padding-right: 1.5rem !important;
+            }
+            #mobile-menu ul > li {
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+            }
+        }
+</style>
     <script type="application/ld+json">
     [
       {
@@ -169,7 +191,7 @@
 
             <!-- Desktop Navigation Links (visible on md screens and up) -->
             <ul class="hidden md:flex space-x-6 text-lg">
-                <li><a href="index.html#about" class="hover:text-green-400 transition-colors duration-300">About</a>
+                <li><a href="about.html" class="hover:text-green-400 transition-colors duration-300">About</a>
                 </li>
                 <li><a href="index.html#projects"
                         class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
@@ -199,7 +221,7 @@
     <div id="mobile-menu"
         class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
         <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
-            <li><a href="index.html#about"
+            <li><a href="about.html"
                     class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a>
             </li>
             <li><a href="index.html#projects"

@@ -371,7 +371,29 @@
             opacity: 0;
             transform: translateY(16px);
         }
-    </style>
+    
+        /* Fix for mobile landscape: make layout tighter and scrollable if height is constrained */
+        @media (max-height: 600px) and (max-width: 950px) {
+            #mobile-menu {
+                max-height: calc(100vh - 5rem);
+                max-height: calc(100dvh - 5rem);
+                overflow-y: auto;
+            }
+            #mobile-menu ul {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 0.5rem !important;
+                padding-top: 0.75rem !important;
+                padding-bottom: 0.75rem !important;
+                padding-left: 1.5rem !important;
+                padding-right: 1.5rem !important;
+            }
+            #mobile-menu ul > li {
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+            }
+        }
+</style>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -694,14 +716,14 @@
         <section id="contact" class="py-20 overflow-hidden fade-in">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-bold text-green-400 mb-10">Get in Touch</h2>
-                <p class="text-base sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                    Have a project in mind, a question about our work, or just want to connect? We'd love to hear from
-                    you.
+                <p class="text-base sm:text-xl text-gray-300 mb-4 max-w-2xl mx-auto">
+                    If you found a bug, have an idea, or want to reach the developer directly, this is the place.
+                </p>
+                <p class="text-base sm:text-xl text-gray-300 mb-4 max-w-2xl mx-auto">
+                    Or if you’ve got feedback, a feature request, a glitch to report, or something you think the fox should hear, drop it below. We are always looking for new ideas!
                 </p>
                 <p class="text-base sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                    Whether you're a creator or team looking to launch a powerful website, develop a Windows or mobile
-                    application, or explore custom game and AI solutions, CodeFoxSoft is here to help. Fill out the form
-                    below and let's turn your vision into reality.
+                    Your message goes straight to the developer.
                 </p>
                 <div class="max-w-xl mx-auto glass-panel p-8 sm:p-10 rounded-xl shadow-lg slide-right">
                     <form action="https://formsubmit.co/psychowolf94@gmail.com" method="POST" class="space-y-6">
