@@ -447,8 +447,8 @@
                 <span class="block md:hidden"><i class="fas fa-fox mr-2"></i> CodeFoxSoft™</span>
             </a>
 
-            <!-- Desktop Navigation Links (visible on md screens and up) -->
-            <ul class="hidden md:flex space-x-4 md:space-x-6 text-lg items-center">
+            <!-- Desktop Navigation Links (visible on lg screens and up) -->
+            <ul class="hidden lg:flex space-x-4 md:space-x-6 text-lg items-center">
                 <li><a href="about.html" class="hover:text-green-400 transition-colors duration-300">About</a></li>
                 <li><a href="#projects" class="hover:text-green-400 transition-colors duration-300">Projects</a></li>
                 <li><a href="javaapps.html" class="hover:text-green-400 transition-colors duration-300">Java Apps</a>
@@ -459,9 +459,9 @@
                 <li><a href="#contact" class="hover:text-green-400 transition-colors duration-300">Contact</a></li>
             </ul>
 
-            <!-- Mobile Hamburger Menu Button (visible on md screens and down) -->
+            <!-- Mobile Hamburger Menu Button (visible on lg screens and down) -->
             <button id="menu-button"
-                class="md:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300"
+                class="lg:hidden text-gray-100 hover:text-green-400 focus:outline-none transition-colors duration-300"
                 aria-label="Open Mobile Menu" aria-expanded="false" aria-controls="mobile-menu">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
@@ -474,7 +474,7 @@
 
     <!-- Mobile Menu (initially hidden, will be shown/hidden by JS) -->
     <div id="mobile-menu"
-        class="md:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
+        class="lg:hidden fixed top-20 left-0 w-full bg-gray-800 bg-opacity-95 backdrop-blur-sm shadow-lg z-40 hidden rounded-b-lg">
         <ul class="flex flex-col text-center py-4 space-y-4 text-lg">
             <li><a href="about.html"
                     class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">About</a>
@@ -1373,8 +1373,46 @@
 
             renderer.render(scene, camera);
         }
+        // --- Routine to adjust hero text size to fit button perfectly on screen ---
+        function adjustHeroFit() {
+            if (window.innerWidth > 768) {
+                const desc = document.querySelector('.hero-desc');
+                const tag = document.querySelector('.hero-tagline');
+                if (desc) { desc.style.fontSize = ''; desc.style.lineHeight = ''; }
+                if (tag) { tag.style.fontSize = ''; }
+                return;
+            }
+            const heroPanel = document.querySelector('.hero-glass-panel');
+            const heroDesc = document.querySelector('.hero-desc');
+            const heroTagline = document.querySelector('.hero-tagline');
+            const ctaBtn = document.querySelector('.hero-cta');
+            
+            if (!heroPanel || !heroDesc || !heroTagline || !ctaBtn) return;
+            
+            // Reset to default sizes to measure
+            heroDesc.style.fontSize = '';
+            heroDesc.style.lineHeight = '';
+            heroTagline.style.fontSize = '';
+            
+            let descSize = 14; 
+            let taglineSize = 24; 
+            const targetBottom = window.innerHeight - 15; // 15px padding
+            
+            while (ctaBtn.getBoundingClientRect().bottom > targetBottom && descSize > 9) {
+                descSize -= 0.5;
+                taglineSize -= 0.5;
+                heroDesc.style.fontSize = descSize + 'px';
+                heroDesc.style.lineHeight = '1.3';
+                heroTagline.style.fontSize = taglineSize + 'px';
+            }
+        }
+        window.addEventListener('resize', adjustHeroFit);
+        window.addEventListener('orientationchange', adjustHeroFit);
+        document.addEventListener('DOMContentLoaded', adjustHeroFit);
+
         // --- Combined window.onload for both scripts ---
         window.onload = function () {
+            adjustHeroFit();
             // Initialize the galaxy scene
             init();
 
