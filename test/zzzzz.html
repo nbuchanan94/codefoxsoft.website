@@ -1711,7 +1711,7 @@ window.addEventListener('unhandledrejection', function(event) {
         function resetNiko() {
             const start = maps[currentLevel].start;
             modelContainer.position.set(start.x * cellSize - mapOffset, 0, start.z * cellSize - mapOffset);
-            modelContainer.rotation.y = 0;
+            modelContainer.rotation.y = Math.PI;
             camYaw = 0;
             velX = 0; velZ = 0;
             idleTimer = 0;
