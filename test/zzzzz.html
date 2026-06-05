@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>\n<script>
+<head>
+<script>
 window.onerror = function(msg, url, line, col, error) {
     console.error('Error: ' + msg + '\nLine: ' + line + '\nCol: ' + col);
     return false;
@@ -14,11 +15,25 @@ window.addEventListener('unhandledrejection', function(event) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CyberNiko: The Biomorphic Maze</title>
     <style>
-        body {
+        html, body {
             margin: 0;
-            background: #000;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
+            background: #000;
             font-family: 'Courier New', Courier, monospace;
+            touch-action: none;
+        }
+
+        /* Force the Three.js canvas to never cause overflow */
+        canvas {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
         }
 
         #ui {
@@ -254,20 +269,17 @@ window.addEventListener('unhandledrejection', function(event) {
             position: absolute;
             top: 20px;
             right: 20px;
-            width: 180px;
-            height: 180px;
-            background: rgba(0, 255, 204, 0.05);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(0, 255, 204, 0.2);
+            width: 160px;
+            height: 160px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 255, 204, 0.5);
             border-radius: 12px;
-            padding: 5px;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.3), inset 0 0 10px rgba(0,0,0,0.5);
+            z-index: 9999;
+            display: none;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            padding: 4px;
+            box-sizing: border-box;
         }
 
         #minimap-container:hover {
@@ -373,63 +385,50 @@ window.addEventListener('unhandledrejection', function(event) {
 
         .menu-buttons {
             position: absolute;
-            bottom: 5%;
+            bottom: 4%;
             width: 100%;
-            height: clamp(150px, 20vh, 250px);
             display: flex;
+            flex-direction: row;
             justify-content: center;
-            align-items: center;
-            pointer-events: none;
-            perspective: 800px;
-            /* Tilt perspective */
+            align-items: flex-end;
+            gap: clamp(8px, 4vw, 40px);
+            padding: 0 4vw;
+            box-sizing: border-box;
+            perspective: 600px;
         }
 
         .menu-btn {
-            position: absolute;
+            position: relative;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            animation: btnEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-            pointer-events: auto;
-            transform-style: preserve-3d;
+            flex: 0 0 auto;
+            transition: transform 0.2s ease;
         }
 
-        /* Titled AR HUD look - Moved Up and Out to clear the platform */
         #btn-settings {
-            left: 50%;
-            bottom: clamp(60px, 12vh, 120px);
-            transform: translateX(calc(-50% - clamp(220px, 35vw, 320px))) rotateX(25deg) rotateY(15deg);
+            transform: rotateX(20deg) rotateY(10deg);
         }
 
         #btn-settings:hover {
-            transform: translateX(calc(-50% - clamp(220px, 35vw, 320px))) rotateX(15deg) rotateY(10deg) scale(1.1) translateY(-10px);
+            transform: rotateX(10deg) rotateY(5deg) scale(1.1) translateY(-5px);
         }
 
         #btn-play {
-            left: 50%;
-            bottom: -clamp(10px, 2vh, 30px);
-            transform: translateX(-50%) rotateX(25deg);
+            transform: rotateX(20deg) scale(1.15);
         }
 
         #btn-play:hover {
-            transform: translateX(-50%) rotateX(15deg) scale(1.1) translateY(-5px);
-        }
-
-        #btn-play:active {
-            transform: translateX(-50%) rotateX(25deg) scale(0.95);
+            transform: rotateX(10deg) scale(1.25) translateY(-5px);
         }
 
         #btn-exit {
-            left: 50%;
-            bottom: clamp(60px, 12vh, 120px);
-            transform: translateX(calc(-50% + clamp(220px, 35vw, 320px))) rotateX(25deg) rotateY(-15deg);
+            transform: rotateX(20deg) rotateY(-10deg);
         }
 
         #btn-exit:hover {
-            transform: translateX(calc(-50% + clamp(220px, 35vw, 320px))) rotateX(15deg) rotateY(-10deg) scale(1.1) translateY(-10px);
+            transform: rotateX(10deg) rotateY(-5deg) scale(1.1) translateY(-5px);
         }
 
         .menu-btn:nth-child(1) {
@@ -895,7 +894,8 @@ window.addEventListener('unhandledrejection', function(event) {
         #joystick-zone {
             position: absolute;
             bottom: 20px;
-            left: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 150px;
             height: 150px;
             background: rgba(0, 255, 204, 0.1);
@@ -1220,7 +1220,8 @@ window.addEventListener('unhandledrejection', function(event) {
             clock = new THREE.Clock();
             scene = new THREE.Scene();
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 60000);
+            const isPortrait = window.innerHeight > window.innerWidth;
+            camera = new THREE.PerspectiveCamera(isPortrait ? 75 : 60, window.innerWidth / window.innerHeight, 10, 60000);
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
@@ -1579,8 +1580,8 @@ window.addEventListener('unhandledrejection', function(event) {
                           resetNiko();
   
                           // Reset camera for gameplay
-                          targetPitch = 15; 
-                          targetDistance = 200;
+                          targetPitch = window.innerHeight > window.innerWidth ? 28 : 15; 
+                          targetDistance = window.innerHeight > window.innerWidth ? 320 : 200;
         }
 
         function fadeToAction(name, duration = 0.3) {
@@ -1774,7 +1775,7 @@ window.addEventListener('unhandledrejection', function(event) {
 
         
         let menuTransitioning = false;
-        let useJoystick = false;
+        let useJoystick = window.innerHeight > window.innerWidth; // Auto-enable on portrait
 
         window.menuAction = function(action) {
             if (menuTransitioning) return;
@@ -1787,6 +1788,7 @@ window.addEventListener('unhandledrejection', function(event) {
                         gameActive = true;
                         if (!startTime) startTime = Date.now();
                         menuTransitioning = false;
+                        document.getElementById('minimap-container').style.display = 'block';
                     }, 500);
                     break;
                 case 'settings':
@@ -1810,6 +1812,13 @@ window.addEventListener('unhandledrejection', function(event) {
             document.getElementById('touch-sprint-btn').style.display = useJoystick ? 'block' : 'none';
         };
 
+        // Initialize joystick UI state
+        if (useJoystick) {
+            document.getElementById('joy-display').innerText = 'ON';
+            document.getElementById('joystick-zone').style.display = 'block';
+            document.getElementById('touch-sprint-btn').style.display = 'block';
+        }
+
         window.updateVolume = function(val) {
             document.getElementById('vol-display').innerText = val + '%';
         };
@@ -1831,6 +1840,12 @@ window.addEventListener('unhandledrejection', function(event) {
         if(joyZone) {
             joyZone.addEventListener('touchstart', e => {
                 e.preventDefault();
+                // Kick off game if not started yet
+                if (!gameActive && isReady) {
+                    gameActive = true;
+                    if (!startTime) startTime = Date.now();
+                    document.getElementById('minimap-container').style.display = 'block';
+                }
                 const touch = e.changedTouches[0];
                 joyTouchId = touch.identifier;
                 joyActive = true;
@@ -1962,12 +1977,15 @@ window.addEventListener('unhandledrejection', function(event) {
                 if (inputX !== 0 || inputZ !== 0) {
                     idleTimer = 0;
 
+                    const baseFov = window.innerHeight > window.innerWidth ? 75 : 60;
+                    const sprintFov = baseFov + 15;
+
                     if (isSprinting) {
                         shakeIntensity = Math.max(shakeIntensity, 3);
-                        camera.fov = THREE.MathUtils.lerp(camera.fov, 75, 0.1);
+                        camera.fov = THREE.MathUtils.lerp(camera.fov, sprintFov, 0.1);
                         if (Date.now() % 100 < 32) spawnGhost(); // Speed trails
                     } else {
-                        camera.fov = THREE.MathUtils.lerp(camera.fov, 60, 0.1);
+                        camera.fov = THREE.MathUtils.lerp(camera.fov, baseFov, 0.1);
                     }
                     camera.updateProjectionMatrix();
 
