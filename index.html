@@ -486,7 +486,7 @@
                     class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Java
                     Apps</a>
             </li>
-            <li><a href="#downloads"
+            <li><a href="alldownload.html"
                     class="block py-2 text-gray-200 hover:text-green-400 hover:bg-gray-700 rounded-lg transition-colors duration-300">Downloads</a>
             </li>
             <li><a href="#blog"
@@ -768,25 +768,6 @@
     </footer>
 
     <script>
-        // JavaScript for the mobile menu toggle
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuButton = document.getElementById('menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-
-            if (menuButton && mobileMenu) {
-                menuButton.addEventListener('click', () => {
-                    mobileMenu.classList.toggle('hidden');
-                });
-
-                // Close the menu when a link is clicked
-                const mobileLinks = mobileMenu.querySelectorAll('a');
-                mobileLinks.forEach(link => {
-                    link.addEventListener('click', () => {
-                        mobileMenu.classList.add('hidden');
-                    });
-                });
-            }
-        });
 
         // --- Global Variables for Three.js ---
         let scene, camera, renderer, galaxyGroup, backgroundGalaxyGroup, starField, starFieldBack, nebulaWisps;
@@ -1374,14 +1355,24 @@
             renderer.render(scene, camera);
         }
         // --- Routine to adjust hero text size to fit button perfectly on screen ---
+        let lastHeroWidth = null;
         function adjustHeroFit() {
-            if (window.innerWidth > 768) {
+            const currentWidth = window.innerWidth;
+            if (currentWidth > 768) {
                 const desc = document.querySelector('.hero-desc');
                 const tag = document.querySelector('.hero-tagline');
                 if (desc) { desc.style.fontSize = ''; desc.style.lineHeight = ''; }
                 if (tag) { tag.style.fontSize = ''; }
+                lastHeroWidth = currentWidth;
                 return;
             }
+
+            // Only run if the width has actually changed to prevent mobile browser URL bar show/hide from causing choppy resizing on scroll
+            if (lastHeroWidth !== null && currentWidth === lastHeroWidth) {
+                return;
+            }
+            lastHeroWidth = currentWidth;
+
             const heroPanel = document.querySelector('.hero-glass-panel');
             const heroDesc = document.querySelector('.hero-desc');
             const heroTagline = document.querySelector('.hero-tagline');
