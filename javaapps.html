@@ -158,112 +158,8 @@
     <link rel="icon" href="resImg/logo/favicon.ico">
 
 
+
     <style>
-        /* Lightbox Modal */
-        #lightbox-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            padding-top: 50px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(5px);
-        }
-
-        #lightbox-content {
-            margin: auto;
-            display: block;
-            max-width: 90%;
-            max-height: 80vh;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 255, 128, 0.2);
-            animation: zoomIn 0.3s ease-out;
-        }
-
-        #lightbox-caption {
-            margin: auto;
-            display: block;
-            width: 80%;
-            max-width: 700px;
-            text-align: center;
-            color: #ccc;
-            padding: 10px 0;
-            height: 150px;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .lb-close {
-            position: absolute;
-            top: 25px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            transition: 0.3s;
-            cursor: pointer;
-        }
-
-        .lb-close:hover,
-        .lb-close:focus {
-            color: #10b981;
-            /* Green-500 */
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        /* Next & previous buttons */
-        .lb-prev,
-        .lb-next {
-            cursor: pointer;
-            position: absolute;
-            top: 50%;
-            width: auto;
-            padding: 16px;
-            margin-top: -50px;
-            color: white;
-            font-weight: bold;
-            font-size: 24px;
-            transition: 0.6s ease;
-            border-radius: 0 3px 3px 0;
-            user-select: none;
-            -webkit-user-select: none;
-            background-color: rgba(0, 0, 0, 0.3);
-            z-index: 1001;
-        }
-
-        /* Position the "next" button to the right */
-        .lb-next {
-            right: 0;
-            border-radius: 3px 0 0 3px;
-        }
-
-        /* Position the "prev" button to the left */
-        .lb-prev {
-            left: 0;
-            border-radius: 0 3px 3px 0;
-        }
-
-        /* On hover, add a black background color with a little bit see-through */
-        .lb-prev:hover,
-        .lb-next:hover {
-            background-color: rgba(16, 185, 129, 0.8);
-            /* Green hover */
-        }
-
-        @keyframes zoomIn {
-            from {
-                transform: scale(0)
-            }
-
-            to {
-                transform: scale(1)
-            }
-        }
-
         /* Responsive Styles for Program List */
         @media (max-width: 640px) {
             .program-entry {
@@ -2782,23 +2678,93 @@
         document.getElementById('year').textContent = new Date().getFullYear();
     </script>
 
-    <!-- Lightbox Modal -->
-    <div id="lightbox-modal" class="modal" role="dialog" aria-modal="true" aria-label="Project Screenshot Gallery" onclick="closeLightbox()">
-        <button class="lb-close" aria-label="Close gallery" onclick="closeLightbox()">&times;</button>
+    <!-- CheerpJ Web JVM Runner & Preview Modal -->
+    <div id="lightbox-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-95 p-4 md:p-6 backdrop-blur-md" role="dialog" aria-modal="true" aria-label="Project Details and Runner" onclick="closeLightbox()">
+        <!-- Close Button (Upper Right) -->
+        <button class="absolute top-4 right-6 text-gray-400 hover:text-green-400 text-4xl font-bold transition duration-300 z-50 focus:outline-none" aria-label="Close modal" onclick="closeLightbox()">&times;</button>
 
         <!-- Navigation Arrows -->
-        <button class="lb-prev" aria-label="Previous image" onclick="event.stopPropagation(); navigateLightbox(-1)">&#10094;</button>
-        <button class="lb-next" aria-label="Next image" onclick="event.stopPropagation(); navigateLightbox(1)">&#10095;</button>
+        <button class="absolute left-4 top-1/2 -translate-y-1/2 bg-gray-900 bg-opacity-60 text-white hover:bg-green-500 hover:text-black w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold transition duration-300 z-50 focus:outline-none" aria-label="Previous image" onclick="event.stopPropagation(); navigateLightbox(-1)">&#10094;</button>
+        <button class="absolute right-4 top-1/2 -translate-y-1/2 bg-gray-900 bg-opacity-60 text-white hover:bg-green-500 hover:text-black w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold transition duration-300 z-50 focus:outline-none" aria-label="Next image" onclick="event.stopPropagation(); navigateLightbox(1)">&#10095;</button>
 
-        <img class="modal-content" id="lightbox-content" alt="Enlarged project screenshot" onclick="event.stopPropagation()">
-        <div id="lightbox-caption"></div>
+        <!-- Modal Container -->
+        <div class="bg-gray-950 border border-green-500/30 rounded-2xl w-full max-w-6xl max-h-[90vh] md:max-h-[85vh] overflow-hidden flex flex-col md:flex-row shadow-2xl relative" onclick="event.stopPropagation()">
+            <!-- Left Side: Interactive Area (Visualizer / Runner / Screenshot) -->
+            <div class="w-full md:w-2/3 h-[300px] sm:h-[400px] md:h-[550px] bg-black relative flex items-center justify-center border-b md:border-b-0 md:border-r border-green-500/20">
+                <!-- Screenshot Image -->
+                <img id="lightbox-content" class="w-full h-full object-contain transition-all duration-300" alt="Enlarged project screenshot">
+                
+                <!-- Play Button Overlay -->
+                <div id="play-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 hover:bg-black/60 transition-all duration-300 cursor-pointer group" onclick="runJavaApp()">
+                    <div class="bg-green-500 text-black w-20 h-20 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition duration-300">
+                        <i class="fas fa-play text-2xl ml-1"></i>
+                    </div>
+                    <span class="mt-4 text-green-400 font-bold tracking-widest text-sm uppercase group-hover:text-green-300">Run Applet In Browser</span>
+                </div>
+
+                <!-- JVM Container (Hidden by default, containing the Terminal and Canvas) -->
+                <div id="jvm-container" class="absolute inset-0 hidden bg-black flex flex-col z-10">
+                    <!-- Top Bar of Runner -->
+                    <div class="bg-gray-900 px-4 py-2 flex items-center justify-between border-b border-green-500/20 text-xs">
+                        <div class="flex items-center space-x-2 text-green-400 font-mono">
+                            <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
+                            <span id="runner-title">CheerpJ JVM v3.0</span>
+                        </div>
+                        <button onclick="stopJavaApp()" class="text-red-400 hover:text-red-300 font-bold flex items-center space-x-1">
+                            <i class="fas fa-stop-circle"></i> <span>Terminate</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Content (Terminal or Canvas Display) -->
+                    <div class="flex-1 relative flex items-center justify-center p-2 bg-black">
+                        <!-- Terminal Log for loading -->
+                        <div id="jvm-terminal" class="absolute inset-0 bg-black p-4 font-mono text-xs text-green-400 overflow-y-auto text-left flex flex-col space-y-1 z-20">
+                            <div class="text-gray-500">// Welcome to CodeFoxSoft Web JVM Runner</div>
+                        </div>
+                        <!-- Canvas Mount Point -->
+                        <div id="jvm-display-mount" class="w-full h-full relative z-10"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Details Pane -->
+            <div class="w-full md:w-1/3 p-6 md:p-8 flex flex-col justify-between overflow-y-auto bg-gray-900 bg-opacity-40 backdrop-blur-sm">
+                <div>
+                    <!-- Category Badge -->
+                    <span id="lightbox-category" class="inline-block bg-green-950 border border-green-500/30 text-green-400 text-xs font-semibold px-2.5 py-0.5 rounded mb-4">JAVA APPLICATION</span>
+                    
+                    <!-- Title -->
+                    <h2 id="lightbox-title" class="text-2xl md:text-3xl font-bold text-green-500 mb-4 font-sans leading-tight">Program Name</h2>
+                    
+                    <!-- Description -->
+                    <p id="lightbox-desc" class="text-gray-300 text-sm leading-relaxed mb-6 font-sans">
+                        Program Description goes here...
+                    </p>
+                </div>
+
+                <!-- Action Links / Buttons -->
+                <div class="mt-6 pt-6 border-t border-gray-800 space-y-3">
+                    <a id="lightbox-github-link" href="#" target="_blank" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition duration-300 text-sm">
+                        <i class="fab fa-github mr-2 text-lg"></i> View Source on GitHub
+                    </a>
+                    
+                    <!-- Run instructions -->
+                    <div class="bg-gray-950/60 p-4 rounded-lg border border-gray-800 text-xs text-gray-400 leading-relaxed font-mono">
+                        <div class="text-green-500 font-bold mb-1">// Run Locally:</div>
+                        javac <span class="local-class-name">NotepadCommander</span>.java<br>
+                        java <span class="local-class-name">NotepadCommander</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
 
     <script>
         // Global state for the gallery
         let galleryItems = [];
         let currentGalleryIndex = 0;
+        let cheerpjInitialized = false;
+        let isJvmRunning = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             // 1. Mobile menu toggle logic with ADA support
@@ -2823,38 +2789,44 @@
             entries.forEach((entry, index) => {
                 const img = entry.querySelector('.program-image img');
                 const titleEl = entry.querySelector('.program-details h2');
+                const linkEl = titleEl ? titleEl.querySelector('a') : null;
                 const descEl = entry.querySelector('.program-details p');
 
                 if (img) {
-                    // Store data for this item
-                    // Use a placeholder title/desc if missing, though they should be there
                     const title = titleEl ? titleEl.textContent.trim() : '';
                     const desc = descEl ? descEl.textContent.trim() : '';
+                    const javaUrl = linkEl ? linkEl.href : '';
+                    
+                    // Extract class name (e.g. NotepadCommander)
+                    let className = '';
+                    if (javaUrl) {
+                        const filename = javaUrl.substring(javaUrl.lastIndexOf('/') + 1);
+                        if (filename.endsWith('.java')) {
+                            className = filename.slice(0, -5);
+                        }
+                    }
 
                     galleryItems.push({
-                        imgElement: img, // Store reference to access current src (handling placeholders)
+                        imgElement: img,
                         title: title,
-                        desc: desc
+                        desc: desc,
+                        javaUrl: javaUrl,
+                        className: className
                     });
 
-                    // 2. Override existing click behavior & add ADA support
-                    // Remove inline onclick attribute
+                    // Override existing click behavior & add ADA support
                     img.removeAttribute('onclick');
-                    
-                    // Add attributes to make image behave like a button for screen readers and keyboard users
                     img.setAttribute('role', 'button');
                     img.setAttribute('tabindex', '0');
                     img.setAttribute('aria-label', `View full screenshot for ${title}`);
                     img.style.cursor = 'pointer';
 
-                    // Attach click listener
                     img.addEventListener('click', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         openLightbox(index);
                     });
 
-                    // Add keyboard listener (Enter or Space to trigger)
                     img.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
@@ -2867,7 +2839,6 @@
             // 3. Keyboard navigation events
             document.addEventListener('keydown', (e) => {
                 const modal = document.getElementById("lightbox-modal");
-                // Only react if modal is visible
                 if (modal && modal.style.display !== "none") {
                     if (e.key === "ArrowLeft") {
                         navigateLightbox(-1);
@@ -2886,23 +2857,20 @@
             currentGalleryIndex = index;
             const modal = document.getElementById("lightbox-modal");
 
-            // Apply flex styles for centering (overriding any existing css if needed)
             modal.style.display = "flex";
-            modal.style.flexDirection = "column";
-            modal.style.justifyContent = "center";
-            modal.style.alignItems = "center";
-
             updateLightboxContent();
         }
 
         function closeLightbox() {
+            if (isJvmRunning) {
+                stopJavaApp();
+            }
             document.getElementById("lightbox-modal").style.display = "none";
         }
 
         function navigateLightbox(direction) {
             let newIndex = currentGalleryIndex + direction;
 
-            // Wrap around logic
             if (newIndex < 0) {
                 newIndex = galleryItems.length - 1;
             } else if (newIndex >= galleryItems.length) {
@@ -2914,18 +2882,121 @@
         }
 
         function updateLightboxContent() {
+            if (isJvmRunning) {
+                stopJavaApp();
+            }
+
             const item = galleryItems[currentGalleryIndex];
             const modalImg = document.getElementById("lightbox-content");
-            const captionText = document.getElementById("lightbox-caption");
+            const titleText = document.getElementById("lightbox-title");
+            const descText = document.getElementById("lightbox-desc");
+            const githubLink = document.getElementById("lightbox-github-link");
+            const categoryText = document.getElementById("lightbox-category");
+            const localClassNames = document.querySelectorAll(".local-class-name");
 
             if (item) {
-                // Use the current source of the image element (handles loaded placeholders)
                 modalImg.src = item.imgElement.src;
+                
+                // Show play overlay
+                document.getElementById("play-overlay").classList.remove("hidden");
 
-                // Update caption with title and description
-                // Using innerHTML to allow styling (bold title)
-                captionText.innerHTML = `<h3 style="color: #4ade80; font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem;">${item.title}</h3><p style="color: #d1d5db; font-size: 1rem; line-height: 1.5;">${item.desc}</p>`;
+                // Update text details
+                titleText.textContent = item.title;
+                descText.textContent = item.desc;
+                
+                if (githubLink) {
+                    githubLink.href = item.javaUrl;
+                }
+                
+                // Find category from section title
+                let sectionEl = item.imgElement.closest('.module-section');
+                let categoryName = "JAVA APPLICATION";
+                if (sectionEl) {
+                    const secTitle = sectionEl.querySelector('h2');
+                    if (secTitle) {
+                        categoryName = secTitle.textContent.replace(/🖥️|🧮|🎮|🎨|📡|💾/g, '').trim();
+                    }
+                }
+                categoryText.textContent = categoryName;
+
+                // Update compile helper syntax
+                localClassNames.forEach(el => {
+                    el.textContent = item.className;
+                });
             }
+        }
+
+        function showTerminalMessage(message) {
+            const term = document.getElementById("jvm-terminal");
+            if (!term) return;
+            const div = document.createElement("div");
+            div.textContent = `[SYSTEM] ${message}`;
+            term.appendChild(div);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        async function runJavaApp() {
+            const item = galleryItems[currentGalleryIndex];
+            if (!item || !item.className) return;
+
+            isJvmRunning = true;
+            
+            // Show JVM UI
+            const jvmContainer = document.getElementById("jvm-container");
+            const terminal = document.getElementById("jvm-terminal");
+            const mount = document.getElementById("jvm-display-mount");
+            
+            jvmContainer.classList.remove("hidden");
+            terminal.classList.remove("hidden");
+            mount.innerHTML = ""; // Clear mount
+            
+            // Clear terminal logs except header
+            terminal.innerHTML = '<div class="text-gray-500">// Welcome to CodeFoxSoft Web JVM Runner</div>';
+            
+            showTerminalMessage("Initializing CheerpJ runtime...");
+            
+            try {
+                if (!cheerpjInitialized) {
+                    if (typeof cheerpjInit === "undefined") {
+                        showTerminalMessage("Loading CheerpJ library from CDN...");
+                        await new Promise((resolve, reject) => {
+                            const script = document.createElement("script");
+                            script.src = "https://cjrtnc.leaningtech.com/3.0/loader.js";
+                            script.onload = resolve;
+                            script.onerror = reject;
+                            document.head.appendChild(script);
+                        });
+                    }
+                    showTerminalMessage("Bootstrapping virtual JVM...");
+                    await cheerpjInit();
+                    cheerpjInitialized = true;
+                }
+                
+                showTerminalMessage("JVM ready.");
+                showTerminalMessage(`Loading class file /app/javaapps/GUI/${item.className}.class...`);
+                
+                cheerpjCreateDisplay(-1, -1, mount);
+                
+                showTerminalMessage(`Running main method of class '${item.className}'...`);
+                
+                // Hide terminal and show the canvas
+                terminal.classList.add("hidden");
+                
+                await cheerpjRunMain(item.className, "/app/javaapps/GUI/");
+                
+            } catch (err) {
+                terminal.classList.remove("hidden");
+                showTerminalMessage(`ERROR: ${err.message}`);
+                console.error(err);
+            }
+        }
+
+        function stopJavaApp() {
+            isJvmRunning = false;
+            
+            document.getElementById("jvm-container").classList.add("hidden");
+            document.getElementById("jvm-display-mount").innerHTML = "";
+            document.getElementById("play-overlay").classList.remove("hidden");
         }
     </script>
 
