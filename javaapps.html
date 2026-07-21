@@ -2997,17 +2997,23 @@
                 
                 cheerpjCreateDisplay(-1, -1, mount);
                 
-                showTerminalMessage(`Running main method of class '${item.className}'...`);
+                showTerminalMessage(`Executing '${item.className}'...`);
                 
-                // Hide terminal and show the canvas
-                terminal.classList.add("hidden");
+                // Run main with classpath /app/javaapps/GUI
+                await cheerpjRunMain(item.className, "/app/javaapps/GUI");
                 
-                await cheerpjRunMain(item.className, "/app/javaapps/GUI/");
+                // Hide terminal log after starting
+                setTimeout(() => {
+                    if (isJvmRunning) {
+                        terminal.classList.add("hidden");
+                    }
+                }, 1200);
                 
             } catch (err) {
                 terminal.classList.remove("hidden");
-                showTerminalMessage(`ERROR: ${err.message}`);
-                console.error(err);
+                const errMsg = (err && (err.stack || err.message)) ? (err.stack || err.message) : String(err);
+                showTerminalMessage(`ERROR: ${errMsg}`);
+                console.error("CheerpJ execution error:", err);
             }
         }
 
