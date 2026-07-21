@@ -39,6 +39,8 @@
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CheerpJ WebAssembly JVM Loader CDN -->
+    <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
     <!-- Google Fonts - Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
@@ -2978,7 +2980,7 @@
                         showTerminalMessage("Loading CheerpJ library from CDN...");
                         await new Promise((resolve, reject) => {
                             const script = document.createElement("script");
-                            script.src = "https://cjrtnc.leaningtech.com/3.0/loader.js";
+                            script.src = "https://cjrtnc.leaningtech.com/4.3/loader.js";
                             script.onload = resolve;
                             script.onerror = reject;
                             document.head.appendChild(script);
