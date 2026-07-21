@@ -2998,16 +2998,25 @@
                 cheerpjCreateDisplay(-1, -1, mount);
                 
                 showTerminalMessage(`Executing '${item.className}'...`);
+                showTerminalMessage("Launching Swing GUI...");
                 
-                // Run main with classpath /app/javaapps/GUI
-                await cheerpjRunMain(item.className, "/app/javaapps/GUI");
-                
-                // Hide terminal log after starting
+                // Hide the terminal overlay after a short delay so the canvas is visible.
+                // cheerpjRunMain never resolves for Swing apps (they run until closed),
+                // so we must schedule this BEFORE calling it.
                 setTimeout(() => {
                     if (isJvmRunning) {
                         terminal.classList.add("hidden");
                     }
-                }, 1200);
+                }, 1500);
+                
+                // Fire and forget — do NOT await. Swing apps run indefinitely
+                // and the promise only resolves when the Java process exits.
+                cheerpjRunMain(item.className, "/app/javaapps/GUI").catch(err => {
+                    terminal.classList.remove("hidden");
+                    const errMsg = (err && (err.stack || err.message)) ? (err.stack || err.message) : String(err);
+                    showTerminalMessage(`ERROR: ${errMsg}`);
+                    console.error("CheerpJ execution error:", err);
+                });
                 
             } catch (err) {
                 terminal.classList.remove("hidden");
