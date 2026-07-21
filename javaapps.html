@@ -2690,11 +2690,11 @@
         <button class="absolute right-4 top-1/2 -translate-y-1/2 bg-gray-900 bg-opacity-60 text-white hover:bg-green-500 hover:text-black w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold transition duration-300 z-50 focus:outline-none" aria-label="Next image" onclick="event.stopPropagation(); navigateLightbox(1)">&#10095;</button>
 
         <!-- Modal Container -->
-        <div class="bg-gray-950 border border-green-500/30 rounded-2xl w-full max-w-6xl max-h-[90vh] md:max-h-[85vh] overflow-hidden flex flex-col md:flex-row shadow-2xl relative" onclick="event.stopPropagation()">
+        <div class="bg-gray-950 border border-green-500/30 rounded-2xl w-[94vw] max-w-7xl h-[88vh] md:h-[84vh] overflow-hidden flex flex-col md:flex-row shadow-2xl relative" onclick="event.stopPropagation()">
             <!-- Left Side: Interactive Area (Visualizer / Runner / Screenshot) -->
-            <div class="w-full md:w-2/3 h-[300px] sm:h-[400px] md:h-[550px] bg-black relative flex items-center justify-center border-b md:border-b-0 md:border-r border-green-500/20">
+            <div class="w-full md:w-2/3 h-[50vh] md:h-full bg-black relative flex items-center justify-center border-b md:border-b-0 md:border-r border-green-500/20">
                 <!-- Screenshot Image -->
-                <img id="lightbox-content" class="w-full h-full object-contain transition-all duration-300" alt="Enlarged project screenshot">
+                <img id="lightbox-content" class="w-full h-full object-contain transition-all duration-300 p-2" alt="Enlarged project screenshot">
                 
                 <!-- Play Button Overlay -->
                 <div id="play-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 hover:bg-black/60 transition-all duration-300 cursor-pointer group" onclick="runJavaApp()">
@@ -2710,7 +2710,7 @@
                     <div class="bg-gray-900 px-4 py-2 flex items-center justify-between border-b border-green-500/20 text-xs">
                         <div class="flex items-center space-x-2 text-green-400 font-mono">
                             <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
-                            <span id="runner-title">CheerpJ JVM v3.0</span>
+                            <span id="runner-title">CheerpJ JVM v4.3</span>
                         </div>
                         <button onclick="stopJavaApp()" class="text-red-400 hover:text-red-300 font-bold flex items-center space-x-1">
                             <i class="fas fa-stop-circle"></i> <span>Terminate</span>
@@ -2752,9 +2752,10 @@
                     
                     <!-- Run instructions -->
                     <div class="bg-gray-950/60 p-4 rounded-lg border border-gray-800 text-xs text-gray-400 leading-relaxed font-mono">
-                        <div class="text-green-500 font-bold mb-1">// Run Locally:</div>
-                        javac <span class="local-class-name">NotepadCommander</span>.java<br>
-                        java <span class="local-class-name">NotepadCommander</span>
+                        <div class="text-green-500 font-bold mb-1">// How to Run Locally:</div>
+                        1) Download source code from GitHub<br>
+                        2) javac <span class="local-class-name">NotepadCommander</span>.java<br>
+                        3) java <span class="local-class-name">NotepadCommander</span>
                     </div>
                 </div>
             </div>
